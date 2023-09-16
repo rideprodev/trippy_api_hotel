@@ -1,20 +1,20 @@
 {
-  "name": "trippy_apis",
+  "name": "trippy_apis_hotel",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --exec babel-node src/index.js",
-    "clean": "rm -rf trippy-apis",
-    "build": "npm run clean && babel src --out-dir lib --copy-files -d trippy-apis",
-    "serve": "node trippy-apis/index.js",
+    "clean": "rm -rf trippy-apis-hotel",
+    "build": "npm run clean && babel src --out-dir lib --copy-files -d trippy-apis-hotel",
+    "serve": "node trippy-apis-hotel/index.js",
     "migration": "sequelize db:migrate",
     "seed": "sequelize db:seed",
     "lint": "eslint 'src/**/*.js' --fix",
     "format": "prettier-eslint 'src/**/*.{js,json}' --write",
-    "clean-windows": "del trippy-apis",
-    "build-windows": "npm run clean-windows && babel src --out-dir lib --copy-files -d trippy-apis"
+    "clean-windows": "del trippy-apis-hotel",
+    "build-windows": "npm run clean-windows && babel src --out-dir lib --copy-files -d trippy-apis-hotel"
   },
   "author": "",
   "license": "ISC",

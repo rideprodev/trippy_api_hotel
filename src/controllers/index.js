@@ -1,4 +1,3 @@
+import customController from "./customController";
 
-
-export default {
-};
+export default { customController };
