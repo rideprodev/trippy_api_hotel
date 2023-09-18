@@ -48,7 +48,7 @@ export default {
         },
         order: [["id", "DESC"]],
         offset: offset,
-        limit: 10,
+        limit: limit,
       });
       const _response = await genrateResponse(response, include);
       return _response;
