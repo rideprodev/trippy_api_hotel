@@ -22,6 +22,24 @@ const transform = (obj) => {
   return result;
 };
 
+const intialUpdateObject = (element) => {
+  let obj = {};
+  for (const [key, value] of Object.entries(element)) {
+    obj[key] = typeof value === "object" && value !== null ? [value] : value;
+  }
+  return obj;
+};
+
+const updateObject = (element, object) => {
+  for (const [key, value] of Object.entries(element)) {
+    element[key] =
+      typeof value === "object" && value !== null
+        ? [...value, object[key]]
+        : value;
+  }
+  return element;
+};
+
 const genrateResponse = async (response) => {
   try {
     const result = [];
@@ -37,25 +55,18 @@ const genrateResponse = async (response) => {
       const element = result[i];
       const l = final_res.length;
       if (l === 0) {
-        console.log(Object.keys(element));
-        element.images = [
-          Object.values(element)[Object.values(element).length - 1],
-        ];
-        final_res.push(element);
+        final_res.push(intialUpdateObject(element));
       } else {
         const filterData = final_res.filter((x) => x.id == element.id);
         if (filterData.length > 0) {
           for (let j = 0; j < final_res.length; j++) {
             const e = final_res[j];
             if (e.id === element.id) {
-              final_res[j].images.push(element.images);
+              final_res[j] = updateObject(e, element);
             }
           }
         } else {
-          element.images = [
-            Object.values(element)[Object.values(element).length - 1],
-          ];
-          final_res.push(element);
+          final_res.push(intialUpdateObject(element));
         }
       }
     }
