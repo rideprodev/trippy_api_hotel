@@ -40,7 +40,7 @@ const updateObject = (element, object) => {
   return element;
 };
 
-const genrateResponse = async (response) => {
+const genrateData = async (response) => {
   try {
     const result = [];
     const final_res = [];
@@ -71,6 +71,35 @@ const genrateResponse = async (response) => {
       }
     }
     return final_res;
+  } catch (error) {
+    throw Error(error);
+  }
+};
+
+const incudeData = async (response, include) => {
+  for (const [key, val] of Object.entries(response)) {
+    for (let item of include) {
+      const where = {};
+      where[item.ref] = val.dataValues[item.ref];
+      if (item.type === "one") {
+        val.dataValues[item.as] = await item.model.findOne({ where: where });
+      } else {
+        val.dataValues[item.as] = await item.model.findAll({
+          where: where,
+        });
+      }
+    }
+  }
+
+  return response;
+};
+
+const genrateResponse = async (response, include) => {
+  try {
+    return {
+      ...response,
+      rows: await incudeData(response.rows, include),
+    };
   } catch (error) {
     throw Error(error);
   }

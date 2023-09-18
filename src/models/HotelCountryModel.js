@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   const HotelCountry = sequelize.define(
     "HotelCountry",
     {
-      countryCode2: {
+      countryCode: {
         type: DataTypes.STRING(10),
         allowNull: false,
       },
@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       indexes: [
         {
           unique: false,
-          fields: ["country_code2"],
+          fields: ["country_code"],
         },
         {
           unique: false,
