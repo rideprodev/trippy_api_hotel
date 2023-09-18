@@ -1,3 +1,4 @@
 import customController from "./customController";
+import hotelController from "./hotelController";
 
-export default { customController };
+export default { customController, hotelController };

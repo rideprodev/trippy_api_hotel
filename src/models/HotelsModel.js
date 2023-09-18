@@ -86,6 +86,15 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
-  Hotel.associate = function (models) {};
+  Hotel.associate = function (models) {
+    // Hotel.hasMany(models.HotelImage, {
+    //   foreignKey: "hotelCode",
+    // });
+    // Hotel.belongsTo(models.HotelImage, {
+    //   targetKey: "hotelCode",
+    //   foreignKey: "hotelCode",
+    //   as: "images",
+    // });
+  };
   return Hotel;
 };
