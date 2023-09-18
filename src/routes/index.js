@@ -4,6 +4,7 @@ import path from "path";
 import loggers from "../services/logger";
 import utility from "../services/utility";
 import customRoute from "./customRoute";
+import hotelRoute from "./hotelRoute";
 
 const router = Router();
 const register = (app) => {
@@ -15,7 +16,10 @@ const register = (app) => {
     }
   });
 
-  router.use("/api/v1", [router.use("/custom", customRoute)]);
+  router.use("/api/v1", [
+    router.use("/custom", customRoute),
+    router.use("/hotel", hotelRoute),
+  ]);
 
   app.use((error, req, res, next) => {
     if (!error.status || error.status == HttpStatus.INTERNAL_SERVER_ERROR) {
