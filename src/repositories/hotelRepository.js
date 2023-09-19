@@ -5,6 +5,19 @@ import genrateResponse from "../services/responseGenrater";
 
 export default {
   /**
+   * Get Hotel Token
+   * @param {Object} where
+   */
+  async getSessionToken(req) {
+    try {
+      // fetch token from settings
+      const token = await "Bearer E7C628DE-6FDA-43D1-A125-CBA9BEF557B3-2183";
+      return utility.ENCODE(token);
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+  /**
    * Get airport pages
    * @param {object} req
    */
@@ -85,6 +98,19 @@ export default {
       });
       const _response = await genrateResponse(response, include);
       return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get airline Token
+   * @param {Object} where
+   */
+  async search(req) {
+    try {
+      const bodyData = req.body;
+      return bodyData;
     } catch (error) {
       throw Error(error);
     }

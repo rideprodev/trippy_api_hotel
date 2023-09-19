@@ -33,4 +33,19 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Get all airport List
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async search(req, res, next) {
+    try {
+      const response = await hotelRepository.search(req);
+      utility.getResponse(res, response, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };
