@@ -71,13 +71,16 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
           unique: false,
+          fields: ["hotel_name"],
+        },
+        {
+          unique: false,
           fields: ["city_code"],
         },
         {
           unique: false,
           fields: ["destination_code"],
         },
-
         {
           unique: false,
           fields: ["country_code"],
@@ -86,15 +89,6 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
-  Hotel.associate = function (models) {
-    // Hotel.hasMany(models.HotelImage, {
-    //   foreignKey: "hotelCode",
-    // });
-    // Hotel.belongsTo(models.HotelImage, {
-    //   targetKey: "hotelCode",
-    //   foreignKey: "hotelCode",
-    //   as: "images",
-    // });
-  };
+  Hotel.associate = function (models) {};
   return Hotel;
 };

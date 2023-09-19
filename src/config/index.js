@@ -10,6 +10,7 @@ export default {
     mediaUploadSizeLimit: 1024 * 1024 * 100,
     baseUrl: process.env.BASE_URL,
     adminUrl: process.env.ADMIN_URL,
+    RGNBaseUrl: process.env.GRN_BASE_URL,
     environment: process.env.NODE_ENV,
     swaggerHost: process.env.SWAGGER_HOST,
     currency: process.env.CURRENCY_ABBR,

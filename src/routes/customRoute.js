@@ -8,7 +8,7 @@ const { authMiddleware, resourceAccessMiddleware, validateMiddleware } =
 
 const router = Router();
 
-// router.get("/", customController.getAirports);
+router.get("/", customController.getAllPlaces);
 
 router.get(
   "/admin/:objectName",
