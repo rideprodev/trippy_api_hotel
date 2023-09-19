@@ -9,10 +9,16 @@ const { authMiddleware, resourceAccessMiddleware, validateMiddleware } =
 const router = Router();
 
 router.get(
-  "/admin",
+  "/admin/get",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),
   hotelController.getAllHotels
+);
+router.get(
+  "/admin/get/:hotelId",
+  authMiddleware,
+  resourceAccessMiddleware(["admin"]),
+  hotelController.getOneHotels
 );
 
 export default router;

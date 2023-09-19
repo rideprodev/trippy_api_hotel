@@ -18,4 +18,19 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Get all airport List
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async getOneHotels(req, res, next) {
+    try {
+      const airports = await hotelRepository.getOneHotels(req);
+      utility.getResponse(res, airports, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

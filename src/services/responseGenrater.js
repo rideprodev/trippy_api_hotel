@@ -40,7 +40,7 @@ const updateObject = (element, object) => {
   return element;
 };
 
-const genrateData = async (response) => {
+export const genrateData = async (response) => {
   try {
     const result = [];
     const final_res = [];
@@ -94,12 +94,20 @@ const incudeData = async (response, include) => {
   return response;
 };
 
-const genrateResponse = async (response, include) => {
+const genrateResponse = async (response, include, isCount = false) => {
   try {
-    return {
-      ...response,
-      rows: await incudeData(response.rows, include),
-    };
+    if (isCount) {
+      return {
+        ...response,
+        rows:
+          response.rows.length > 0
+            ? await incudeData(response.rows, include)
+            : [],
+      };
+    } else {
+      const _response = response ? await incudeData([response], include) : [{}];
+      return _response[0];
+    }
   } catch (error) {
     throw Error(error);
   }

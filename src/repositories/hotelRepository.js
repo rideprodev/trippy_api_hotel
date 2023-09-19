@@ -17,9 +17,10 @@ export default {
       if (queryData.name) {
         where = {
           [Op.or]: [
-            { name: { [Op.like]: `%${queryData.name}%` } },
-            { code: { [Op.like]: `%${queryData.name}%` } },
-            { city: { [Op.like]: `%${queryData.name}%` } },
+            { hotelCode: { [Op.like]: `%${queryData.name}%` } },
+            { hotelName: { [Op.like]: `%${queryData.name}%` } },
+            { cityCode: { [Op.like]: `%${queryData.name}%` } },
+            { postalCode: { [Op.like]: `%${queryData.name}%` } },
           ],
         };
       }
@@ -30,7 +31,6 @@ export default {
       }
 
       const include = [
-        { model: HotelImage, as: "images", type: "many", ref: "hotelCode" },
         { model: HotelCity, as: "city", type: "one", ref: "cityCode" },
         {
           model: HotelDestination,
@@ -49,6 +49,39 @@ export default {
         order: [["id", "DESC"]],
         offset: offset,
         limit: limit,
+      });
+      const _response = await genrateResponse(response, include, true);
+      return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get airport pages
+   * @param {object} req
+   */
+  async getOneHotels(req) {
+    try {
+      const { hotelId } = req.params;
+      let where = { id: hotelId };
+      const include = [
+        { model: HotelImage, as: "images", type: "many", ref: "hotelCode" },
+        { model: HotelCity, as: "city", type: "one", ref: "cityCode" },
+        {
+          model: HotelDestination,
+          as: "destination",
+          type: "one",
+          ref: "destinationCode",
+        },
+        { model: HotelCountry, as: "county", type: "one", ref: "countryCode" },
+      ];
+
+      const response = await Hotel.findOne({
+        where: where,
+        attributes: {
+          exclude: ["createdBy", "updatedBy", "createdAt", "updatedAt"],
+        },
       });
       const _response = await genrateResponse(response, include);
       return _response;
