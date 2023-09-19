@@ -12,13 +12,26 @@ export default {
   async fetchHotelsCodes(req, res, next) {
     try {
       const bodyData = req.body;
-      const getAllHotelCodes = await hotelRepository.getAllHotels();
-      //   utility.getError(
-      //     res,
-      //     "Unauthorized user access.",
-      //     HttpStatus.UNAUTHORIZED
-      //   );
-      next();
+      const hotelCodes = [];
+      if (bodyData.hotelCode !== "") {
+        hotelCodes.push(bodyData.hotelCode);
+        req.body.hotelCode = hotelCodes;
+        next();
+      } else {
+        const getAllHotelCodes = await hotelRepository.fetchAll({
+          cityCode: bodyData.cityCode,
+        });
+        if (getAllHotelCodes.length > 0) {
+          for (let index = 0; index < getAllHotelCodes.length; index++) {
+            const element = getAllHotelCodes[index];
+            hotelCodes.push(`${element.hotelCode}`.substring(2));
+          }
+          req.body.hotelCode = hotelCodes;
+          next();
+        } else {
+          utility.getError(res, "No Hotel Find In this location");
+        }
+      }
     } catch (error) {
       next(error);
     }
