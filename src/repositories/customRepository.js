@@ -1,5 +1,6 @@
 import models from "../models";
 const {
+  Hotel,
   HotelAirports,
   HotelCity,
   HotelCountry,
@@ -95,13 +96,9 @@ const getObject = (queryData, model = "airports") => {
       model: HotelCurrency,
       where: {
         [Op.or]: [
-          {
-            [Op.or]: [
-              { currencyCode: { [Op.like]: `%${queryData.name}%` } },
-              { currency: { [Op.like]: `%${queryData.name}%` } },
-              { countryCode: { [Op.like]: `%${queryData.name}%` } },
-            ],
-          },
+          { currencyCode: { [Op.like]: `%${queryData.name}%` } },
+          { currency: { [Op.like]: `%${queryData.name}%` } },
+          { countryCode: { [Op.like]: `%${queryData.name}%` } },
         ],
       },
     };
@@ -133,12 +130,43 @@ export default {
       return await object.model.findAndCountAll({
         where: where,
         attributes: {
-          exclude: ["createdBy", "updatedBy", "createdAt", "updatedAt"],
+          exclude: ["createdAt", "updatedAt"],
         },
         order: [["id", "DESC"]],
         offset: offset,
         limit: limit,
       });
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get All Plcaes Where
+   * @param {object} req
+   */
+  async getAllPlaces(req) {
+    try {
+      const { name } = req.query;
+      const whereCity = {
+          [Op.or]: [{ cityName: { [Op.like]: `%${name}%` } }],
+        },
+        whereHotel = {
+          [Op.or]: [{ hotelName: { [Op.like]: `%${name}%` } }],
+        },
+        _response = {};
+
+      _response.hotels = await Hotel.findAll({
+        where: whereHotel,
+        attributes: ["id", "hotelCode", "hotelName", "cityCode"],
+        limit: 15,
+      });
+      _response.location = await HotelCity.findAll({
+        where: whereCity,
+        attributes: ["cityCode", "cityName"],
+        limit: 15,
+      });
+      return _response;
     } catch (error) {
       throw Error(error);
     }

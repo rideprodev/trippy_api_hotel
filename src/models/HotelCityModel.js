@@ -34,6 +34,10 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
           unique: false,
+          fields: ["city_name"],
+        },
+        {
+          unique: false,
           fields: ["destination_code"],
         },
         {
