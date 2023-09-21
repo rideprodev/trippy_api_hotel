@@ -145,7 +145,74 @@ export default {
       //     req,
       //     _response.status,
       //     _response.message,
-      //     MistiflyApis.search_v1,
+      //     GRN_Apis.search,
+      //     false
+      //   );
+      // }
+      return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get airline Token
+   * @param {Object} where
+   */
+  async refetch(req) {
+    try {
+      const { hcode } = req.query;
+      const { serchId } = req.params;
+      const apiEndPoint = GRN_Apis.search;
+      apiEndPoint.url = `${apiEndPoint.url}/${serchId}${
+        hcode ? `?hcode=${hcode}` : ""
+      }`;
+      apiEndPoint.method = "get";
+      const _response = await requestHandler.fetchResponseFromHotel(
+        apiEndPoint,
+        await this.getSessionToken()
+      );
+      // console.log(_response);
+      // if (_response !== undefined) {
+      //   this.genrateAirlineLogger(
+      //     req,
+      //     _response.status,
+      //     _response.message,
+      //     apiEndPoint,
+      //     false
+      //   );
+      // }
+      return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get airline Token
+   * @param {Object} where
+   */
+  async revalidate(req) {
+    try {
+      const bodyData = req.body;
+      const _request_data = {
+        group_code: bodyData.group_code,
+        rate_key: bodyData.rate_key,
+      };
+      const apiEndPoint = GRN_Apis.search;
+      apiEndPoint.url = `${apiEndPoint.url}/${bodyData.search_id}/rates/auto?action=recheck`;
+      const _response = await requestHandler.fetchResponseFromHotel(
+        apiEndPoint,
+        await this.getSessionToken(),
+        _request_data
+      );
+      // console.log(_response);
+      // if (_response !== undefined) {
+      //   this.genrateAirlineLogger(
+      //     req,
+      //     _response.status,
+      //     _response.message,
+      //     apiEndPoint,
       //     false
       //   );
       // }
