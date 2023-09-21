@@ -14,14 +14,7 @@ const { hotelValidator } = validations;
 
 const router = Router();
 
-router.post(
-  "/search",
-  validateMiddleware({
-    schema: hotelValidator.search,
-  }),
-  hotelMiddleware.fetchHotelsCodes,
-  hotelController.search
-);
+// ------------Backend Apis Start -----------------------
 
 router.get(
   "/admin/get",
@@ -35,5 +28,39 @@ router.get(
   resourceAccessMiddleware(["admin"]),
   hotelController.getOneHotels
 );
+
+// ------------Backend Apis End -----------------------
+// ===========================================================
+// ----------- Third Party Apis Start -----------------------
+
+router.post(
+  "/search",
+  validateMiddleware({
+    schema: hotelValidator.search,
+  }),
+  hotelMiddleware.fetchHotelsCodes,
+  hotelController.search
+);
+
+router.get("/search/:serchId", hotelController.refetch);
+
+router.post(
+  "/revalidate",
+  validateMiddleware({
+    schema: hotelValidator.revalidate,
+  }),
+  hotelController.revalidate
+);
+
+router.post(
+  "/booking",
+  authMiddleware,
+  validateMiddleware({
+    schema: hotelValidator.booking,
+  }),
+  hotelController.booking
+);
+
+// ----------- Third Party Apis End -----------------------
 
 export default router;
