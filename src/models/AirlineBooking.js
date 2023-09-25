@@ -67,6 +67,7 @@ module.exports = (sequelize, DataTypes) => {
           "Cancelled"
         ),
         defaultValue: "PENDING",
+        allowNull: false,
       },
       bookingUniqueId: {
         type: DataTypes.STRING(10),
@@ -77,6 +78,7 @@ module.exports = (sequelize, DataTypes) => {
       ticketStatus: {
         type: DataTypes.ENUM("PENDING", "Ticketed", "Cancelled"),
         defaultValue: "PENDING",
+        allowNull: false,
       },
       fareSourceCode: {
         type: DataTypes.TEXT,
