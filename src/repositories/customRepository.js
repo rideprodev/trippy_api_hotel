@@ -1,31 +1,9 @@
 import models from "../models";
-const {
-  Hotel,
-  HotelAirports,
-  HotelCity,
-  HotelCountry,
-  HotelLanguage,
-  HotelArea,
-  HotelDestination,
-  HotelFacilities,
-  HotelCurrency,
-} = models;
+const { Hotel, HotelCity, HotelCountry, HotelLocation, HotelCurrency } = models;
 import { Op } from "sequelize";
 
 const getObject = (queryData, model = "airports") => {
-  if (model === "airports") {
-    return {
-      model: HotelAirports,
-      where: {
-        [Op.or]: [
-          { airportCode: { [Op.like]: `%${queryData.name}%` } },
-          { airportName: { [Op.like]: `%${queryData.name}%` } },
-          { cityCode: { [Op.like]: `%${queryData.name}%` } },
-          { cityName: { [Op.like]: `%${queryData.name}%` } },
-        ],
-      },
-    };
-  } else if (model === "cities") {
+  if (model === "cities") {
     return {
       model: HotelCity,
       where: {
@@ -33,7 +11,6 @@ const getObject = (queryData, model = "airports") => {
           { cityCode: { [Op.like]: `%${queryData.name}%` } },
           { cityName: { [Op.like]: `%${queryData.name}%` } },
           { countryCode: { [Op.like]: `%${queryData.name}%` } },
-          { destinationCode: { [Op.like]: `%${queryData.name}%` } },
         ],
       },
     };
@@ -48,46 +25,14 @@ const getObject = (queryData, model = "airports") => {
         ],
       },
     };
-  } else if (model === "langauges") {
-    return {
-      model: HotelLanguage,
-      where: {
-        [Op.or]: [
-          { languageCode: { [Op.like]: `%${queryData.name}%` } },
-          { language: { [Op.like]: `%${queryData.name}%` } },
-        ],
-      },
-    };
-  } else if (model === "areas") {
-    return {
-      model: HotelArea,
-      where: {
-        [Op.or]: [
-          { areaCode: { [Op.like]: `%${queryData.name}%` } },
-          { areaName: { [Op.like]: `%${queryData.name}%` } },
-          { countryCode: { [Op.like]: `%${queryData.name}%` } },
-          { countryName: { [Op.like]: `%${queryData.name}%` } },
-        ],
-      },
-    };
   } else if (model === "destinations") {
     return {
-      model: HotelDestination,
+      model: HotelLocation,
       where: {
         [Op.or]: [
-          { destinationCode: { [Op.like]: `%${queryData.name}%` } },
-          { destinationName: { [Op.like]: `%${queryData.name}%` } },
+          { locationCode: { [Op.like]: `%${queryData.name}%` } },
+          { locationName: { [Op.like]: `%${queryData.name}%` } },
           { countryCode: { [Op.like]: `%${queryData.name}%` } },
-        ],
-      },
-    };
-  } else if (model === "facilities") {
-    return {
-      model: HotelFacilities,
-      where: {
-        [Op.or]: [
-          { facilityCode: { [Op.like]: `%${queryData.name}%` } },
-          { facilityName: { [Op.like]: `%${queryData.name}%` } },
         ],
       },
     };
@@ -154,6 +99,9 @@ export default {
         whereHotel = {
           [Op.or]: [{ hotelName: { [Op.like]: `%${name}%` } }],
         },
+        whereLocation = {
+          [Op.or]: [{ locationName: { [Op.like]: `%${name}%` } }],
+        },
         _response = {};
 
       _response.hotels = await Hotel.findAll({
@@ -161,7 +109,12 @@ export default {
         attributes: ["id", "hotelCode", "hotelName", "cityCode"],
         limit: 15,
       });
-      _response.location = await HotelCity.findAll({
+      _response.location = await HotelLocation.findAll({
+        where: whereLocation,
+        attributes: ["locationCode", "locationName"],
+        limit: 15,
+      });
+      _response.city = await HotelCity.findAll({
         where: whereCity,
         attributes: ["cityCode", "cityName"],
         limit: 15,

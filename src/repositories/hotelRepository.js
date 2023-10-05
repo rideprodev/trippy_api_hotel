@@ -123,36 +123,36 @@ export default {
    * @param {Object} where
    */
   async search(req) {
-    // try {
-    const bodyData = req.body;
-    const _request_data = {
-      rooms: bodyData.rooms,
-      hotel_codes: ["1848138", "1848139", "1848139"], //bodyData.hotelCode,
-      rates: "comprehensive",
-      currency: bodyData.currency,
-      client_nationality: bodyData.client_nationality,
-      checkin: bodyData.checkIn,
-      checkout: bodyData.checkOut,
-    };
-    const _response = await requestHandler.fetchResponseFromHotel(
-      GRN_Apis.search,
-      await this.getSessionToken(),
-      _request_data
-    );
-    // console.log(_response);
-    // if (_response !== undefined) {
-    //   this.genrateAirlineLogger(
-    //     req,
-    //     _response.status,
-    //     _response.message,
-    //     GRN_Apis.search,
-    //     false
-    //   );
-    // }
-    return _response;
-    // } catch (error) {
-    //   throw Error(error);
-    // }
+    try {
+      const bodyData = req.body;
+      const _request_data = {
+        rooms: bodyData.rooms,
+        hotel_codes: ["1848138", "1848139", "1848137"], //bodyData.hotelCode,
+        rates: "comprehensive",
+        currency: bodyData.currency,
+        client_nationality: bodyData.client_nationality,
+        checkin: bodyData.checkIn,
+        checkout: bodyData.checkOut,
+      };
+      const _response = await requestHandler.fetchResponseFromHotel(
+        GRN_Apis.search,
+        await this.getSessionToken(),
+        _request_data
+      );
+      // console.log(_response);
+      // if (_response !== undefined) {
+      //   this.genrateAirlineLogger(
+      //     req,
+      //     _response.status,
+      //     _response.message,
+      //     GRN_Apis.search,
+      //     false
+      //   );
+      // }
+      return _response;
+    } catch (error) {
+      throw Error(error);
+    }
   },
 
   /**
