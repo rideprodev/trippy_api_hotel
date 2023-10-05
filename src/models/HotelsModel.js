@@ -10,11 +10,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
+      description: {
+        type: DataTypes.STRING(255),
+      },
       cityCode: {
         type: DataTypes.STRING(50),
         allowNull: false,
       },
-      destinationCode: {
+      locationCode: {
         type: DataTypes.STRING(10),
         allowNull: false,
       },
@@ -22,7 +25,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(10),
         allowNull: false,
       },
-      description: {
+      comment: {
+        type: DataTypes.STRING(255),
+      },
+      StarCategory: {
         type: DataTypes.STRING(255),
       },
       address: {
@@ -31,9 +37,6 @@ module.exports = (sequelize, DataTypes) => {
       postalCode: {
         type: DataTypes.STRING(255),
         allowNull: false,
-      },
-      StarCategory: {
-        type: DataTypes.STRING(255),
       },
       latitude: {
         type: DataTypes.STRING(255),
@@ -79,7 +82,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
           unique: false,
-          fields: ["destination_code"],
+          fields: ["location_code"],
         },
         {
           unique: false,

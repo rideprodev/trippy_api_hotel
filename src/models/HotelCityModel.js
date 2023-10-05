@@ -14,9 +14,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(10),
         allowNull: false,
       },
-      destinationCode: {
-        type: DataTypes.STRING(10),
-      },
       createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -35,10 +32,6 @@ module.exports = (sequelize, DataTypes) => {
         {
           unique: false,
           fields: ["city_name"],
-        },
-        {
-          unique: false,
-          fields: ["destination_code"],
         },
         {
           unique: false,
