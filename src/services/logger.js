@@ -22,19 +22,8 @@ const errorLogger = winston.createLogger({
   ],
 });
 
-const emailErrorLogger = winston.createLogger({
-  transports: [
-    new winston.transports.File({
-      name: "email-error",
-      filename: path.join(__dirname, "../", "logs", "email-error.log"),
-      level: "error",
-    }),
-  ],
-});
-
 export default {
   errorLogger,
   infoLogger,
-  emailErrorLogger,
 };
 //https://www.npmjs.com/package/winston-daily-rotate-file
