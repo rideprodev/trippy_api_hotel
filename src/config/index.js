@@ -12,8 +12,7 @@ export default {
     adminUrl: process.env.ADMIN_URL,
     environment: process.env.NODE_ENV,
     swaggerHost: process.env.SWAGGER_HOST,
-    MistiflyBaseUrl: process.env.MISTIFLY_BASE_URL,
-    MistiflyTarget: process.env.MISTIFLY_TARGET,
+    GRNBaseUrl: process.env.GRN_BASE_URL,
     currency: process.env.CURRENCY_ABBR,
     languages: ["en"],
     setBaseUrl(url) {
