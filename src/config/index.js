@@ -10,9 +10,10 @@ export default {
     mediaUploadSizeLimit: 1024 * 1024 * 100,
     baseUrl: process.env.BASE_URL,
     adminUrl: process.env.ADMIN_URL,
-    RGNBaseUrl: process.env.GRN_BASE_URL,
     environment: process.env.NODE_ENV,
     swaggerHost: process.env.SWAGGER_HOST,
+    MistiflyBaseUrl: process.env.MISTIFLY_BASE_URL,
+    MistiflyTarget: process.env.MISTIFLY_TARGET,
     currency: process.env.CURRENCY_ABBR,
     languages: ["en"],
     setBaseUrl(url) {
@@ -29,18 +30,6 @@ export default {
       timezone: "+00:00",
     },
   },
-  // mail: {
-  //   from_name: process.env.SMTP_EMAIL_FROM_NAME,
-  //   from_email: process.env.SMTP_EMAIL_FROM_EMAIL,
-  //   is_smtp: true,
-  //   smtp: {
-  //     host: process.env.SMTP_HOST,
-  //     port: process.env.SMTP_HOST_PORT,
-  //     user: process.env.SMTP_USERNAME,
-  //     password: process.env.SMTP_PASSWORD,
-  //     isSecure: false,
-  //   },
-  // },
   jwtSecret: process.env.JWT_SECRET,
   jwtExpireIn: process.env.JWT_EXPIRE_IN,
 };
