@@ -27,18 +27,25 @@ const revalidate = Joi.object({
 
 const booking = Joi.object({
   search_id: Joi.string().required(),
+  isBundle: Joi.string().valid("true", "false").required(),
+  isUserTravelled: Joi.string().valid("true", "false").required(),
   hotel_code: Joi.string().required(),
   city_code: Joi.string().required(),
   group_code: Joi.string().required(),
   checkin: Joi.string().required(),
   checkout: Joi.string().required(),
   booking_comments: Joi.string().required(),
+  totalMember: Joi.string().required(),
   booking_items: Joi.array()
     .items(
       Joi.object({
         room_code: Joi.string().required(),
         rate_key: Joi.string().required(),
-        room_reference: Joi.string().required(),
+        room_reference: Joi.string().when("isBundle", {
+          is: "false",
+          then: Joi.string().required(),
+          otherwise: Joi.string().optional().allow(""),
+        }),
         rooms: Joi.array().items(
           Joi.object({
             no_of_infants: Joi.number()
@@ -47,30 +54,52 @@ const booking = Joi.object({
               .less(3)
               .optional()
               .allow(null),
-            paxes: Joi.array().items(
-              Joi.object({
-                title: Joi.string()
-                  .valid("Mr.", "Ms.", "Mrs.", "Mstr.")
-                  .required(),
-                name: Joi.string().required(),
-                surname: Joi.string().required(),
-                type: Joi.string().valid("AD", "CH").required(),
-                age: Joi.number().when("type", {
-                  is: "CH",
-                  then: Joi.number().positive().greater(0).less(18).required(),
-                  otherwise: Joi.number().optional().allow(null),
-                }),
-              })
-            ),
+            room_reference: Joi.string().when("isBundle", {
+              is: "true",
+              then: Joi.string().optional().allow(""),
+              otherwise: Joi.string().optional().allow(""),
+            }),
+            paxes: Joi.array().required(),
+            ages: Joi.array().required(),
           })
         ),
       })
     )
     .required(),
+  holder: Joi.string().required(),
+});
+
+const placeBid = Joi.object({
+  name: Joi.string().required(),
+  tripType: Joi.optional().allow("Hotel"),
+  from: Joi.string().required().label("whereId"),
+  to: Joi.string().required().label("totalDaysStay, nightStay"),
+  flightRoomNumber: Joi.string().required().label("Numbers of room need"),
+  airlineHotelCode: Joi.string().required().label("hotelCode"),
+  bookingClassReference: Joi.string().required().label("roomReference"),
+  departureFrom: Joi.string().required().label("checkIn"),
+  departureTo: Joi.string().required().label("CheckOut"),
+  holderId: Joi.array()
+    .required()
+    .label(
+      "if user is on booking then user Id other wise memebr main holder id"
+    ),
+  biddingPrice: Joi.string().required(),
+  minBid: Joi.string().required(),
+  maxBid: Joi.string().required(),
+  membersId: Joi.array().required(),
+  totalMember: Joi.string().required(),
+  adultMember: Joi.string().required(),
+  childMember: Joi.string().required(),
+  infantMember: Joi.string().required(),
+  isUserTravelled: Joi.string().valid("true", "false").required(),
+  sorceCode: Joi.string().required(),
+  biddingInfromation: Joi.object().min(1).required(),
 });
 
 export default {
   search,
   revalidate,
   booking,
+  placeBid,
 };
