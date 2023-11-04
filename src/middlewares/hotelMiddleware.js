@@ -46,11 +46,12 @@ export default {
       let members = [];
       if (bodyData.isUserTravelled === "true") {
         const userInformation = await UserPersonalInformation.findOne({
-          attributes: ["title", "nationality"],
+          attributes: ["title", "nationality", "type"],
           where: { userId: userData.id },
         });
         userData.dataValues.title = userInformation.title;
         userData.dataValues.nationality = userInformation.nationality;
+        userData.dataValues.type = userInformation.type;
         members = [...members, userData.dataValues];
       }
       let membersId = [];

@@ -247,99 +247,62 @@ export default {
         };
 
         //  Set Booking Items
-        for (let index = 0; index < booking_items.length; index++) {
-          const e = booking_items[index];
+        for (let index = 0; index < bodyData.booking_items.length; index++) {
+          const e = bodyData.booking_items[index];
           for (let i = 0; i < e.rooms.length; i++) {
-            const element = e.rooms[i];
-            console.log(element);
+            e.rooms[i].paxes = e.rooms[i].paxes.map((x, k) => {
+              const paxesData = membersData.filter((item) => item.id === x)[0];
+              return {
+                title: paxesData.title,
+                name: paxesData.firstName,
+                surname: paxesData.lastName,
+                type: paxesData.type === "ADT" ? "AD" : "CH",
+                age: e.rooms[i].ages[k],
+              };
+            });
+            delete e.rooms[i].ages;
+            // console.log(e.rooms[i]);
           }
         }
-        // const booking_items = [
-        //   {
-        //     room_code: "47euvmrt5arerojf",
-        //     rate_key:
-        //       "4phfnnzx4musrfstusmwihgx4hkohjxe6ky6lht52jdb37fgo2zqhgmfjnavxe4d5bdvz6xtv54bqebuxczwq5m72pobjl6gsgusxque4gne5bkfzn3dgoyxfu3ksqid7ggrvx2jfbchgmgd7lcmurmp5dd4kkuvasgulm257ndyzxxzaitcndiys36apbdkpo4gijymajicipw5xkahnqrhvxfujy6tblntpcpxaoo5a56dgl2aikbb",
-        //     room_reference: "qwxcrkscrircpwa",
-        //     rooms: [
-        //       {
-        //         paxes: [
-        //           {
-        //             title: "Mr.",
-        //             name: "Henry",
-        //             surname: "Patrick",
-        //             type: "AD",
-        //           },
-        //           {
-        //             title: "Mr.",
-        //             name: "Harry",
-        //             surname: "Patrick",
-        //             type: "AD",
-        //           },
-        //         ],
-        //       },
-        //     ],
-        //   },
-        // ];
+
+        // console.log(bodyData.booking_items[0].rooms[0].paxes);
+
+        // Request Data
+        const _request_data = {
+          search_id: bodyData.search_id,
+          hotel_code: bodyData.hotel_code,
+          city_code: bodyData.city_code,
+          group_code: bodyData.group_code,
+          checkout: bodyData.checkout,
+          checkin: bodyData.checkin,
+          booking_comments: bodyData.booking_comments,
+          booking_items: bodyData.booking_items,
+          payment_type: "AT_WEB",
+          agent_reference: "",
+          holder: holder,
+        };
+        // console.log(_request_data);
+        const _response = await requestHandler.fetchResponseFromHotel(
+          GRN_Apis.booking,
+          await this.getSessionToken(),
+          _request_data
+        );
+
+        // console.log(_response, "_response");
+
+        if (_response !== undefined) {
+          // this.genrateAirlineLogger(
+          //   req,
+          //   _response.status,
+          //   _response.message,
+          //   GRN_Apis.booking,
+          //   false
+          // );
+        }
+        return _response;
       } else {
         return "holderNotFound";
       }
-      // const holder = {};
-
-      // const _request_data = {
-      //   search_id: bodyData.search_id,
-      //   hotel_code: bodyData.hotel_code,
-      //   city_code: bodyData.city_code,
-      //   group_code: bodyData.group_code,
-      //   checkout: bodyData.checkout,
-      //   checkin: bodyData.checkin,
-      //   booking_comments: bodyData.booking_comments,
-      //   booking_items: [
-      //     {
-      //       room_code: "47euvmrt5arerojf",
-      //       rate_key:
-      //         "4phfnnzx4musrfstusmwihgx4hkohjxe6ky6lht52jdb37fgo2zqhgmfjnavxe4d5bdvz6xtv54bqebuxczwq5m72pobjl6gsgusxque4gne5bkfzn3dgoyxfu3ksqid7ggrvx2jfbchgmgd7lcmurmp5dd4kkuvasgulm257ndyzxxzaitcndiys36apbdkpo4gijymajicipw5xkahnqrhvxfujy6tblntpcpxaoo5a56dgl2aikbb",
-      //       room_reference: "qwxcrkscrircpwa",
-      //       rooms: [
-      //         {
-      //           paxes: [
-      //             {
-      //               title: "Mr.",
-      //               name: "Henry",
-      //               surname: "Patrick",
-      //               type: "AD",
-      //             },
-      //             {
-      //               title: "Mr.",
-      //               name: "Harry",
-      //               surname: "Patrick",
-      //               type: "AD",
-      //             },
-      //           ],
-      //         },
-      //       ],
-      //     },
-      //   ],
-      //   payment_type: "AT_WEB",
-      //   agent_reference: "",
-      //   holder: holder,
-      // };
-
-      // const _response = await requestHandler.fetchResponseFromHotel(
-      //   GRN_Apis.booking,
-      //   await this.getSessionToken(),
-      //   _request_data
-      // );
-      // console.log(_response);
-      // if (_response !== undefined) {
-      //   this.genrateAirlineLogger(
-      //     req,
-      //     _response.status,
-      //     _response.message,
-      //     apiEndPoint,
-      //     false
-      //   );
-      // }
-      // return _response;
     } catch (error) {
       throw Error(error);
     }

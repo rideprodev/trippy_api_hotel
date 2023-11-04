@@ -15,7 +15,7 @@ export default {
           "api-key": Token,
         },
       };
-      // console.log(_request);
+      // console.log(_request, "_request");
       const { status, data } = await axios(_request);
       return {
         status: status,
