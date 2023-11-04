@@ -33,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
       city: {
         type: DataTypes.STRING(100),
       },
+      panNumber: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
       passportNumber: {
         type: DataTypes.STRING(255),
         unique: true,
