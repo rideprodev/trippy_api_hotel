@@ -114,17 +114,17 @@ export default {
    */
   async booking(req, res, next) {
     try {
-      // const response = await hotelRepository.booking(req);
-      // if (response.status !== 200) {
-      //   utility.getError(res, response.message);
-      // } else if (response.data.errors && response.data.errors.length > 0) {
-      //   utility.getError(
-      //     res,
-      //     `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
-      //   );
-      // } else {
-      utility.getResponse(res, req.body, "RETRIVED");
-      // }
+      const response = await hotelRepository.booking(req);
+      if (response.status !== 200) {
+        utility.getError(res, response.message);
+      } else if (response.data.errors && response.data.errors.length > 0) {
+        utility.getError(
+          res,
+          `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
+        );
+      } else {
+        utility.getResponse(res, req.body, "RETRIVED");
+      }
     } catch (error) {
       next(error);
     }
