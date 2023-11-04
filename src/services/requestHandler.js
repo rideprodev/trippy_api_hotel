@@ -24,7 +24,10 @@ export default {
     } catch (error) {
       return {
         status: error.response.status,
-        message: `${error.response.data.errors[0].code} : ${error.response.data.errors[0].messages[0]}`,
+        message:
+          error.response.data.errors && error.response.data.errors.length > 0
+            ? `${error.response.data.errors[0].code} : ${error.response.data.errors[0].messages[0]}`
+            : error.response.data,
       };
     }
   },

@@ -123,7 +123,7 @@ export default {
           `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
         );
       } else {
-        utility.getResponse(res, req.body, "RETRIVED");
+        utility.getResponse(res, response, "RETRIVED");
       }
     } catch (error) {
       next(error);

@@ -227,84 +227,87 @@ export default {
    * @param {Object} where
    */
   async booking(req) {
-    try {
-      const bodyData = req.body;
-      const membersData = req.members;
-      let holder = {};
+    // try {
+    const bodyData = req.body;
+    const membersData = req.members;
+    let holder = {};
 
-      //  Set Holder Data
-      const holderData = membersData.filter((x) => x.id == bodyData.holder);
-      if (holderData.length > 0) {
-        const holderInfo = holderData[0];
-        holder = {
-          title: holderInfo.title,
-          name: holderInfo.firstName,
-          surname: holderInfo.lastName,
-          email: holderInfo.email,
-          phone_number: holderInfo.phoneNumber,
-          client_nationality: holderInfo.nationality,
-          pan_number: "CBJKK3320T",
-        };
+    //  Set Holder Data
+    const holderData = membersData.filter((x) => x.id == bodyData.holder);
+    if (holderData.length > 0) {
+      const holderInfo = holderData[0];
+      holder = {
+        title: holderInfo.title,
+        name: holderInfo.firstName,
+        surname: holderInfo.lastName,
+        email: holderInfo.email,
+        phone_number: holderInfo.phoneNumber,
+        client_nationality: holderInfo.nationality,
+        pan_number: "CBJKK3320T",
+      };
 
-        //  Set Booking Items
-        for (let index = 0; index < bodyData.booking_items.length; index++) {
-          const e = bodyData.booking_items[index];
-          for (let i = 0; i < e.rooms.length; i++) {
-            e.rooms[i].paxes = e.rooms[i].paxes.map((x, k) => {
-              const paxesData = membersData.filter((item) => item.id === x)[0];
-              return {
-                title: paxesData.title,
-                name: paxesData.firstName,
-                surname: paxesData.lastName,
-                type: paxesData.type === "ADT" ? "AD" : "CH",
-                age: e.rooms[i].ages[k],
-              };
-            });
-            delete e.rooms[i].ages;
-            // console.log(e.rooms[i]);
-          }
+      //  Set Booking Items
+      for (let index = 0; index < bodyData.booking_items.length; index++) {
+        const e = bodyData.booking_items[index];
+        for (let i = 0; i < e.rooms.length; i++) {
+          e.rooms[i].paxes = e.rooms[i].paxes.map((x, k) => {
+            const paxesData = membersData.filter((item) => item.id === x)[0];
+            return {
+              title: paxesData.title,
+              name: paxesData.firstName,
+              surname: paxesData.lastName,
+              type: paxesData.type === "ADT" ? "AD" : "CH",
+              age: e.rooms[i].ages[k],
+            };
+          });
+          delete e.rooms[i].ages;
+          // console.log(e.rooms[i]);
         }
-
-        // console.log(bodyData.booking_items[0].rooms[0].paxes);
-
-        // Request Data
-        const _request_data = {
-          search_id: bodyData.search_id,
-          hotel_code: bodyData.hotel_code,
-          city_code: bodyData.city_code,
-          group_code: bodyData.group_code,
-          checkout: bodyData.checkout,
-          checkin: bodyData.checkin,
-          booking_comments: bodyData.booking_comments,
-          booking_items: bodyData.booking_items,
-          payment_type: "AT_WEB",
-          agent_reference: "",
-          holder: holder,
-        };
-        // console.log(_request_data);
-        const _response = await requestHandler.fetchResponseFromHotel(
-          GRN_Apis.booking,
-          await this.getSessionToken(),
-          _request_data
-        );
-
-        // console.log(_response, "_response");
-
-        if (_response !== undefined) {
-          // this.genrateAirlineLogger(
-          //   req,
-          //   _response.status,
-          //   _response.message,
-          //   GRN_Apis.booking,
-          //   false
-          // );
-        }
-        return _response;
-      } else {
-        return "holderNotFound";
       }
-    } catch (error) {
-      throw Error(error);
+
+      // console.log(bodyData.booking_items[0].rooms[0].paxes);
+
+      // Request Data
+      const _request_data = {
+        search_id: bodyData.search_id,
+        hotel_code: bodyData.hotel_code,
+        city_code: bodyData.city_code,
+        group_code: bodyData.group_code,
+        checkout: bodyData.checkout,
+        checkin: bodyData.checkin,
+        booking_comments: bodyData.booking_comments,
+        booking_items: bodyData.booking_items,
+        payment_type: "AT_WEB",
+        agent_reference: "",
+        holder: holder,
+      };
+      // console.log(_request_data);
+      const _response = await requestHandler.fetchResponseFromHotel(
+        GRN_Apis.booking,
+        await this.getSessionToken(),
+        _request_data
+      );
+
+      // console.log(_response, "_response");
+
+      if (_response !== undefined) {
+        // this.genrateAirlineLogger(
+        //   req,
+        //   _response.status,
+        //   _response.message,
+        //   GRN_Apis.booking,
+        //   false
+        // );
+        // need to add condition
+        // const bookingData = {};
+        // const booking = await HotelBooking.create(bookingData);
+      }
+      return _response;
+    } else {
+      return "holderNotFound";
     }
+    // } catch (error) {
+    //   throw Error(error);
+    // }
   },
 };
