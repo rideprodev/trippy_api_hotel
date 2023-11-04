@@ -221,4 +221,127 @@ export default {
       throw Error(error);
     }
   },
+
+  /**
+   * Get airline Token
+   * @param {Object} where
+   */
+  async booking(req) {
+    try {
+      const bodyData = req.body;
+      const membersData = req.members;
+      let holder = {};
+
+      //  Set Holder Data
+      const holderData = membersData.filter((x) => x.id == bodyData.holder);
+      if (holderData.length > 0) {
+        const holderInfo = holderData[0];
+        holder = {
+          title: holderInfo.title,
+          name: holderInfo.firstName,
+          surname: holderInfo.lastName,
+          email: holderInfo.email,
+          phone_number: holderInfo.phoneNumber,
+          client_nationality: holderInfo.nationality,
+          pan_number: "CBJKK3320T",
+        };
+
+        //  Set Booking Items
+        for (let index = 0; index < booking_items.length; index++) {
+          const e = booking_items[index];
+          for (let i = 0; i < e.rooms.length; i++) {
+            const element = e.rooms[i];
+            console.log(element);
+          }
+        }
+        // const booking_items = [
+        //   {
+        //     room_code: "47euvmrt5arerojf",
+        //     rate_key:
+        //       "4phfnnzx4musrfstusmwihgx4hkohjxe6ky6lht52jdb37fgo2zqhgmfjnavxe4d5bdvz6xtv54bqebuxczwq5m72pobjl6gsgusxque4gne5bkfzn3dgoyxfu3ksqid7ggrvx2jfbchgmgd7lcmurmp5dd4kkuvasgulm257ndyzxxzaitcndiys36apbdkpo4gijymajicipw5xkahnqrhvxfujy6tblntpcpxaoo5a56dgl2aikbb",
+        //     room_reference: "qwxcrkscrircpwa",
+        //     rooms: [
+        //       {
+        //         paxes: [
+        //           {
+        //             title: "Mr.",
+        //             name: "Henry",
+        //             surname: "Patrick",
+        //             type: "AD",
+        //           },
+        //           {
+        //             title: "Mr.",
+        //             name: "Harry",
+        //             surname: "Patrick",
+        //             type: "AD",
+        //           },
+        //         ],
+        //       },
+        //     ],
+        //   },
+        // ];
+      } else {
+        return "holderNotFound";
+      }
+      // const holder = {};
+
+      // const _request_data = {
+      //   search_id: bodyData.search_id,
+      //   hotel_code: bodyData.hotel_code,
+      //   city_code: bodyData.city_code,
+      //   group_code: bodyData.group_code,
+      //   checkout: bodyData.checkout,
+      //   checkin: bodyData.checkin,
+      //   booking_comments: bodyData.booking_comments,
+      //   booking_items: [
+      //     {
+      //       room_code: "47euvmrt5arerojf",
+      //       rate_key:
+      //         "4phfnnzx4musrfstusmwihgx4hkohjxe6ky6lht52jdb37fgo2zqhgmfjnavxe4d5bdvz6xtv54bqebuxczwq5m72pobjl6gsgusxque4gne5bkfzn3dgoyxfu3ksqid7ggrvx2jfbchgmgd7lcmurmp5dd4kkuvasgulm257ndyzxxzaitcndiys36apbdkpo4gijymajicipw5xkahnqrhvxfujy6tblntpcpxaoo5a56dgl2aikbb",
+      //       room_reference: "qwxcrkscrircpwa",
+      //       rooms: [
+      //         {
+      //           paxes: [
+      //             {
+      //               title: "Mr.",
+      //               name: "Henry",
+      //               surname: "Patrick",
+      //               type: "AD",
+      //             },
+      //             {
+      //               title: "Mr.",
+      //               name: "Harry",
+      //               surname: "Patrick",
+      //               type: "AD",
+      //             },
+      //           ],
+      //         },
+      //       ],
+      //     },
+      //   ],
+      //   payment_type: "AT_WEB",
+      //   agent_reference: "",
+      //   holder: holder,
+      // };
+
+      // const _response = await requestHandler.fetchResponseFromHotel(
+      //   GRN_Apis.booking,
+      //   await this.getSessionToken(),
+      //   _request_data
+      // );
+      // console.log(_response);
+      // if (_response !== undefined) {
+      //   this.genrateAirlineLogger(
+      //     req,
+      //     _response.status,
+      //     _response.message,
+      //     apiEndPoint,
+      //     false
+      //   );
+      // }
+      // return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
 };

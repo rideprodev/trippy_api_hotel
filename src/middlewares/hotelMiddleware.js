@@ -1,6 +1,8 @@
 import repositories from "../repositories";
 import utility from "../services/utility";
 const { hotelRepository } = repositories;
+import models from "../models";
+const { UserMember, UserPersonalInformation } = models;
 
 export default {
   /**
@@ -31,6 +33,53 @@ export default {
         } else {
           utility.getError(res, "No Hotel Find In this location");
         }
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async checkMemberExist(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const userData = req.user;
+      let members = [];
+      if (bodyData.isUserTravelled === "true") {
+        const userInformation = await UserPersonalInformation.findOne({
+          attributes: ["title", "nationality"],
+          where: { userId: userData.id },
+        });
+        userData.dataValues.title = userInformation.title;
+        userData.dataValues.nationality = userInformation.nationality;
+        members = [...members, userData.dataValues];
+      }
+      let membersId = [];
+      for (let index = 0; index < bodyData.booking_items.length; index++) {
+        const e = bodyData.booking_items[index];
+        for (let i = 0; i < e.rooms.length; i++) {
+          const element = e.rooms[i];
+          membersId = [...membersId, ...element.paxes];
+        }
+      }
+
+      if (membersId.length > 0) {
+        const onlyMember = membersId.filter((x) => x !== userData.id);
+        if (onlyMember.length > 0) {
+          const memberData = await UserMember.findAll({
+            where: { id: onlyMember },
+          });
+          for (let j = 0; j < memberData.length; j++) {
+            const jelement = memberData[j].dataValues;
+            members = [...members, jelement];
+          }
+        }
+      }
+
+      if (members.length === +bodyData.totalMember) {
+        req.members = members;
+        next();
+      } else {
+        utility.getError(res, "MEMBER_NOT_FOUND");
       }
     } catch (error) {
       next(error);
