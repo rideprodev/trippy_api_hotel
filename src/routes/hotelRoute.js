@@ -63,14 +63,14 @@ router.post(
   hotelController.booking
 );
 
-// router.post(
-//   "/place-bid",
-//   authMiddleware,
-//   validateMiddleware({
-//     schema: hotelValidator.placeBid,
-//   }),
-//   hotelController.placeMyBid
-// );
+router.post(
+  "/place-bid",
+  authMiddleware,
+  validateMiddleware({
+    schema: hotelValidator.placeBid,
+  }),
+  hotelController.placeMyBid
+);
 
 // ----------- Third Party Apis End -----------------------
 

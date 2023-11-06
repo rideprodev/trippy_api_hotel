@@ -17,6 +17,7 @@ const search = Joi.object({
   checkOut: Joi.string().required(),
   currency: Joi.string().empty().allow(""),
   client_nationality: Joi.string().required(),
+  rate_key: Joi.optional(),
 });
 
 const revalidate = Joi.object({
@@ -73,17 +74,12 @@ const placeBid = Joi.object({
   name: Joi.string().required(),
   tripType: Joi.optional().allow("Hotel"),
   from: Joi.string().required().label("whereId"),
-  to: Joi.string().required().label("totalDaysStay, nightStay"),
+  to: Joi.string().required().label("group code"),
   flightRoomNumber: Joi.string().required().label("Numbers of room need"),
   airlineHotelCode: Joi.string().required().label("hotelCode"),
-  bookingClassReference: Joi.string().required().label("roomReference"),
+  bookingClassReference: Joi.string().required().label("rate key"),
   departureFrom: Joi.string().required().label("checkIn"),
   departureTo: Joi.string().required().label("CheckOut"),
-  holderId: Joi.array()
-    .required()
-    .label(
-      "if user is on booking then user Id other wise memebr main holder id"
-    ),
   biddingPrice: Joi.string().required(),
   minBid: Joi.string().required(),
   maxBid: Joi.string().required(),
@@ -94,7 +90,6 @@ const placeBid = Joi.object({
   infantMember: Joi.string().required(),
   isUserTravelled: Joi.string().valid("true", "false").required(),
   sorceCode: Joi.string().required(),
-  biddingInfromation: Joi.object().min(1).required(),
 });
 
 export default {

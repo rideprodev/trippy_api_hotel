@@ -22,4 +22,5 @@ export default {
   PASSPORT_ALREADY_AVAILIABLE:
     "Passport Already Register In Our Record. Please Check & Try Again!",
   MEMBER_NOT_FOUND: "Member is not availible in our record, Please Check!",
+  WENT_WRONG: "Somthing Went wrong, Please try again!",
 };

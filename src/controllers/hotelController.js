@@ -1,5 +1,6 @@
 import repositories from "../repositories";
 import utility from "../services/utility";
+import httpStatus from "http-status";
 
 const { hotelRepository } = repositories;
 
@@ -124,6 +125,42 @@ export default {
         );
       } else {
         utility.getResponse(res, response, "RETRIVED");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Get refech the detail
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async placeMyBid(req, res, next) {
+    try {
+      req.body.search_id = req.body.bookingClassReference;
+      req.body.group_code = req.body.to;
+      req.body.rate_key = req.body.sorceCode;
+      const revalidate = await hotelRepository.revalidate(req);
+      if (revalidate.status !== 200) {
+        utility.getError(res, revalidate.message);
+      } else if (revalidate.data.errors && revalidate.data.errors.length > 0) {
+        utility.getError(
+          res,
+          `${revalidate.data.errors[0].code} : ${revalidate.data.errors[0].messages[0]}`
+        );
+      } else {
+        req.body.latestPrice = revalidate.data.hotel.rate.price;
+        req.body.expairationAt =
+          revalidate.data.hotel.rate.cancellation_policy.cancel_by_date;
+        req.body.biddingInfromation = JSON.stringify(revalidate.data);
+        const result = await hotelRepository.placeMyBid(req);
+        if (result) {
+          utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
+        } else {
+          utility.getError(res, "WENT_WRONG");
+        }
       }
     } catch (error) {
       next(error);
