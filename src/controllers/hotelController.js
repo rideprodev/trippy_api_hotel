@@ -1,3 +1,4 @@
+import hotelHelper from "../helper/hotelHelper";
 import repositories from "../repositories";
 import utility from "../services/utility";
 import httpStatus from "http-status";
@@ -53,6 +54,7 @@ export default {
         );
       } else {
         utility.getResponse(res, response.data, "RETRIVED");
+        // hotelHelper.checkBiddingNotification(req, response.data);
       }
     } catch (error) {
       next(error);
@@ -152,8 +154,6 @@ export default {
         );
       } else {
         req.body.latestPrice = revalidate.data.hotel.rate.price;
-        req.body.expairationAt =
-          revalidate.data.hotel.rate.cancellation_policy.cancel_by_date;
         req.body.biddingInfromation = JSON.stringify(revalidate.data);
         const result = await hotelRepository.placeMyBid(req);
         if (result) {
@@ -161,6 +161,25 @@ export default {
         } else {
           utility.getError(res, "WENT_WRONG");
         }
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Place the airline Bid
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async updateBidding(req, res, next) {
+    try {
+      const response = await hotelRepository.updateMyBidding(req);
+      if (response) {
+        utility.getResponse(res, null, "UPDATED");
+      } else {
+        utility.getError(res, "ID_NOT_FOUND");
       }
     } catch (error) {
       next(error);

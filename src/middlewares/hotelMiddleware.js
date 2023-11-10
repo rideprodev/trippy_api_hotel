@@ -86,4 +86,24 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * update hotel information in request
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isBiddingExist(req, res, next) {
+    try {
+      const biddingObject = await hotelRepository.getMyBidding(req);
+      if (biddingObject) {
+        req.biddingObject = biddingObject;
+        next();
+      } else {
+        utility.getError(res, "ID_NOT_FOUND");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
 };
