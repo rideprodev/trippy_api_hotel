@@ -78,8 +78,8 @@ router.put(
   validateMiddleware({
     schema: hotelValidator.updateBid,
   }),
-  airlineMiddleware.isBiddingExist,
-  hotelController.updateMyBid
+  hotelMiddleware.isBiddingExist,
+  hotelController.updateBidding
 );
 
 // ----------- Third Party Apis End -----------------------
