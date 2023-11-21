@@ -43,7 +43,7 @@ export default {
                 //   element.bookingClassReference,
                 //   ele.room_reference === element.bookingClassReference
                 // );
-                if (ele.room_reference === element.bookingClassReference) {
+                if (ele.room_reference === element.sorceCode) {
                   return y;
                 }
               }
