@@ -22,8 +22,19 @@ const errorLogger = winston.createLogger({
   ],
 });
 
+const requestErrorLogger = winston.createLogger({
+  transports: [
+    new winston.transports.File({
+      name: "request-error",
+      filename: path.join(__dirname, "../", "logs", "request-error.log"),
+      level: "error",
+    }),
+  ],
+});
+
 export default {
   errorLogger,
   infoLogger,
+  requestErrorLogger,
 };
 //https://www.npmjs.com/package/winston-daily-rotate-file

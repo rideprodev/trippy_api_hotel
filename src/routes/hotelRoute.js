@@ -72,6 +72,16 @@ router.post(
   hotelController.placeMyBid
 );
 
+router.put(
+  "/update-bid",
+  authMiddleware,
+  validateMiddleware({
+    schema: hotelValidator.updateBid,
+  }),
+  hotelMiddleware.isBiddingExist,
+  hotelController.updateBidding
+);
+
 // ----------- Third Party Apis End -----------------------
 
 export default router;

@@ -7,6 +7,7 @@ const {
   HotelCountry,
   Bidding,
   BiddingPrices,
+  User,
 } = models;
 import { Op } from "sequelize";
 import genrateResponse from "../services/responseGenrater";
@@ -340,5 +341,47 @@ export default {
     } catch (error) {
       throw Error(error);
     }
+  },
+
+  async getMyBidding(req) {
+    try {
+      const userData = req.user;
+      const { id } = req.params;
+      return await Bidding.findOne({
+        where: { id: id, userId: userData.id },
+        include: {
+          attributes: ["latestPrice", "createdAt"],
+          order: [["id", "DESC"]],
+          model: BiddingPrices,
+          as: "biddingData",
+        },
+      });
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  async updateMyBidding(req) {
+    try {
+      const bodyData = req.body;
+      if (bodyData.membersId) {
+        bodyData.membersId = JSON.stringify(bodyData.membersId);
+      }
+      const biddingObject = req.biddingObject;
+      return await biddingObject.update(bodyData);
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get All Bidding
+   * @param {Object} where
+   */
+  async getAllBidding(where) {
+    return await Bidding.findAll({
+      where,
+      include: { model: User, as: "userData" },
+    });
   },
 };
