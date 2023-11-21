@@ -37,6 +37,7 @@ const booking = Joi.object({
   checkout: Joi.string().required(),
   booking_comments: Joi.string().required(),
   totalMember: Joi.string().required(),
+  price: Joi.string().required(),
   booking_items: Joi.array()
     .items(
       Joi.object({

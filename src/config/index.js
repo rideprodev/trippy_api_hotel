@@ -11,6 +11,7 @@ export default {
     adminUrl: process.env.ADMIN_URL,
     environment: process.env.NODE_ENV,
     swaggerHost: process.env.SWAGGER_HOST,
+    MailerHost: process.env.MAILER_HOST,
     GRNBaseUrl: process.env.GRN_BASE_URL,
     currency: process.env.CURRENCY_ABBR,
     languages: ["en"],

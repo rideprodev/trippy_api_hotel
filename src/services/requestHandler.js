@@ -31,4 +31,34 @@ export default {
       };
     }
   },
+
+  async SendToNotificationService(email, pageName, subject, forwordData = {}) {
+    try {
+      console.log(email, pageName, subject);
+      const requestData = {
+        email,
+        pageName,
+        subject,
+      };
+      const _request = {
+        method: "post",
+        url: `${config.app.MailerHost}notification/email`,
+        data: requestData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      // console.log(_request);
+      const { data } = await axios(_request);
+      // console.log(data);
+      return data.success;
+    } catch (error) {
+      logger.requestErrorLogger.error(
+        `${
+          config.app.EmailBaseUrl
+        } calling error ${new Date()} ${JSON.stringify(error)}`
+      );
+      return response.data;
+    }
+  },
 };

@@ -7,6 +7,7 @@ const {
   HotelCountry,
   Bidding,
   BiddingPrices,
+  User,
 } = models;
 import { Op } from "sequelize";
 import genrateResponse from "../services/responseGenrater";
@@ -371,5 +372,16 @@ export default {
     } catch (error) {
       throw Error(error);
     }
+  },
+
+  /**
+   * Get All Bidding
+   * @param {Object} where
+   */
+  async getAllBidding(where) {
+    return await Bidding.findAll({
+      where,
+      include: { model: User, as: "userData" },
+    });
   },
 };
