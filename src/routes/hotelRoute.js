@@ -41,6 +41,7 @@ router.get(
   "/admin/user/bidding",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),
+  hotelMiddleware.isUserExist,
   hotelController.getUserWiseBidding
 );
 

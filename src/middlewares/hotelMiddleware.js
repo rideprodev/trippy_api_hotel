@@ -1,6 +1,6 @@
 import repositories from "../repositories";
 import utility from "../services/utility";
-const { hotelRepository } = repositories;
+const { hotelRepository, userRepository } = repositories;
 import models from "../models";
 const { UserMember, UserPersonalInformation } = models;
 
@@ -98,6 +98,25 @@ export default {
       const biddingObject = await hotelRepository.getMyBidding(req);
       if (biddingObject) {
         req.biddingObject = biddingObject;
+        next();
+      } else {
+        utility.getError(res, "ID_NOT_FOUND");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+  /**
+   * update flight information in request
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isUserExist(req, res, next) {
+    try {
+      const { userId } = req.query;
+      const UserObject = await userRepository.findOne({ id: userId });
+      if (UserObject) {
         next();
       } else {
         utility.getError(res, "ID_NOT_FOUND");
