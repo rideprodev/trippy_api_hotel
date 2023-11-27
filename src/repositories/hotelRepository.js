@@ -128,7 +128,78 @@ export default {
   },
 
   /**
-   * Get airline Token
+   * Get All Biddings
+   * @param {Object} where
+   */
+  async getAllBiddings(req, where = {}) {
+    try {
+      const queryData = req.query;
+      where = {
+        ...where,
+        tripType: "Hotel",
+      };
+
+      let limit = null,
+        offset = null;
+      if (queryData.name) {
+        where = {
+          ...where,
+          [Op.or]: [
+            { name: { [Op.like]: `%${queryData.name}%` } },
+            { from: { [Op.like]: `%${queryData.name}%` } },
+            { to: { [Op.like]: `%${queryData.name}%` } },
+            { airlineHotelCode: { [Op.like]: `%${queryData.name}%` } },
+            { flightRoomNumber: { [Op.like]: `%${queryData.name}%` } },
+            { flightRoomNumber: { [Op.like]: `%${queryData.name}%` } },
+          ],
+        };
+      }
+
+      if (queryData.limit && queryData.limit > 0 && queryData.offset >= 0) {
+        limit = +queryData.limit;
+        offset = +queryData.offset;
+      }
+
+      return await Bidding.findAndCountAll({
+        where: where,
+        include: {
+          attributes: ["firstName", "lastName"],
+          model: User,
+          as: "userData",
+        },
+        order: [["id", "DESC"]],
+        offset: offset,
+        limit: limit,
+      });
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get One Biddings
+   * @param {Object} where
+   */
+  async getOneBidding(req, where = {}) {
+    try {
+      return await Bidding.findOne({
+        where: { ...where, tripType: "Hotel" },
+        attributes: {
+          exclude: [],
+        },
+        include: {
+          attributes: ["firstName", "lastName"],
+          model: User,
+          as: "userData",
+        },
+      });
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Search
    * @param {Object} where
    */
   async search(req) {
@@ -165,7 +236,7 @@ export default {
   },
 
   /**
-   * Get airline Token
+   * Get Refetch
    * @param {Object} where
    */
   async refetch(req) {
@@ -198,7 +269,7 @@ export default {
   },
 
   /**
-   * Get airline Token
+   * Revalidate
    * @param {Object} where
    */
   async revalidate(req) {
@@ -232,7 +303,7 @@ export default {
   },
 
   /**
-   * Get airline Token
+   * Bookings
    * @param {Object} where
    */
   async booking(req) {
@@ -320,6 +391,7 @@ export default {
     }
   },
 
+  // update the price in place my bid
   async updateLatestPrice(bodyData) {
     const priceData = {
       userId: bodyData.userId,
@@ -329,6 +401,7 @@ export default {
     return await BiddingPrices.create(priceData);
   },
 
+  // Place my bid
   async placeMyBid(req) {
     try {
       const bodyData = req.body;
@@ -343,6 +416,7 @@ export default {
     }
   },
 
+  // Get all Bidding
   async getMyBidding(req) {
     try {
       const userData = req.user;
@@ -361,6 +435,7 @@ export default {
     }
   },
 
+  // Update My Biddings
   async updateMyBidding(req) {
     try {
       const bodyData = req.body;

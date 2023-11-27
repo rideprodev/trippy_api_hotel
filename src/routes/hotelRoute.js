@@ -30,6 +30,20 @@ router.get(
   hotelController.getOneHotels
 );
 
+router.get(
+  "/admin/bidding/:biddingId",
+  authMiddleware,
+  resourceAccessMiddleware(["admin"]),
+  hotelController.getAllBidding
+);
+
+router.get(
+  "/admin/user/bidding",
+  authMiddleware,
+  resourceAccessMiddleware(["admin"]),
+  hotelController.getUserWiseBidding
+);
+
 // ------------Backend Apis End -----------------------
 // ===========================================================
 // ----------- Third Party Apis Start -----------------------

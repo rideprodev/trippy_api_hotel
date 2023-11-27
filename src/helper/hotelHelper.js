@@ -61,6 +61,8 @@ export default {
                 );
 
                 //  Add the code for booking
+                //
+                //
               } else {
                 console.log("Bid amount not found");
               }

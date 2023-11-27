@@ -134,6 +134,49 @@ export default {
   },
 
   /**
+   * Get All Bidding
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async getAllBidding(req, res, next) {
+    try {
+      const { biddingId } = req.params;
+      const where = {};
+      if (req.user.userType === "admin" && biddingId === "all") {
+        const bidding = await hotelRepository.getAllBiddings(req);
+        utility.getResponse(res, bidding, "RETRIVED");
+      } else if (biddingId > 0) {
+        where.id = biddingId;
+        const bidding = await hotelRepository.getOneBidding(req, where);
+        utility.getResponse(res, bidding, "RETRIVED");
+      } else {
+        utility.getResponse(res, null, "UNAUTHORISED_ACCESS");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Get All User Bidding
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async getUserWiseBidding(req, res, next) {
+    try {
+      const { userId } = req.query;
+      const bidding = await hotelRepository.getAllBiddings(req, {
+        userId: userId,
+      });
+      utility.getResponse(res, bidding, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Get refech the detail
    * @param {Object} req
    * @param {Object} res
