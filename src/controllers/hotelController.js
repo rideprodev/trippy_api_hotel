@@ -185,7 +185,7 @@ export default {
   async placeMyBid(req, res, next) {
     try {
       req.body.search_id = req.body.bookingClassReference;
-      req.body.group_code = req.body.to;
+      req.body.group_code = req.body.groupCode;
       req.body.rate_key = req.body.sorceCode;
       const revalidate = await hotelRepository.revalidate(req);
       if (revalidate.status !== 200) {
