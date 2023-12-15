@@ -74,6 +74,7 @@ const booking = Joi.object({
 const placeBid = Joi.object({
   name: Joi.string().required(),
   tripType: Joi.optional().allow("Hotel"),
+  groupCode: Joi.string().required(),
   from: Joi.string().required().label("whereId"),
   to: Joi.string().required().label("group code"),
   flightRoomNumber: Joi.string().required().label("Numbers of room need"),
@@ -96,15 +97,9 @@ const placeBid = Joi.object({
 
 const updateBid = Joi.object({
   name: Joi.string().required(),
-  tripType: Joi.optional().allow("Hotel"),
-  from: Joi.string().required().label("whereId"),
-  to: Joi.string().required().label("group code"),
   flightRoomNumber: Joi.string().required().label("Numbers of room need"),
-  airlineHotelCode: Joi.string().required().label("hotelCode"),
-  bookingClassReference: Joi.string().required().label("rate key"),
   departureFrom: Joi.string().required().label("checkIn"),
   departureTo: Joi.string().required().label("CheckOut"),
-  biddingPrice: Joi.string().required(),
   minBid: Joi.string().required(),
   maxBid: Joi.string().required(),
   membersId: Joi.array().required(),
@@ -113,7 +108,6 @@ const updateBid = Joi.object({
   childMember: Joi.string().required(),
   infantMember: Joi.string().required(),
   isUserTravelled: Joi.string().valid("true", "false").required(),
-  sorceCode: Joi.string().required(),
   expairationAt: Joi.string().optional(),
 });
 

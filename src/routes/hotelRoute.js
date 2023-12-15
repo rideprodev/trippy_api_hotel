@@ -88,7 +88,7 @@ router.post(
 );
 
 router.put(
-  "/update-bid",
+  "/update-bid/:id",
   authMiddleware,
   validateMiddleware({
     schema: hotelValidator.updateBid,
