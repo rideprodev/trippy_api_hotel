@@ -97,9 +97,6 @@ const placeBid = Joi.object({
 
 const updateBid = Joi.object({
   name: Joi.string().required(),
-  flightRoomNumber: Joi.string().required().label("Numbers of room need"),
-  departureFrom: Joi.string().required().label("checkIn"),
-  departureTo: Joi.string().required().label("CheckOut"),
   minBid: Joi.string().required(),
   maxBid: Joi.string().required(),
   membersId: Joi.array().required(),
