@@ -55,7 +55,7 @@ export default {
         hotel_codes: bodyData.hotelCode,
         rates: "comprehensive",
         currency: bodyData.currency,
-        client_nationality: bodyData.client_nationality,
+        client_nationality: bodyData.clientNationality,
         checkin: bodyData.checkIn,
         checkout: bodyData.checkOut,
       };
