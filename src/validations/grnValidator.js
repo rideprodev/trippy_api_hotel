@@ -16,7 +16,7 @@ const search = Joi.object({
   checkIn: Joi.string().required(),
   checkOut: Joi.string().required(),
   currency: Joi.string().empty().allow(""),
-  client_nationality: Joi.string().required(),
+  clientNationality: Joi.string().required(),
 });
 
 const refetch = Joi.object({
