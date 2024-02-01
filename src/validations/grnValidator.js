@@ -1,0 +1,84 @@
+import Joi from "joi";
+
+const search = Joi.object({
+  rooms: Joi.array()
+    .items(
+      Joi.object({
+        adults: Joi.string().required(),
+        children_ages: Joi.array().items(
+          Joi.number().positive().greater(0).less(18)
+        ),
+      })
+    )
+    .required(),
+  hotelCode: Joi.string().empty().allow(""),
+  cityCode: Joi.string().required(),
+  checkIn: Joi.string().required(),
+  checkOut: Joi.string().required(),
+  currency: Joi.string().empty().allow(""),
+  client_nationality: Joi.string().required(),
+});
+
+const refetch = Joi.object({
+  searchId: Joi.string().required(),
+  hotelCode: Joi.string().required(),
+});
+
+const revalidate = Joi.object({
+  searchId: Joi.string().required(),
+  groupCode: Joi.string().required(),
+  rateKey: Joi.string().required(),
+});
+
+const booking = Joi.object({
+  searchId: Joi.string().required(),
+  isBundle: Joi.string().valid("true", "false").required(),
+  isUserTravelled: Joi.string().valid("true", "false").required(),
+  hotelCode: Joi.string().required(),
+  cityCode: Joi.string().required(),
+  groupCode: Joi.string().required(),
+  checkIn: Joi.string().required(),
+  checkOut: Joi.string().required(),
+  bookingComments: Joi.string().required(),
+  totalMember: Joi.string().required(),
+  bookingName: Joi.string().required(),
+  price: Joi.string().required(),
+  bookingItems: Joi.array()
+    .items(
+      Joi.object({
+        room_code: Joi.string().required(),
+        rate_key: Joi.string().required(),
+        room_reference: Joi.string().when("isBundle", {
+          is: "false",
+          then: Joi.string().required(),
+          otherwise: Joi.string().optional().allow(""),
+        }),
+        rooms: Joi.array().items(
+          Joi.object({
+            no_of_infants: Joi.number()
+              .positive()
+              .greater(0)
+              .less(3)
+              .optional()
+              .allow(null),
+            room_reference: Joi.string().when("isBundle", {
+              is: "true",
+              then: Joi.string().optional().allow(""),
+              otherwise: Joi.string().optional().allow(""),
+            }),
+            paxes: Joi.array().required(),
+            ages: Joi.array().required(),
+          })
+        ),
+      })
+    )
+    .required(),
+  // holder: Joi.string().required(),
+});
+
+export default {
+  search,
+  revalidate,
+  booking,
+  refetch,
+};

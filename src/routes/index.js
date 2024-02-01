@@ -4,7 +4,9 @@ import path from "path";
 import loggers from "../services/logger";
 import utility from "../services/utility";
 import customRoute from "./customRoute";
+import grnRoute from "./grnRoute";
 import hotelRoute from "./hotelRoute";
+import biddingRoute from "./biddingRoute";
 
 const router = Router();
 const register = (app) => {
@@ -18,7 +20,8 @@ const register = (app) => {
 
   router.use("/api/v1", [
     router.use("/custom", customRoute),
-    router.use("/hotel", hotelRoute),
+    router.use("/hotel", [grnRoute, hotelRoute]),
+    router.use("/bidding", biddingRoute),
   ]);
 
   app.use((error, req, res, next) => {

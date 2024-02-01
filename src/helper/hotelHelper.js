@@ -1,8 +1,6 @@
 import repositories from "../repositories";
-import models from "../models";
 import requestHandler from "../services/requestHandler";
-const { hotelRepository } = repositories;
-// const { Airports, Airlines } = models;
+const { biddingRepository } = repositories;
 
 export default {
   async checkBiddingNotification(req, data) {
@@ -15,7 +13,7 @@ export default {
       status: "active",
     };
 
-    const Bidding = await hotelRepository.getAllBidding(where);
+    const Bidding = await biddingRepository.getAllBidding(where);
     if (Bidding.length > 0) {
       const hotels = [];
       for (let i = 0; i < bodyData.hotelCode.length; i++) {

@@ -1,5 +1,7 @@
-import hotelValidator from "./hotelValidator";
+import grnValidator from "./grnValidator";
+import biddingValidator from "./biddingValidator";
 
 export default {
-  hotelValidator,
+  grnValidator,
+  biddingValidator,
 };
