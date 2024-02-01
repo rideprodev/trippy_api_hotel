@@ -16,8 +16,7 @@ export default {
       const bodyData = req.body;
       const hotelCodes = [];
       if (bodyData.hotelCode !== "") {
-        hotelCodes.push(bodyData.hotelCode);
-        req.body.hotelCode = hotelCodes;
+        req.body.hotelCode = bodyData.hotelCode.split(",");
         next();
       } else {
         const getAllHotelCodes = await hotelRepository.fetchAll({
@@ -55,8 +54,8 @@ export default {
         members = [...members, userData.dataValues];
       }
       let membersId = [];
-      for (let index = 0; index < bodyData.booking_items.length; index++) {
-        const e = bodyData.booking_items[index];
+      for (let index = 0; index < bodyData.bookingItems.length; index++) {
+        const e = bodyData.bookingItems[index];
         for (let i = 0; i < e.rooms.length; i++) {
           const element = e.rooms[i];
           membersId = [...membersId, ...element.paxes];

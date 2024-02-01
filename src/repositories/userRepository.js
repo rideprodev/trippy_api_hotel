@@ -15,7 +15,34 @@ export default {
       return await User.findOne({
         where: whereObj,
         attributes: {
-          exclude: ["password", "verifyToken"],
+          exclude: [
+            "password",
+            "verifyToken",
+            "otp",
+            "isMobileVerified",
+            "isEmailVerified",
+            "userType",
+            "last_login",
+            "current_login",
+            "passwordResetToken",
+            "createdBy",
+            "updatedBy",
+            "createdAt",
+            "updatedAt",
+          ],
+        },
+        include: {
+          attributes: [
+            "title",
+            "nationality",
+            "type",
+            "gender",
+            "contry",
+            "currencyCode",
+            "panNumber",
+          ],
+          model: UserPersonalInformation,
+          as: UserPersonalInformation,
         },
       });
     } catch (error) {

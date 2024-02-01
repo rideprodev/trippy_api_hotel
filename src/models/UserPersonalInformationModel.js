@@ -33,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
       city: {
         type: DataTypes.STRING(100),
       },
+      currencyCode: {
+        type: DataTypes.STRING(10),
+        defaultValue: "AUD",
+      },
       panNumber: {
         type: DataTypes.STRING(255),
         allowNull: true,
