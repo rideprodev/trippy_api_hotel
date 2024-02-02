@@ -89,13 +89,17 @@ export default {
       const response = await grnRepository.booking(req);
       if (response.status !== 200) {
         utility.getError(res, response.message);
-      } else if (response.data.errors && response.data.errors.length > 0) {
+      } else if (
+        response.data &&
+        response.data.errors &&
+        response.data.errors.length > 0
+      ) {
         utility.getError(
           res,
           `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
         );
       } else {
-        utility.getResponse(res, response, "RETRIVED");
+        utility.getResponse(res, response.data, "RETRIVED");
       }
     } catch (error) {
       next(error);

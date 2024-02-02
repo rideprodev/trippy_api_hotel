@@ -15,8 +15,8 @@ export default {
     try {
       const bodyData = req.body;
       const hotelCodes = [];
-      if (bodyData.hotelCode !== "") {
-        req.body.hotelCode = bodyData.hotelCode.split(",");
+      if (bodyData.hotelCode && bodyData.hotelCode !== "") {
+        req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
       } else {
         const getAllHotelCodes = await hotelRepository.fetchAll({
@@ -28,6 +28,7 @@ export default {
             hotelCodes.push(element.hotelCode);
           }
           req.body.hotelCode = hotelCodes;
+          // console.log(hotelCodes);
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
@@ -48,6 +49,7 @@ export default {
           attributes: ["title", "nationality", "type"],
           where: { userId: userData.id },
         });
+        userData.dataValues.id = userData.id;
         userData.dataValues.title = userInformation.title;
         userData.dataValues.nationality = userInformation.nationality;
         userData.dataValues.type = userInformation.type;
