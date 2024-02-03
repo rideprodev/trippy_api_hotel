@@ -21,7 +21,6 @@ export default {
             "otp",
             "isMobileVerified",
             "isEmailVerified",
-            "userType",
             "last_login",
             "current_login",
             "passwordResetToken",

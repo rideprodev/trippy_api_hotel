@@ -7,6 +7,7 @@ import customRoute from "./customRoute";
 import grnRoute from "./grnRoute";
 import hotelRoute from "./hotelRoute";
 import biddingRoute from "./biddingRoute";
+import bookingRoute from "./bookingRoute";
 
 const router = Router();
 const register = (app) => {
@@ -22,6 +23,7 @@ const register = (app) => {
     router.use("/custom", customRoute),
     router.use("/hotel", [grnRoute, hotelRoute]),
     router.use("/bidding", biddingRoute),
+    router.use("/booking", bookingRoute),
   ]);
 
   app.use((error, req, res, next) => {
