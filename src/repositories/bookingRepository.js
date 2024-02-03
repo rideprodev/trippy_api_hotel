@@ -55,7 +55,7 @@ export default {
    */
   async getOneHotelBooking(req, where = {}) {
     try {
-      return await HotelBooking.findOne({
+      const booking = await HotelBooking.findOne({
         where: where,
         attributes: {
           exclude: [],
@@ -66,6 +66,10 @@ export default {
           as: "userData",
         },
       });
+      booking.dataValues.hotelDetail = await HotelBookingDetail.findAll({
+        where: { bookingId: booking.id },
+      });
+      return booking;
     } catch (error) {
       throw Error(error);
     }
