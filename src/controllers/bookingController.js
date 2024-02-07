@@ -41,7 +41,9 @@ export default {
    */
   async getAllUserWiseBooking(req, res, next) {
     try {
-      const booking = await bookingRepository.getAllHotelBooking(req);
+      const booking = await bookingRepository.getAllHotelBooking(req, {
+        userId: req.user.id,
+      });
       utility.getResponse(res, booking, "RETRIVED");
     } catch (error) {
       next(error);
