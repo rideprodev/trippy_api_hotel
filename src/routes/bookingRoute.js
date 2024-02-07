@@ -10,6 +10,13 @@ const router = Router();
 // ------------ Backend Apis Start -----------------------
 
 router.get(
+  "/mybooking",
+  authMiddleware,
+  resourceAccessMiddleware(["user"]),
+  bookingController.getAllUserWiseBooking
+);
+
+router.get(
   "/admin",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),
