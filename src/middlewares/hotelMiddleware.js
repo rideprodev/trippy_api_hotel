@@ -2,11 +2,12 @@ import repositories from "../repositories";
 import utility from "../services/utility";
 const { hotelRepository, userRepository } = repositories;
 import models from "../models";
+import bookingRepository from "../repositories/bookingRepository";
 const { UserMember, UserPersonalInformation } = models;
 
 export default {
   /**
-   * Check airport exist
+   * fetch the hotel codes accrding the condition
    * @param {Object} req
    * @param {Object} res
    * @param {Function} next
@@ -15,8 +16,8 @@ export default {
     try {
       const bodyData = req.body;
       const hotelCodes = [];
-      if (bodyData.hotelCode !== "") {
-        req.body.hotelCode = bodyData.hotelCode.split(",");
+      if (bodyData.hotelCode && bodyData.hotelCode !== "") {
+        req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
       } else {
         const getAllHotelCodes = await hotelRepository.fetchAll({
@@ -28,6 +29,7 @@ export default {
             hotelCodes.push(element.hotelCode);
           }
           req.body.hotelCode = hotelCodes;
+          // console.log(hotelCodes);
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
@@ -37,7 +39,12 @@ export default {
       next(error);
     }
   },
-
+  /**
+   * Check the members is exist or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
   async checkMemberExist(req, res, next) {
     try {
       const bodyData = req.body;
@@ -48,6 +55,7 @@ export default {
           attributes: ["title", "nationality", "type"],
           where: { userId: userData.id },
         });
+        userData.dataValues.id = userData.id;
         userData.dataValues.title = userInformation.title;
         userData.dataValues.nationality = userInformation.nationality;
         userData.dataValues.type = userInformation.type;
@@ -85,9 +93,8 @@ export default {
       next(error);
     }
   },
-
   /**
-   * update hotel information in request
+   * Check the bidding is exist or not
    * @param {Object} req
    * @param {Object} res
    * @param {Function} next
@@ -106,7 +113,28 @@ export default {
     }
   },
   /**
-   * update flight information in request
+   * Check the booking is exist or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isbookingExist(req, res, next) {
+    try {
+      const bookingObject = await bookingRepository.getOneHotelBooking(req, {
+        id: req.params.bookingId,
+      });
+      if (bookingObject) {
+        req.bookingObject = bookingObject;
+        next();
+      } else {
+        utility.getError(res, "ID_NOT_FOUND");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+  /**
+   * check the user exist o not
    * @param {Object} req
    * @param {Object} res
    * @param {Function} next

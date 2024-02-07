@@ -4,6 +4,7 @@ import customRepository from "./customRepository";
 import hotelRepository from "./hotelRepository";
 import biddingRepository from "./biddingRepository";
 import grnRepository from "./grnRepository";
+import bookingRepository from "./bookingRepository";
 
 export default {
   userRepository,
@@ -12,4 +13,5 @@ export default {
   hotelRepository,
   biddingRepository,
   grnRepository,
+  bookingRepository,
 };
