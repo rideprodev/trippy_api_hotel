@@ -32,4 +32,19 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Get All Booking
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async getAllUserWiseBooking(req, res, next) {
+    try {
+      const booking = await bookingRepository.getAllHotelBooking(req);
+      utility.getResponse(res, booking, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import models from "../models";
 const { User, HotelBooking, HotelBookingDetail } = models;
 
@@ -6,11 +7,9 @@ export default {
    * Get All Hotel Booking
    * @param {Object} req
    */
-  async getAllHotelBooking(req) {
+  async getAllHotelBooking(req, where = {}) {
     try {
       const queryData = req.query;
-      let where = {};
-
       let limit = null,
         offset = null;
 
@@ -26,6 +25,18 @@ export default {
             { status: { [Op.like]: `%${queryData.name}%` } },
             { paymentStatus: { [Op.like]: `%${queryData.name}%` } },
           ],
+        };
+      }
+
+      if (queryData.status && queryData.status === "current") {
+        where = {
+          ...where,
+          checkIn: { [Op.gte]: new Date() },
+        };
+      } else if (queryData.status && queryData.status === "past") {
+        where = {
+          ...where,
+          checkIn: { [Op.lt]: new Date() },
         };
       }
 
