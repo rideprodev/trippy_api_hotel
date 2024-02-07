@@ -44,6 +44,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("pending", "paid", "unpaid"),
         defaultValue: "pending",
       },
+      // totalRooms: {
+      //   type: DataTypes.INTEGER(3),
+      //   defaultValue: 0,
+      // },
       totalMember: {
         type: DataTypes.INTEGER(3),
         defaultValue: 0,

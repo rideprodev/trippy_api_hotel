@@ -13,7 +13,7 @@ export default {
   },
   revalidate(searchId) {
     return {
-      url: `${config.app.GRNBaseUrl}v3/hotels/availability/${searchId}/rates/auto?action=recheck`,
+      url: `${config.app.GRNBaseUrl}v3/hotels/availability/${searchId}/rates/?action=recheck`,
       method: "post",
     };
   },
