@@ -1,6 +1,13 @@
 import { Op } from "sequelize";
 import models from "../models";
-const { User, HotelBooking, HotelBookingDetail } = models;
+const {
+  User,
+  HotelBooking,
+  HotelBookingDetail,
+  Hotel,
+  HotelCity,
+  HotelCountry,
+} = models;
 
 export default {
   /**
@@ -45,7 +52,7 @@ export default {
         offset = +queryData.offset;
       }
 
-      return await HotelBooking.findAndCountAll({
+      const _hotels = await HotelBooking.findAndCountAll({
         where: where,
         include: {
           attributes: ["firstName", "lastName"],
@@ -56,6 +63,23 @@ export default {
         offset: offset,
         limit: limit,
       });
+
+      for (let i = 0; i < _hotels.count; i++) {
+        const element = _hotels.rows[i];
+        element.dataValues.hotelData = await Hotel.findOne({
+          attributes: ["hotelCode", "hotelName", "countryCode"],
+          where: { hotelCode: element.hotelCode },
+        });
+        element.dataValues.cityData = await HotelCity.findOne({
+          attributes: ["cityCode", "cityName"],
+          where: { cityCode: element.cityCode },
+        });
+        element.dataValues.countryData = await HotelCountry.findOne({
+          attributes: ["countryCode", "countryName"],
+          where: { countryCode: element.dataValues.hotelData.countryCode },
+        });
+      }
+      return _hotels;
     } catch (error) {
       throw Error(error);
     }

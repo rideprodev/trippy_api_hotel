@@ -32,7 +32,8 @@ const revalidate = Joi.object({
 
 const booking = Joi.object({
   searchId: Joi.string().required(),
-  isBundle: Joi.string().valid("true", "false").required(),
+  searchPayload: Joi.object().required(),
+  totalRooms: Joi.string().required(),
   isUserTravelled: Joi.string().valid("true", "false").required(),
   hotelCode: Joi.string().required(),
   cityCode: Joi.string().required(),
@@ -48,11 +49,6 @@ const booking = Joi.object({
       Joi.object({
         room_code: Joi.string().required(),
         rate_key: Joi.string().required(),
-        room_reference: Joi.string().when("isBundle", {
-          is: "false",
-          then: Joi.string().required(),
-          otherwise: Joi.string().optional().allow(""),
-        }),
         rooms: Joi.array().items(
           Joi.object({
             no_of_infants: Joi.number()
@@ -61,11 +57,7 @@ const booking = Joi.object({
               .less(3)
               .optional()
               .allow(null),
-            room_reference: Joi.string().when("isBundle", {
-              is: "true",
-              then: Joi.string().optional().allow(""),
-              otherwise: Joi.string().optional().allow(""),
-            }),
+            room_reference: Joi.string().required(),
             paxes: Joi.array().required(),
             ages: Joi.array().required(),
           })
