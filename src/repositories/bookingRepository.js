@@ -118,7 +118,7 @@ export default {
    */
   async getOneHotelUserWiseBooking(req, where = {}) {
     try {
-      const booking = await HotelBookingGroup.findOne({
+      const _hotel = await HotelBookingGroup.findOne({
         where: where,
         attributes: {
           exclude: [],
@@ -140,7 +140,27 @@ export default {
           },
         ],
       });
-      return booking;
+      for (let i = 0; i < _hotel.bookings.length; i++) {
+        const element = _hotel.bookings[i];
+        element.dataValues.hotelData = await Hotel.findOne({
+          attributes: ["hotelCode", "hotelName", "countryCode"],
+          where: { hotelCode: element.hotelCode },
+        });
+        element.dataValues.cityData = await HotelCity.findOne({
+          attributes: ["cityCode", "cityName"],
+          where: { cityCode: element.cityCode },
+        });
+        element.dataValues.countryData = await HotelCountry.findOne({
+          attributes: ["countryCode", "countryName"],
+          where: { countryCode: element.dataValues.hotelData.countryCode },
+        });
+      }
+      for (let i = 0; i < _hotel.bookingDetils.length; i++) {
+        const element = _hotel.bookingDetils[i];
+        element.paxes = `${element.paxes}`.split(",");
+        element.ages = `${element.ages}`.split(",");
+      }
+      return _hotel;
     } catch (error) {
       throw Error(error);
     }
