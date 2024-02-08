@@ -220,7 +220,11 @@ export default {
           false
         );
         // need to add condition
-        if (_response?.data?.booking_id) {
+        if (
+          _response?.data?.booking_id &&
+          _response.data.status === "pending" &&
+          _response.data.status === "confirmed"
+        ) {
           let bookingData = {
             userId: userData.id,
             hotelCode: bodyData.hotelCode,
@@ -284,6 +288,86 @@ export default {
               }
             }
           }
+        }
+      }
+      return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * bookingStatus
+   * @param {Object} req
+   */
+  async bookingStatus(req) {
+    try {
+      console.log("status called");
+      const bookingObject = req.bookingObject;
+      const apiEndPoint = GRN_Apis.bookingStatus(
+        bookingObject.bookingReference
+      );
+      const _response = await requestHandler.fetchResponseFromHotel(
+        apiEndPoint,
+        await this.getSessionToken()
+      );
+      // console.log(_response);
+      if (_response !== undefined) {
+        this.genrateGrnLogger(
+          req,
+          _response.status,
+          _response.message,
+          apiEndPoint
+        );
+        if (
+          _response.data.booking_status === "confirmed" &&
+          _response.data.booking_type === "B"
+        ) {
+          await bookingObject.update({ status: _response.data.booking_status });
+        } else if (
+          _response.data.booking_status === "confirmed" &&
+          _response.data.booking_type === "C"
+        ) {
+          await bookingObject.update({
+            status: "cancelled",
+            cancelledDate: _response.data.cancellation_details?.cancel_date,
+            refundAmout: _response.data.cancellation_details?.refund_amount,
+            cancellationCharge:
+              _response.data.cancellation_details?.cancellation_charge,
+          });
+        }
+      }
+      return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * bookingStatus
+   * @param {Object} req
+   */
+  async bookingCancel(req) {
+    try {
+      const bookingObject = req.bookingObject;
+      const apiEndPoint = GRN_Apis.bookingCancel(
+        bookingObject.bookingReference
+      );
+      const _response = await requestHandler.fetchResponseFromHotel(
+        apiEndPoint,
+        await this.getSessionToken()
+      );
+      // console.log(_response);
+      if (_response !== undefined) {
+        this.genrateGrnLogger(
+          req,
+          _response.status,
+          _response.message,
+          apiEndPoint
+        );
+        if (_response.data.status === "confirmed") {
+          console.log("cancelled");
+          await this.bookingStatus(req);
         }
       }
       return _response;

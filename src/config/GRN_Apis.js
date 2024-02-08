@@ -21,4 +21,16 @@ export default {
     url: `${config.app.GRNBaseUrl}v3/hotels/bookings`,
     method: "post",
   },
+  bookingStatus(BookingReferense) {
+    return {
+      url: `${config.app.GRNBaseUrl}v3/hotels/bookings/${BookingReferense}?type=GRN`,
+      method: "get",
+    };
+  },
+  bookingCancel(BookingReferense) {
+    return {
+      url: `${config.app.GRNBaseUrl}v3/hotels/bookings/${BookingReferense}`,
+      method: "delete",
+    };
+  },
 };
