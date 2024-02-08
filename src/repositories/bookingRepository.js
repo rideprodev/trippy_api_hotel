@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 import models from "../models";
 const {
   User,
+  HotelBookingGroup,
   HotelBooking,
   HotelBookingDetail,
   Hotel,
@@ -52,13 +53,23 @@ export default {
         offset = +queryData.offset;
       }
 
-      const _hotels = await HotelBooking.findAndCountAll({
-        where: where,
-        include: {
-          attributes: ["firstName", "lastName"],
-          model: User,
-          as: "userData",
+      const _hotels = await HotelBookingGroup.findAndCountAll({
+        attributes: {
+          exclude: ["updatedAt", "searchPayload"],
         },
+        where: where,
+        include: [
+          {
+            attributes: ["firstName", "lastName"],
+            model: User,
+            as: "userData",
+          },
+          {
+            attributes: ["hotelCode", "cityCode"],
+            model: HotelBooking,
+            as: "booking",
+          },
+        ],
         order: [["id", "DESC"]],
         offset: offset,
         limit: limit,
@@ -68,11 +79,11 @@ export default {
         const element = _hotels.rows[i];
         element.dataValues.hotelData = await Hotel.findOne({
           attributes: ["hotelCode", "hotelName", "countryCode"],
-          where: { hotelCode: element.hotelCode },
+          where: { hotelCode: element.booking.hotelCode },
         });
         element.dataValues.cityData = await HotelCity.findOne({
           attributes: ["cityCode", "cityName"],
-          where: { cityCode: element.cityCode },
+          where: { cityCode: element.booking.cityCode },
         });
         element.dataValues.countryData = await HotelCountry.findOne({
           attributes: ["countryCode", "countryName"],
@@ -90,19 +101,44 @@ export default {
    */
   async getOneHotelBooking(req, where = {}) {
     try {
-      const booking = await HotelBooking.findOne({
+      const booking = await HotelBookingGroup.findOne({
         where: where,
         attributes: {
           exclude: [],
         },
-        include: {
-          attributes: ["firstName", "lastName"],
-          model: User,
-          as: "userData",
-        },
       });
-      booking.dataValues.hotelDetail = await HotelBookingDetail.findAll({
-        where: { bookingId: booking.id },
+      return booking;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+  /**
+   * Get One Hotel Booking
+   * @param {Object} req
+   */
+  async getOneHotelUserWiseBooking(req, where = {}) {
+    try {
+      const booking = await HotelBookingGroup.findOne({
+        where: where,
+        attributes: {
+          exclude: [],
+        },
+        include: [
+          {
+            attributes: ["firstName", "lastName"],
+            model: User,
+            as: "userData",
+          },
+          {
+            model: HotelBooking,
+            as: "bookings",
+          },
+          {
+            attributes: ["roomNumber", "paxes", "ages"],
+            model: HotelBookingDetail,
+            as: "bookingDetils",
+          },
+        ],
       });
       return booking;
     } catch (error) {

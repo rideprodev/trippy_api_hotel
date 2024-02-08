@@ -17,6 +17,14 @@ router.get(
 );
 
 router.get(
+  "/mybooking/:bookingId",
+  authMiddleware,
+  resourceAccessMiddleware(["user"]),
+  hotelMiddleware.isbookingExist,
+  bookingController.getOneUserWiseBooking
+);
+
+router.get(
   "/admin",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),

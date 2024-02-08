@@ -5,6 +5,9 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
       },
+      bookingGroupId: {
+        type: DataTypes.INTEGER,
+      },
       hotelCode: {
         type: DataTypes.STRING(10),
         allowNull: false,
@@ -44,18 +47,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("pending", "paid", "unpaid"),
         defaultValue: "pending",
       },
-      totalRooms: {
-        type: DataTypes.INTEGER(3),
-        defaultValue: 0,
-      },
-      totalMember: {
-        type: DataTypes.INTEGER(3),
-        defaultValue: 0,
-      },
-      isUserTravelled: {
-        type: DataTypes.ENUM("true", "false"),
-        defaultValue: "false",
-      },
       nonRefundable: {
         type: DataTypes.ENUM("true", "false"),
         defaultValue: null,
@@ -78,9 +69,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       searchId: {
         type: DataTypes.STRING(100),
-      },
-      searchPayload: {
-        type: DataTypes.TEXT,
       },
     },
     {
