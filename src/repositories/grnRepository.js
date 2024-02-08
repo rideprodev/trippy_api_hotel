@@ -118,7 +118,6 @@ export default {
         rate_key: rateKey,
       };
       const apiEndPoint = GRN_Apis.revalidate(searchId);
-      console.log(apiEndPoint);
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
         await this.getSessionToken(),
@@ -151,7 +150,7 @@ export default {
       bodyData.roomsData = bodyData.bookingItems;
       //  Set Holder Data
       const holder = {
-        title: userData.UserPersonalInformation.title,
+        title: `${userData.UserPersonalInformation.title}.`,
         name: userData.firstName,
         surname: userData.lastName,
         email: userData.email,
@@ -174,7 +173,7 @@ export default {
             const paxesData = membersData.filter((item) => item.id === x)[0];
             return {
               id: paxesData.id,
-              title: paxesData.title,
+              title: `${paxesData.title}.`,
               name: paxesData.firstName,
               surname: paxesData.lastName,
               type: paxesData.type === "ADT" ? "AD" : "CH",
@@ -203,14 +202,14 @@ export default {
         agent_reference: "",
         holder: holder,
       };
-
+      // return _request_data;
       const _response = await requestHandler.fetchResponseFromHotel(
         GRN_Apis.booking,
         await this.getSessionToken(),
         _request_data
       );
 
-      console.log(_response, "_response");
+      // console.log(_response, "_response");
 
       if (_response !== undefined) {
         this.genrateGrnLogger(
@@ -222,26 +221,46 @@ export default {
         );
         // need to add condition
         if (_response?.data?.booking_id) {
-          const bookingData = {
+          let bookingData = {
             userId: userData.id,
             hotelCode: bodyData.hotelCode,
             cityCode: bodyData.cityCode,
             checkIn: bodyData.checkIn,
             checkOut: bodyData.checkOut,
+            totalRooms: bodyData.totalRooms,
             totalMember: bodyData.totalMember,
             isUserTravelled: bodyData.isUserTravelled,
-            bookingId: _response.booking_id,
-            bookingDate: _response.booking_date,
-            bookingReference: _response.booking_reference,
-            price: _response.price.total,
-            status: _response.status,
-            paymentStatus: _response.payment_status,
-            cancelByDate:
-              _response.hotel.booking_items[0].cancellation_policy
-                .cancel_by_date,
-            supportsCancellation: `${_response.supports_cancellation}`,
-            searchId: _response.search_id,
+            bookingId: _response.data.booking_id,
+            bookingDate: _response.data.booking_date,
+            bookingReference: _response.data.booking_reference,
+            price: _response.data.price.total,
+            status: _response.data.status,
+            paymentStatus: _response.data.payment_status,
+            nonRefundable: _response.data.non_refundable,
+            searchId: _response.data.search_id,
+            searchPayload: JSON.stringify(bodyData.searchPayload),
           };
+          if (_response.data.non_refundable === "false") {
+            if (
+              _response.data.hotel.booking_items[0]?.cancellation_policy
+                .under_cancellation === "false"
+            ) {
+              bookingData = {
+                ...bookingDate,
+                cancelByDate:
+                  _response.data.hotel.booking_items[0]?.cancellation_policy
+                    ?.cancel_by_date,
+                underCancellation:
+                  _response.data.hotel.booking_items[0]?.non_refundable,
+              };
+            } else {
+              bookingData = {
+                ...bookingDate,
+                underCancellation:
+                  _response.data.hotel.booking_items[0]?.non_refundable,
+              };
+            }
+          }
           const booking = await HotelBooking.create(bookingData);
           if (booking) {
             for (let i = 1; i <= bodyData.bookingItems.length; i++) {

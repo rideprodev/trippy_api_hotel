@@ -56,12 +56,19 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("true", "false"),
         defaultValue: "false",
       },
+      nonRefundable: {
+        type: DataTypes.ENUM("true", "false"),
+        defaultValue: null,
+      },
+      underCancellation: {
+        type: DataTypes.ENUM("true", "false"),
+        defaultValue: null,
+      },
       cancelByDate: {
         type: DataTypes.STRING(50),
       },
-      supportsCancellation: {
-        type: DataTypes.ENUM("true", "false"),
-        defaultValue: "false",
+      cancelledIn: {
+        type: DataTypes.STRING(50),
       },
       searchId: {
         type: DataTypes.STRING(100),
