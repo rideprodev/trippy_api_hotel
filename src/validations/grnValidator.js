@@ -68,9 +68,14 @@ const booking = Joi.object({
   // holder: Joi.string().required(),
 });
 
+const bookingStatus = Joi.object({
+  bookingId: Joi.string().required(),
+});
+
 export default {
   search,
   revalidate,
   booking,
   refetch,
+  bookingStatus,
 };

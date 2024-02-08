@@ -67,7 +67,13 @@ module.exports = (sequelize, DataTypes) => {
       cancelByDate: {
         type: DataTypes.STRING(50),
       },
-      cancelledIn: {
+      cancelledDate: {
+        type: DataTypes.STRING(50),
+      },
+      refundAmout: {
+        type: DataTypes.STRING(50),
+      },
+      cancellationCharge: {
         type: DataTypes.STRING(50),
       },
       searchId: {

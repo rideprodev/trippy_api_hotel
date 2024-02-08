@@ -46,4 +46,18 @@ router.post(
   grnController.booking
 );
 
+router.get(
+  "/booking-status/:bookingId",
+  authMiddleware,
+  hotelMiddleware.isbookingExist,
+  grnController.bookingStatus
+);
+
+router.delete(
+  "/booking-cancel/:bookingId",
+  authMiddleware,
+  hotelMiddleware.isbookingExist,
+  grnController.bookingCancel
+);
+
 export default router;
