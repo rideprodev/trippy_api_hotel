@@ -2,7 +2,7 @@ import models from "../models";
 import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
-const { HotelBooking, HotelBookingDetail } = models;
+const { HotelBookingGroup, HotelBooking, HotelBookingDetail } = models;
 
 export default {
   /**
@@ -219,72 +219,97 @@ export default {
           GRN_Apis.booking,
           false
         );
-        // need to add condition
+
         if (
           _response?.data?.booking_id &&
-          _response.data.status === "pending" &&
-          _response.data.status === "confirmed"
+          (_response.data.status === "pending" ||
+            _response.data.status === "confirmed")
         ) {
-          let bookingData = {
+          console.log("================================");
+          console.log("entry start", _response.data.status);
+          console.log("================================");
+          const bookingGroupData = {
             userId: userData.id,
-            hotelCode: bodyData.hotelCode,
-            cityCode: bodyData.cityCode,
+            bookingName: bodyData.bookingName,
+            bookingComments: bodyData.bookingComments,
+            currentReference: _response.data.booking_reference,
             checkIn: bodyData.checkIn,
             checkOut: bodyData.checkOut,
+            bookingDate: _response.data.booking_date,
+            price: _response.data.price.total,
+            status: _response.data.status,
             totalRooms: bodyData.totalRooms,
             totalMember: bodyData.totalMember,
             isUserTravelled: bodyData.isUserTravelled,
-            bookingId: _response.data.booking_id,
-            bookingDate: _response.data.booking_date,
-            bookingReference: _response.data.booking_reference,
-            price: _response.data.price.total,
-            status: _response.data.status,
-            paymentStatus: _response.data.payment_status,
-            nonRefundable: _response.data.non_refundable,
-            searchId: _response.data.search_id,
             searchPayload: JSON.stringify(bodyData.searchPayload),
           };
-          if (_response.data.non_refundable === "false") {
-            if (
-              _response.data.hotel.booking_items[0]?.cancellation_policy
-                .under_cancellation === "false"
-            ) {
-              bookingData = {
-                ...bookingDate,
-                cancelByDate:
-                  _response.data.hotel.booking_items[0]?.cancellation_policy
-                    ?.cancel_by_date,
-                underCancellation:
-                  _response.data.hotel.booking_items[0]?.non_refundable,
-              };
-            } else {
-              bookingData = {
-                ...bookingDate,
-                underCancellation:
-                  _response.data.hotel.booking_items[0]?.non_refundable,
-              };
-            }
-          }
-          const booking = await HotelBooking.create(bookingData);
-          if (booking) {
-            for (let i = 1; i <= bodyData.bookingItems.length; i++) {
-              const elementI = bodyData.bookingItems[i - 1];
-              for (let j = 0; j < elementI.rooms.length; j++) {
-                const elementJ = elementI.rooms[j];
-                const paxesIds = [];
-                const ages = [];
-                for (let k = 0; k < elementJ.paxes.length; k++) {
-                  const elementK = elementJ.paxes[k];
-                  paxesIds.push(elementK.id);
-                  ages.push(elementK.age);
-                }
-                const hotelDetail = {
-                  bookingId: booking.id,
-                  roomNumber: i,
-                  paxes: paxesIds.toString(","),
-                  ages: ages.toString(","),
+          const bookingGroup = await HotelBookingGroup.create(bookingGroupData);
+          console.log("================================");
+          console.log("group created", bookingGroup.id);
+          console.log("================================");
+          if (bookingGroup.id) {
+            let bookingData = {
+              userId: userData.id,
+              bookingGroupId: bookingGroup.id,
+              hotelCode: bodyData.hotelCode,
+              cityCode: bodyData.cityCode,
+              checkIn: bodyData.checkIn,
+              checkOut: bodyData.checkOut,
+              bookingId: _response.data.booking_id,
+              bookingDate: _response.data.booking_date,
+              bookingReference: _response.data.booking_reference,
+              price: _response.data.price.total,
+              status: _response.data.status,
+              paymentStatus: _response.data.payment_status,
+              nonRefundable: _response.data.non_refundable,
+              searchId: _response.data.search_id,
+            };
+            if (_response.data.non_refundable === "false") {
+              if (
+                _response.data.hotel.booking_items[0]?.cancellation_policy
+                  .under_cancellation === "false"
+              ) {
+                bookingData = {
+                  ...bookingData,
+                  cancelByDate:
+                    _response.data.hotel.booking_items[0]?.cancellation_policy
+                      ?.cancel_by_date,
+                  underCancellation:
+                    _response.data.hotel.booking_items[0]?.non_refundable,
                 };
-                await HotelBookingDetail.create(hotelDetail);
+              } else {
+                bookingData = {
+                  ...bookingData,
+                  underCancellation:
+                    _response.data.hotel.booking_items[0]?.non_refundable,
+                };
+              }
+            }
+            const booking = await HotelBooking.create(bookingData);
+            console.log("================================");
+            console.log("booking created", booking.id);
+            console.log("================================");
+            if (booking) {
+              await bookingGroup.update({ bookingId: booking.id });
+              for (let i = 1; i <= bodyData.bookingItems.length; i++) {
+                const elementI = bodyData.bookingItems[i - 1];
+                for (let j = 0; j < elementI.rooms.length; j++) {
+                  const elementJ = elementI.rooms[j];
+                  const paxesIds = [];
+                  const ages = [];
+                  for (let k = 0; k < elementJ.paxes.length; k++) {
+                    const elementK = elementJ.paxes[k];
+                    paxesIds.push(elementK.id);
+                    ages.push(elementK.age);
+                  }
+                  const hotelDetail = {
+                    bookingGroupId: bookingGroup.id,
+                    roomNumber: i,
+                    paxes: paxesIds.toString(","),
+                    ages: ages.toString(","),
+                  };
+                  await HotelBookingDetail.create(hotelDetail);
+                }
               }
             }
           }
@@ -302,10 +327,9 @@ export default {
    */
   async bookingStatus(req) {
     try {
-      console.log("status called");
       const bookingObject = req.bookingObject;
       const apiEndPoint = GRN_Apis.bookingStatus(
-        bookingObject.bookingReference
+        bookingObject.currentReference
       );
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
@@ -324,17 +348,33 @@ export default {
           _response.data.booking_type === "B"
         ) {
           await bookingObject.update({ status: _response.data.booking_status });
+          await HotelBooking.update(
+            { status: _response.data.booking_status },
+            {
+              where: {
+                id: bookingObject.bookingId,
+              },
+            }
+          );
         } else if (
           _response.data.booking_status === "confirmed" &&
           _response.data.booking_type === "C"
         ) {
-          await bookingObject.update({
-            status: "cancelled",
-            cancelledDate: _response.data.cancellation_details?.cancel_date,
-            refundAmout: _response.data.cancellation_details?.refund_amount,
-            cancellationCharge:
-              _response.data.cancellation_details?.cancellation_charge,
-          });
+          await bookingObject.update({ status: "cancelled" });
+          await HotelBooking.update(
+            {
+              status: "cancelled",
+              cancelledDate: _response.data.cancellation_details?.cancel_date,
+              refundAmout: _response.data.cancellation_details?.refund_amount,
+              cancellationCharge:
+                _response.data.cancellation_details?.cancellation_charge,
+            },
+            {
+              where: {
+                id: bookingObject.bookingId,
+              },
+            }
+          );
         }
       }
       return _response;
@@ -351,7 +391,7 @@ export default {
     try {
       const bookingObject = req.bookingObject;
       const apiEndPoint = GRN_Apis.bookingCancel(
-        bookingObject.bookingReference
+        bookingObject.currentReference
       );
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
@@ -366,7 +406,6 @@ export default {
           apiEndPoint
         );
         if (_response.data.status === "confirmed") {
-          console.log("cancelled");
           await this.bookingStatus(req);
         }
       }

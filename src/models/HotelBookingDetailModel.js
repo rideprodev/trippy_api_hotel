@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   const HotelBookingDetail = sequelize.define(
     "HotelBookingDetail",
     {
-      bookingId: {
+      bookingGroupId: {
         type: DataTypes.INTEGER,
       },
       roomNumber: {
@@ -24,9 +24,9 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   HotelBookingDetail.associate = function (models) {
-    HotelBookingDetail.belongsTo(models.HotelBooking, {
-      foreignKey: "bookingId",
-      as: "HotelBooking",
+    HotelBookingDetail.belongsTo(models.HotelBookingGroup, {
+      foreignKey: "bookingGroupId",
+      as: "HotelBookingGroup",
     });
   };
   return HotelBookingDetail;

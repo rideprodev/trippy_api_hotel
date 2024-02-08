@@ -100,7 +100,7 @@ export default {
         );
       } else {
         if (
-          response.data.status === "pending" &&
+          response.data.status === "pending" ||
           response.data.status === "confirmed"
         ) {
           utility.getResponse(res, response.data, response.data.status);
