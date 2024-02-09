@@ -150,7 +150,14 @@ export default {
       bodyData.roomsData = bodyData.bookingItems;
       //  Set Holder Data
       const holder = {
-        title: `${userData.UserPersonalInformation.title}.`,
+        title:
+          userData.UserPersonalInformation.title === "Mr"
+            ? "Mr."
+            : userData.UserPersonalInformation.title === "Mstr"
+            ? "Mstr."
+            : userData.UserPersonalInformation.title === "Mrs"
+            ? "Mrs."
+            : "Ms.",
         name: userData.firstName,
         surname: userData.lastName,
         email: userData.email,
@@ -173,7 +180,14 @@ export default {
             const paxesData = membersData.filter((item) => item.id === x)[0];
             return {
               id: paxesData.id,
-              title: `${paxesData.title}.`,
+              title:
+                paxesData.title === "Mr"
+                  ? "Mr."
+                  : paxesData.title === "Mstr"
+                  ? "Mstr."
+                  : paxesData.title === "Mrs"
+                  ? "Mrs."
+                  : "Ms.",
               name: paxesData.firstName,
               surname: paxesData.lastName,
               type: paxesData.type === "ADT" ? "AD" : "CH",
