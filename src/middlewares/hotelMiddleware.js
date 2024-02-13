@@ -164,7 +164,7 @@ export default {
       const { transactionId } = req.body;
       const result = await transactionRepository.findOneTransaction({
         userId: req.user.id,
-        transactionId,
+        id: transactionId,
       });
       if (result && result.status === "complete") {
         next();
