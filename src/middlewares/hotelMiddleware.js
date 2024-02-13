@@ -1,6 +1,6 @@
 import repositories from "../repositories";
 import utility from "../services/utility";
-const { hotelRepository, userRepository } = repositories;
+const { hotelRepository, userRepository, transactionRepository } = repositories;
 import models from "../models";
 import bookingRepository from "../repositories/bookingRepository";
 const { UserMember, UserPersonalInformation } = models;
@@ -147,6 +147,29 @@ export default {
         next();
       } else {
         utility.getError(res, "ID_NOT_FOUND");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check Transaction Complete
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkTransactionComplete(req, res, next) {
+    try {
+      const { transactionId } = req.body;
+      const result = await transactionRepository.findOneTransaction({
+        userId: req.user.id,
+        transactionId,
+      });
+      if (result && result.status === "complete") {
+        next();
+      } else {
+        utility.getError(res, "Payment is not done please done payment first");
       }
     } catch (error) {
       next(error);

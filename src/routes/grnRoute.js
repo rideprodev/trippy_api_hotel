@@ -42,6 +42,7 @@ router.post(
   validateMiddleware({
     schema: grnValidator.booking,
   }),
+  hotelMiddleware.checkTransactionComplete,
   hotelMiddleware.checkMemberExist,
   grnController.booking
 );

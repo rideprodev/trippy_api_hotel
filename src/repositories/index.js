@@ -5,6 +5,7 @@ import hotelRepository from "./hotelRepository";
 import biddingRepository from "./biddingRepository";
 import grnRepository from "./grnRepository";
 import bookingRepository from "./bookingRepository";
+import transactionRepository from "./transactionRepository";
 
 export default {
   userRepository,
@@ -14,4 +15,5 @@ export default {
   biddingRepository,
   grnRepository,
   bookingRepository,
+  transactionRepository,
 };

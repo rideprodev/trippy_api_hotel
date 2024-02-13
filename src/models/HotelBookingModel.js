@@ -67,8 +67,14 @@ module.exports = (sequelize, DataTypes) => {
       cancellationCharge: {
         type: DataTypes.STRING(50),
       },
+      cancellationPolicy: {
+        type: DataTypes.TEXT,
+      },
       searchId: {
         type: DataTypes.STRING(100),
+      },
+      transactionId: {
+        type: DataTypes.INTEGER,
       },
     },
     {
@@ -90,6 +96,10 @@ module.exports = (sequelize, DataTypes) => {
     HotelBooking.belongsTo(models.User, {
       foreignKey: "userId",
       as: "userData",
+    });
+    HotelBooking.belongsTo(models.Transaction, {
+      foreignKey: "transactionId",
+      as: "transactionData",
     });
   };
   return HotelBooking;
