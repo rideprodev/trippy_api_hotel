@@ -275,29 +275,34 @@ export default {
               price: _response.data.price.total,
               status: _response.data.status,
               paymentStatus: _response.data.payment_status,
-              nonRefundable: _response.data.non_refundable,
+              nonRefundable: `${_response.data.non_refundable}`,
               searchId: _response.data.search_id,
+              transactionId: bodyData.transactionId,
             };
-            if (_response.data.non_refundable === "false") {
+            if (`${_response.data.non_refundable}` === "false") {
               if (
-                _response.data.hotel.booking_items[0]?.cancellation_policy
-                  .under_cancellation === "false"
+                `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}` ===
+                "false"
               ) {
                 bookingData = {
                   ...bookingData,
                   cancelByDate:
                     _response.data.hotel.booking_items[0]?.cancellation_policy
                       ?.cancel_by_date,
-                  underCancellation:
-                    _response.data.hotel.booking_items[0]?.non_refundable,
+                  underCancellation: `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}`,
                 };
               } else {
                 bookingData = {
                   ...bookingData,
-                  underCancellation:
-                    _response.data.hotel.booking_items[0]?.non_refundable,
+                  underCancellation: `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}`,
                 };
               }
+              bookingData = {
+                ...bookingData,
+                cancellationPolicy: JSON.stringify(
+                  _response.data.hotel.booking_items[0]?.cancellation_policy
+                ),
+              };
             }
             const booking = await HotelBooking.create(bookingData);
             console.log("================================");

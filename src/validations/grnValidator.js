@@ -32,6 +32,7 @@ const revalidate = Joi.object({
 
 const booking = Joi.object({
   searchId: Joi.string().required(),
+  transactionId: Joi.number().required(),
   searchPayload: Joi.object().required(),
   totalRooms: Joi.string().required(),
   isUserTravelled: Joi.string().valid("true", "false").required(),
