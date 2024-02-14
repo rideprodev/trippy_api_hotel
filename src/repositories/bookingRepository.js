@@ -74,8 +74,7 @@ export default {
         offset: offset,
         limit: limit,
       });
-
-      for (let i = 0; i < _hotels.count; i++) {
+      for (let i = 0; i < _hotels.rows.length; i++) {
         const element = _hotels.rows[i];
         element.dataValues.hotelData = await Hotel.findOne({
           attributes: ["hotelCode", "hotelName", "countryCode"],
