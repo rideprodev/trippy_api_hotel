@@ -32,6 +32,13 @@ router.get(
 );
 
 router.get(
+  "/admin/user",
+  authMiddleware,
+  resourceAccessMiddleware(["admin"]),
+  bookingController.getAllAdminUserWiseBooking
+);
+
+router.get(
   "/admin/:bookingId",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),
