@@ -16,18 +16,18 @@ const router = Router();
 // ------------ Backend Apis Start -----------------------
 
 router.get(
-  "/admin/:biddingId",
-  authMiddleware,
-  resourceAccessMiddleware(["admin"]),
-  biddingController.getAllBidding
-);
-
-router.get(
   "/admin/user",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),
   hotelMiddleware.isUserExist,
   biddingController.getUserWiseBidding
+);
+
+router.get(
+  "/admin/:biddingId",
+  authMiddleware,
+  resourceAccessMiddleware(["admin"]),
+  biddingController.getAllBidding
 );
 
 router.post(
