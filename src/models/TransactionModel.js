@@ -5,6 +5,10 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
       },
+      gatewayMode: {
+        type: DataTypes.ENUM("Paypal", "Mint"),
+        allowNull: false,
+      },
       paymentFor: {
         type: DataTypes.ENUM("airline", "hotel", "wallet"),
         allowNull: false,
@@ -42,6 +46,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("request", "pending", "complete"),
         defaultValue: "request",
       },
+      cardId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
       underscored: true,
@@ -50,7 +58,11 @@ module.exports = (sequelize, DataTypes) => {
   Transaction.associate = function (models) {
     Transaction.belongsTo(models.User, {
       foreignKey: "userId",
-      as: "UserData",
+      as: "userData",
+    });
+    Transaction.belongsTo(models.Cards, {
+      foreignKey: "cardId",
+      as: "cardData",
     });
   };
   return Transaction;
