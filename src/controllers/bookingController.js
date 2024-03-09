@@ -39,6 +39,25 @@ export default {
    * @param {Object} res
    * @param {Function} next
    */
+  async getAllAdminUserWiseBooking(req, res, next) {
+    try {
+      const { userId } = req.query;
+      console.log(userId);
+      const booking = await bookingRepository.getAllHotelBooking(req, {
+        userId,
+      });
+      utility.getResponse(res, booking, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Get All Booking
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
   async getAllUserWiseBooking(req, res, next) {
     try {
       const booking = await bookingRepository.getAllHotelBooking(req, {
