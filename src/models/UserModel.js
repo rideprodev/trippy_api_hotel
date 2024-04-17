@@ -47,6 +47,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("pending", "active", "inactive", "deleted"),
         defaultValue: "pending",
       },
+      commission: {
+        type: DataTypes.ENUM("relevant", "irrelevant"),
+        defaultValue: "relevant",
+      },
       last_login: {
         type: DataTypes.DATE,
         allowNull: true,
@@ -86,6 +90,10 @@ module.exports = (sequelize, DataTypes) => {
         {
           unique: false,
           fields: ["status"],
+        },
+        {
+          unique: false,
+          fields: ["commission"],
         },
       ],
       underscored: true,
