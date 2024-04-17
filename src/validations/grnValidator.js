@@ -41,6 +41,7 @@ const booking = Joi.object({
   groupCode: Joi.string().required(),
   checkIn: Joi.string().required(),
   checkOut: Joi.string().required(),
+  roomType: Joi.string().required(),
   bookingComments: Joi.string().required(),
   totalMember: Joi.string().required(),
   bookingName: Joi.string().required(),

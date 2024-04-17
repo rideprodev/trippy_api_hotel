@@ -5,22 +5,29 @@ import logger from "./logger";
 export default {
   async fetchResponseFromHotel(requestApiBase, Token, _requestData = {}) {
     try {
-      const _request = {
-        method: requestApiBase.method,
-        url: requestApiBase.url,
-        data: _requestData,
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "api-key": Token,
-        },
-      };
-      // console.log(_request, "_request");
-      const { status, data } = await axios(_request);
-      return {
-        status: status,
-        data: data,
-      };
+      if (Token !== false) {
+        const _request = {
+          method: requestApiBase.method,
+          url: requestApiBase.url,
+          data: _requestData,
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "api-key": Token,
+          },
+        };
+        // console.log(_request, "_request");
+        const { status, data } = await axios(_request);
+        return {
+          status: status,
+          data: data,
+        };
+      } else {
+        return {
+          status: 203,
+          message: "Token is expaired",
+        };
+      }
     } catch (error) {
       return {
         status: error.response.status,

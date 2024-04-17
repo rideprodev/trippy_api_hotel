@@ -3,7 +3,7 @@ import utility from "../services/utility";
 const { hotelRepository, userRepository, transactionRepository } = repositories;
 import models from "../models";
 import bookingRepository from "../repositories/bookingRepository";
-const { UserMember, UserPersonalInformation } = models;
+const { UserMember, UserPersonalInformation, Setting } = models;
 
 export default {
   /**
@@ -161,13 +161,43 @@ export default {
    */
   async checkTransactionComplete(req, res, next) {
     try {
-      const { transactionId } = req.body;
+      const bodyData = req.body;
+      const userData = req.user;
+      let commission = 0,
+        commissionAmount = 0,
+        totalPrice = +bodyData.price;
       const result = await transactionRepository.findOneTransaction({
-        userId: req.user.id,
-        id: transactionId,
+        userId: userData.id,
+        id: bodyData.transactionId,
       });
+
       if (result && result.status === "complete") {
-        next();
+        if (userData.commission === "relevant") {
+          const comissionPercent = await Setting.findOne({
+            where: { key: "grn_margin" },
+          });
+          commission = +comissionPercent.value;
+          commissionAmount = (+bodyData.price * commission) / 100;
+          totalPrice = +bodyData.price + commissionAmount;
+        }
+        bodyData.commission = commission;
+        bodyData.commissionAmount = commissionAmount;
+        bodyData.totalPrice = totalPrice;
+        if (+result.total === bodyData.totalPrice) {
+          if (bodyData.searchPayload.currency === result.currency) {
+            next();
+          } else {
+            utility.getError(
+              res,
+              `The booking did not go through because the hotel search in ${bodyData.searchPayload.currency} currency and you have paid=${result.currency} currency. Please contact our support`
+            );
+          }
+        } else {
+          utility.getError(
+            res,
+            `The booking did not go through because the payment for this booking is=${bodyData.totalPrice} and you have paid=${result.total}. Please contact our support`
+          );
+        }
       } else {
         utility.getError(res, "Payment is not done please done payment first");
       }

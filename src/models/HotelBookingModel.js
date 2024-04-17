@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(50),
         allowNull: false,
       },
+      roomType: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+      },
       bookingId: {
         type: DataTypes.STRING(50),
         defaultValue: null,
@@ -36,6 +40,18 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       price: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
+      commission: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
+      commissionAmount: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
+      totalPrice: {
         type: DataTypes.STRING(50),
         allowNull: false,
       },

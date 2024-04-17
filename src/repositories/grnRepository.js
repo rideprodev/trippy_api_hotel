@@ -2,7 +2,7 @@ import models from "../models";
 import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
-const { HotelBookingGroup, HotelBooking, HotelBookingDetail } = models;
+const { HotelBookingGroup, HotelBooking, HotelBookingDetail, Setting } = models;
 
 export default {
   /**
@@ -12,7 +12,7 @@ export default {
    * @param {Object} message
    * @param {Object} apiEndUrl
    */
-  async genrateGrnLogger(req, status, message, apiEndUrl) {
+  async genrateGrnLogger(req, status, message, apiEndUrl, _response) {
     try {
       const userName = req.user
         ? `${req.user.firstName} ${req.user.lastName}`
@@ -24,7 +24,11 @@ export default {
           apiEndUrl
         )} Called get status:${status} ${
           message && message != "" ? `and message :  ${message}` : ""
-        } form the User : "${userName}" and Id : ${userId}`
+        } form the User : "${userName}" and Id : ${userId} ${
+          _response != false
+            ? `and response is ${JSON.stringify(_response)}`
+            : ""
+        }`
       );
       return true;
     } catch (error) {
@@ -38,7 +42,12 @@ export default {
   async getSessionToken() {
     try {
       // fetch token from settings
-      return "63ad347002ca3e1c01eb4a3ed7c89985";
+      const token = await Setting.findOne({ where: { key: "grn_access_key" } });
+      if (token?.value.length > 5) {
+        return token.value;
+      } else {
+        return false;
+      }
     } catch (error) {
       throw Error(error);
     }
@@ -52,7 +61,7 @@ export default {
       const bodyData = req.body;
       const _request_data = {
         rooms: bodyData.rooms,
-        hotel_codes: bodyData.hotelCode,
+        hotel_codes: bodyData.hotelCode.splice(0, 100),
         rates: "comprehensive",
         currency: bodyData.currency,
         client_nationality: bodyData.clientNationality,
@@ -62,7 +71,8 @@ export default {
       const _response = await requestHandler.fetchResponseFromHotel(
         GRN_Apis.search,
         await this.getSessionToken(),
-        _request_data
+        _request_data,
+        false
       );
       // console.log(_response);
       if (_response !== undefined) {
@@ -97,7 +107,8 @@ export default {
           req,
           _response.status,
           _response.message,
-          apiEndPoint
+          apiEndPoint,
+          false
         );
       }
       return _response;
@@ -129,7 +140,8 @@ export default {
           req,
           _response.status,
           _response.message,
-          apiEndPoint
+          apiEndPoint,
+          false
         );
       }
       return _response;
@@ -223,7 +235,7 @@ export default {
         _request_data
       );
 
-      // console.log(_response, "_response");
+      console.log(_response, "_response");
 
       if (_response !== undefined) {
         this.genrateGrnLogger(
@@ -231,7 +243,7 @@ export default {
           _response.status,
           _response.message,
           GRN_Apis.booking,
-          false
+          { requestData: _request_data, responseData: _response }
         );
 
         if (
@@ -332,6 +344,9 @@ export default {
               }
             }
           }
+        } else {
+          //  if error comes
+          console.log("error comes");
         }
       }
       return _response;
@@ -360,7 +375,8 @@ export default {
           req,
           _response.status,
           _response.message,
-          apiEndPoint
+          apiEndPoint,
+          false
         );
         if (
           _response.data.booking_status === "confirmed" &&
@@ -422,7 +438,8 @@ export default {
           req,
           _response.status,
           _response.message,
-          apiEndPoint
+          apiEndPoint,
+          _response
         );
         if (_response.data.status === "confirmed") {
           await this.bookingStatus(req);
