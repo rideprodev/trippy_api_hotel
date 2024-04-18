@@ -1,3 +1,4 @@
+
 module.exports = (sequelize, DataTypes) => {
   const Bidding = sequelize.define(
     "Bidding",
