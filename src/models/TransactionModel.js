@@ -43,7 +43,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
       },
       status: {
-        type: DataTypes.ENUM("request", "complete", "refund", "failed"),
+        type: DataTypes.ENUM(
+          "request",
+          "complete",
+          "refund",
+          "failed",
+          "transfer"
+        ),
         defaultValue: "request",
       },
       cardId: {
