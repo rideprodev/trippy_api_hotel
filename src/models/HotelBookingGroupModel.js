@@ -17,7 +17,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       currentReference: {
         type: DataTypes.STRING(50),
-        allowNull: false,
       },
       checkIn: {
         type: DataTypes.STRING(50),
@@ -35,7 +34,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("pending", "confirmed", "cancelled"),
+        type: DataTypes.ENUM(
+          "pending",
+          "confirmed",
+          "cancelled",
+          "failed",
+          "rejected"
+        ),
         defaultValue: "pending",
       },
       totalRooms: {

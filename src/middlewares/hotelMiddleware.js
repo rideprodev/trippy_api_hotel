@@ -169,6 +169,7 @@ export default {
       const result = await transactionRepository.findOneTransaction({
         userId: userData.id,
         id: bodyData.transactionId,
+        hotelBookingId: null,
       });
 
       if (result && result.status === "complete") {
@@ -183,21 +184,9 @@ export default {
         bodyData.commission = commission;
         bodyData.commissionAmount = commissionAmount;
         bodyData.totalPrice = totalPrice;
-        if (+result.total === bodyData.totalPrice) {
-          if (bodyData.searchPayload.currency === result.currency) {
-            next();
-          } else {
-            utility.getError(
-              res,
-              `The booking did not go through because the hotel search in ${bodyData.searchPayload.currency} currency and you have paid=${result.currency} currency. Please contact our support`
-            );
-          }
-        } else {
-          utility.getError(
-            res,
-            `The booking did not go through because the payment for this booking is=${bodyData.totalPrice} and you have paid=${result.total}. Please contact our support`
-          );
-        }
+        bodyData.transactionAmount = result.total;
+        bodyData.transactionCurrency = result.currency;
+        next();
       } else {
         utility.getError(res, "Payment is not done please done payment first");
       }

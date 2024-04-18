@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       },
       gatewayMode: {
-        type: DataTypes.ENUM("Paypal", "Mint"),
+        type: DataTypes.ENUM("Paypal", "Mint", "system"),
         allowNull: false,
       },
       paymentFor: {
@@ -43,10 +43,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
       },
       status: {
-        type: DataTypes.ENUM("request", "pending", "complete"),
+        type: DataTypes.ENUM("request", "complete", "refund", "failed"),
         defaultValue: "request",
       },
       cardId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      hotelBookingId: {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
@@ -63,6 +67,10 @@ module.exports = (sequelize, DataTypes) => {
     Transaction.belongsTo(models.Cards, {
       foreignKey: "cardId",
       as: "cardData",
+    });
+    Transaction.belongsTo(models.HotelBooking, {
+      foreignKey: "hotelBookingId",
+      as: "bookingDetail",
     });
   };
   return Transaction;

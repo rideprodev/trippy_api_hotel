@@ -2,7 +2,16 @@ import models from "../models";
 import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
-const { HotelBookingGroup, HotelBooking, HotelBookingDetail, Setting } = models;
+import utility from "../services/utility";
+const {
+  HotelBookingGroup,
+  HotelBooking,
+  HotelBookingDetail,
+  Setting,
+  Transaction,
+  HotelBookingLog,
+  Wallet,
+} = models;
 
 export default {
   /**
@@ -12,7 +21,14 @@ export default {
    * @param {Object} message
    * @param {Object} apiEndUrl
    */
-  async genrateGrnLogger(req, status, message, apiEndUrl, _response) {
+  async genrateGrnLogger(
+    req,
+    status,
+    message,
+    apiEndUrl,
+    _response,
+    bookingId = null
+  ) {
     try {
       const userName = req.user
         ? `${req.user.firstName} ${req.user.lastName}`
@@ -25,8 +41,12 @@ export default {
         )} Called get status:${status} ${
           message && message != "" ? `and message :  ${message}` : ""
         } form the User : "${userName}" and Id : ${userId} ${
+          bookingId !== null
+            ? `with Booking Group-id=${bookingId.groupId} and booking-id=${bookingId.bookingId}`
+            : ""
+        } ${
           _response != false
-            ? `and response is ${JSON.stringify(_response)}`
+            ? `and detail is=> ${JSON.stringify(_response)}`
             : ""
         }`
       );
@@ -80,7 +100,8 @@ export default {
           req,
           _response.status,
           _response.message,
-          GRN_Apis.search
+          GRN_Apis.search,
+          false
         );
       }
       return _response;
@@ -155,204 +176,312 @@ export default {
    * @param {Object} req
    */
   async booking(req) {
-    try {
-      const bodyData = req.body;
-      const membersData = req.members;
-      const userData = req.user;
-      bodyData.roomsData = bodyData.bookingItems;
-      //  Set Holder Data
-      const holder = {
-        title:
-          userData.UserPersonalInformation.title === "Mr"
-            ? "Mr."
-            : userData.UserPersonalInformation.title === "Mstr"
-            ? "Mstr."
-            : userData.UserPersonalInformation.title === "Mrs"
-            ? "Mrs."
-            : "Ms.",
-        name: userData.firstName,
-        surname: userData.lastName,
-        email: userData.email,
-        phone_number: `${userData.phoneNumberCountryCode}${userData.phoneNumber}`,
-        client_nationality: userData.UserPersonalInformation.nationality,
-      };
-      if (
-        userData.UserPersonalInformation.panNumber &&
-        userData.UserPersonalInformation.panNumber != ""
-      ) {
-        holder["pan_number"] = userData.UserPersonalInformation.panNumber;
-      }
-      // Need to check the indian user pan card mandatary
+    // try {
+    const bodyData = req.body;
+    const membersData = req.members;
+    const userData = req.user;
+    bodyData.roomsData = bodyData.bookingItems;
+    //  Set Holder Data
+    const holder = {
+      title:
+        userData.UserPersonalInformation.title === "Mr"
+          ? "Mr."
+          : userData.UserPersonalInformation.title === "Mstr"
+          ? "Mstr."
+          : userData.UserPersonalInformation.title === "Mrs"
+          ? "Mrs."
+          : "Ms.",
+      name: userData.firstName,
+      surname: userData.lastName,
+      email: userData.email,
+      phone_number: `${userData.phoneNumberCountryCode}${userData.phoneNumber}`,
+      client_nationality: userData.UserPersonalInformation.nationality,
+    };
+    if (
+      userData.UserPersonalInformation.panNumber &&
+      userData.UserPersonalInformation.panNumber != ""
+    ) {
+      holder["pan_number"] = userData.UserPersonalInformation.panNumber;
+    }
+    // Need to check the indian user pan card mandatary
 
-      //  Set Booking Items
-      for (let index = 0; index < bodyData.bookingItems.length; index++) {
-        const e = bodyData.bookingItems[index];
-        for (let i = 0; i < e.rooms.length; i++) {
-          e.rooms[i].paxes = e.rooms[i].paxes.map((x, k) => {
-            const paxesData = membersData.filter((item) => item.id === x)[0];
-            return {
-              id: paxesData.id,
-              title:
-                paxesData.title === "Mr"
-                  ? "Mr."
-                  : paxesData.title === "Mstr"
-                  ? "Mstr."
-                  : paxesData.title === "Mrs"
-                  ? "Mrs."
-                  : "Ms.",
-              name: paxesData.firstName,
-              surname: paxesData.lastName,
-              type: paxesData.type === "ADT" ? "AD" : "CH",
-              age: e.rooms[i].ages[k],
+    //  Set Booking Items
+    for (let index = 0; index < bodyData.bookingItems.length; index++) {
+      const e = bodyData.bookingItems[index];
+      for (let i = 0; i < e.rooms.length; i++) {
+        e.rooms[i].paxes = e.rooms[i].paxes.map((x, k) => {
+          const paxesData = membersData.filter((item) => item.id === x)[0];
+          return {
+            id: paxesData.id,
+            title:
+              paxesData.title === "Mr"
+                ? "Mr."
+                : paxesData.title === "Mstr"
+                ? "Mstr."
+                : paxesData.title === "Mrs"
+                ? "Mrs."
+                : "Ms.",
+            name: paxesData.firstName,
+            surname: paxesData.lastName,
+            type: paxesData.type === "ADT" ? "AD" : "CH",
+            age: e.rooms[i].ages[k],
+          };
+        });
+        delete e.rooms[i].ages;
+        // console.log(e.rooms[i]);
+      }
+    }
+
+    // console.log(bodyData.booking_items[0].rooms[0].paxes);
+
+    // Request Data
+    const _request_data = {
+      search_id: bodyData.searchId,
+      hotel_code: bodyData.hotelCode,
+      city_code: bodyData.cityCode,
+      group_code: bodyData.groupCode,
+      checkout: bodyData.checkOut,
+      checkin: bodyData.checkIn,
+      booking_name: bodyData.bookingName,
+      booking_comments: bodyData.bookingComments,
+      booking_items: bodyData.bookingItems,
+      payment_type: "AT_WEB",
+      agent_reference: "",
+      holder: holder,
+    };
+    // return _request_data;
+    const _response = await requestHandler.fetchResponseFromHotel(
+      GRN_Apis.booking,
+      await this.getSessionToken(),
+      _request_data
+    );
+
+    console.log(_response, "_response");
+
+    if (_response !== undefined) {
+      console.log("================================");
+      console.log("entry start", _response?.data?.status);
+      console.log("================================");
+      const currentDatatime = await utility.getCurrentDateTime();
+      const bookingGroupData = {
+        userId: userData.id,
+        bookingName: bodyData.bookingName,
+        bookingComments: bodyData.bookingComments,
+        currentReference: _response?.data?.booking_reference
+          ? _response?.data?.booking_reference
+          : "",
+        checkIn: bodyData.checkIn,
+        checkOut: bodyData.checkOut,
+        bookingDate: _response?.data?.booking_date
+          ? _response?.data?.booking_date
+          : currentDatatime,
+        price: _response?.data?.price?.total
+          ? _response?.data?.price?.total
+          : bodyData.price,
+        status: _response?.data?.status ? _response?.data?.status : "failed",
+        totalRooms: bodyData.totalRooms,
+        totalMember: bodyData.totalMember,
+        isUserTravelled: bodyData.isUserTravelled,
+        searchPayload: JSON.stringify(bodyData.searchPayload),
+      };
+      const bookingGroup = await HotelBookingGroup.create(bookingGroupData);
+      console.log("================================");
+      console.log("group created", bookingGroup.id);
+      console.log("================================");
+      if (bookingGroup.id) {
+        let bookingData = {
+          userId: userData.id,
+          bookingGroupId: bookingGroup.id,
+          hotelCode: bodyData.hotelCode,
+          cityCode: bodyData.cityCode,
+          checkIn: bodyData.checkIn,
+          checkOut: bodyData.checkOut,
+          // transactionId: bodyData.transactionId,
+          commission: bodyData.commission,
+          commissionAmount: bodyData.commissionAmount,
+          totalPrice: bodyData.totalPrice,
+          roomType: bodyData.roomType,
+          bookingId: _response?.data?.booking_id
+            ? _response?.data?.booking_id
+            : "",
+          bookingDate: _response?.data?.booking_date
+            ? _response?.data?.booking_date
+            : currentDatatime,
+          bookingReference: _response?.data?.booking_reference
+            ? _response?.data?.booking_reference
+            : "",
+          price: _response?.data?.price?.total
+            ? _response?.data?.price?.total
+            : bodyData.price,
+          status: _response?.data?.status ? _response?.data?.status : "failed",
+          paymentStatus: _response?.data?.payment_status
+            ? _response?.data?.payment_status
+            : "",
+          nonRefundable: `${
+            _response?.data?.non_refundable
+              ? _response?.data?.non_refundable
+              : ""
+          }`,
+          searchId: bodyData.search_id,
+        };
+        if (
+          _response?.data?.non_refundable &&
+          `${_response?.data?.non_refundable}` === "false"
+        ) {
+          if (
+            `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}` ===
+            "false"
+          ) {
+            bookingData = {
+              ...bookingData,
+              cancelByDate:
+                _response.data.hotel.booking_items[0]?.cancellation_policy
+                  ?.cancel_by_date,
+              underCancellation: `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}`,
             };
-          });
-          delete e.rooms[i].ages;
-          // console.log(e.rooms[i]);
+          } else {
+            bookingData = {
+              ...bookingData,
+              underCancellation: `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}`,
+            };
+          }
+          bookingData = {
+            ...bookingData,
+            cancellationPolicy: JSON.stringify(
+              _response.data.hotel.booking_items[0]?.cancellation_policy
+            ),
+          };
         }
-      }
-
-      // console.log(bodyData.booking_items[0].rooms[0].paxes);
-
-      // Request Data
-      const _request_data = {
-        search_id: bodyData.searchId,
-        hotel_code: bodyData.hotelCode,
-        city_code: bodyData.cityCode,
-        group_code: bodyData.groupCode,
-        checkout: bodyData.checkOut,
-        checkin: bodyData.checkIn,
-        booking_name: bodyData.bookingName,
-        booking_comments: bodyData.bookingComments,
-        booking_items: bodyData.bookingItems,
-        payment_type: "AT_WEB",
-        agent_reference: "",
-        holder: holder,
-      };
-      // return _request_data;
-      const _response = await requestHandler.fetchResponseFromHotel(
-        GRN_Apis.booking,
-        await this.getSessionToken(),
-        _request_data
-      );
-
-      console.log(_response, "_response");
-
-      if (_response !== undefined) {
+        const booking = await HotelBooking.create(bookingData);
+        console.log("================================");
+        console.log("booking created", booking.id);
+        console.log("================================");
+        if (booking) {
+          await bookingGroup.update({ bookingId: booking.id });
+          for (let i = 1; i <= bodyData.bookingItems.length; i++) {
+            const elementI = bodyData.bookingItems[i - 1];
+            for (let j = 0; j < elementI.rooms.length; j++) {
+              const elementJ = elementI.rooms[j];
+              const paxesIds = [];
+              const ages = [];
+              for (let k = 0; k < elementJ.paxes.length; k++) {
+                const elementK = elementJ.paxes[k];
+                paxesIds.push(elementK.id);
+                ages.push(elementK.age);
+              }
+              const hotelDetail = {
+                bookingGroupId: bookingGroup.id,
+                roomNumber: i,
+                paxes: paxesIds.toString(","),
+                ages: ages.toString(","),
+              };
+              await HotelBookingDetail.create(hotelDetail);
+            }
+          }
+          console.log("================================");
+          console.log("Paxes created");
+          console.log("================================");
+        }
         this.genrateGrnLogger(
           req,
           _response.status,
           _response.message,
           GRN_Apis.booking,
-          { requestData: _request_data, responseData: _response }
+          { requestData: _request_data, responseData: _response },
+          { groupId: bookingGroup.id, bookingId: booking.id }
         );
-
+        await Transaction.update(
+          {
+            hotelBookingId: booking.id,
+          },
+          {
+            where: { id: bodyData.transactionId },
+          }
+        );
+        console.log("================================");
+        console.log(
+          "transaction updated on booking Id=",
+          booking.id,
+          "and transactionId=",
+          bodyData.transactionId
+        );
+        console.log("================================");
         if (
           _response?.data?.booking_id &&
           (_response.data.status === "pending" ||
             _response.data.status === "confirmed")
         ) {
-          console.log("================================");
-          console.log("entry start", _response.data.status);
-          console.log("================================");
-          const bookingGroupData = {
+          await HotelBookingLog.create({
             userId: userData.id,
-            bookingName: bodyData.bookingName,
-            bookingComments: bodyData.bookingComments,
-            currentReference: _response.data.booking_reference,
-            checkIn: bodyData.checkIn,
-            checkOut: bodyData.checkOut,
-            bookingDate: _response.data.booking_date,
-            price: _response.data.price.total,
-            status: _response.data.status,
-            totalRooms: bodyData.totalRooms,
-            totalMember: bodyData.totalMember,
-            isUserTravelled: bodyData.isUserTravelled,
-            searchPayload: JSON.stringify(bodyData.searchPayload),
-          };
-          const bookingGroup = await HotelBookingGroup.create(bookingGroupData);
+            groupId: bookingGroup.id,
+            bookingId: booking.id,
+            transactionId: bodyData.transactionId,
+            paymentStatus: "paid",
+          });
           console.log("================================");
-          console.log("group created", bookingGroup.id);
+          console.log("Booking Confirm Log Updated");
           console.log("================================");
-          if (bookingGroup.id) {
-            let bookingData = {
-              userId: userData.id,
-              bookingGroupId: bookingGroup.id,
-              hotelCode: bodyData.hotelCode,
-              cityCode: bodyData.cityCode,
-              checkIn: bodyData.checkIn,
-              checkOut: bodyData.checkOut,
-              bookingId: _response.data.booking_id,
-              bookingDate: _response.data.booking_date,
-              bookingReference: _response.data.booking_reference,
-              price: _response.data.price.total,
-              status: _response.data.status,
-              paymentStatus: _response.data.payment_status,
-              nonRefundable: `${_response.data.non_refundable}`,
-              searchId: _response.data.search_id,
-              transactionId: bodyData.transactionId,
-            };
-            if (`${_response.data.non_refundable}` === "false") {
-              if (
-                `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}` ===
-                "false"
-              ) {
-                bookingData = {
-                  ...bookingData,
-                  cancelByDate:
-                    _response.data.hotel.booking_items[0]?.cancellation_policy
-                      ?.cancel_by_date,
-                  underCancellation: `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}`,
-                };
-              } else {
-                bookingData = {
-                  ...bookingData,
-                  underCancellation: `${_response.data.hotel.booking_items[0]?.cancellation_policy.under_cancellation}`,
-                };
-              }
-              bookingData = {
-                ...bookingData,
-                cancellationPolicy: JSON.stringify(
-                  _response.data.hotel.booking_items[0]?.cancellation_policy
-                ),
-              };
-            }
-            const booking = await HotelBooking.create(bookingData);
-            console.log("================================");
-            console.log("booking created", booking.id);
-            console.log("================================");
-            if (booking) {
-              await bookingGroup.update({ bookingId: booking.id });
-              for (let i = 1; i <= bodyData.bookingItems.length; i++) {
-                const elementI = bodyData.bookingItems[i - 1];
-                for (let j = 0; j < elementI.rooms.length; j++) {
-                  const elementJ = elementI.rooms[j];
-                  const paxesIds = [];
-                  const ages = [];
-                  for (let k = 0; k < elementJ.paxes.length; k++) {
-                    const elementK = elementJ.paxes[k];
-                    paxesIds.push(elementK.id);
-                    ages.push(elementK.age);
-                  }
-                  const hotelDetail = {
-                    bookingGroupId: bookingGroup.id,
-                    roomNumber: i,
-                    paxes: paxesIds.toString(","),
-                    ages: ages.toString(","),
-                  };
-                  await HotelBookingDetail.create(hotelDetail);
-                }
-              }
-            }
-          }
         } else {
-          //  if error comes
-          console.log("error comes");
+          console.log("================================");
+          console.log("Refund Intialize");
+          console.log("================================");
+          // refund intiate
+          const bookignLogs = await HotelBookingLog.create({
+            userId: userData.id,
+            groupId: bookingGroup.id,
+            bookingId: booking.id,
+            paymentStatus: "refund-Intiated",
+          });
+          const transactionRequest = {
+            userId: userData.id,
+            gatewayMode: "system",
+            paymentFor: "wallet",
+            paymentType: "adjust",
+            total: bodyData.transactionAmount,
+            currency: bodyData.transactionCurrency,
+            description: `Refund on the booking of ${booking.id}`,
+            status: "refund",
+          };
+          const transactionData = await Transaction.create(transactionRequest);
+
+          if (transactionData && transactionData.id) {
+            await transactionData.update({
+              hotelBookingId: booking.id,
+            });
+
+            console.log("====== check wallete ========");
+            const checkWallet = await Wallet.findOne({
+              where: {
+                userId: userData.id,
+              },
+            });
+            // update wallet
+            if (checkWallet && checkWallet.balance !== null) {
+              const balance =
+                checkWallet.balance + parseFloat(transactionData.total);
+              await checkWallet.update({ balance });
+            } else {
+              await Wallet.create({
+                balance: parseFloat(transactionData.total),
+                userId: userData.id,
+              });
+            }
+
+            await bookignLogs.update({
+              paymentStatus: "refunded",
+              transactionId: transactionData.id,
+            });
+            console.log("================================");
+            console.log("Refund Done in transaction Id=", transactionData.id);
+            console.log("================================");
+          }
         }
       }
-      return _response;
-    } catch (error) {
-      throw Error(error);
     }
+    return _response;
+    // } catch (error) {
+    //   throw Error(error);
+    // }
   },
 
   /**

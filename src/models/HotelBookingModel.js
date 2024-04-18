@@ -30,14 +30,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       bookingId: {
         type: DataTypes.STRING(50),
-        defaultValue: null,
       },
       bookingDate: {
         type: DataTypes.STRING(50),
       },
       bookingReference: {
         type: DataTypes.STRING(50),
-        allowNull: false,
       },
       price: {
         type: DataTypes.STRING(50),
@@ -56,7 +54,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("pending", "confirmed", "cancelled"),
+        type: DataTypes.ENUM(
+          "pending",
+          "confirmed",
+          "cancelled",
+          "failed",
+          "rejected"
+        ),
         defaultValue: "pending",
       },
       paymentStatus: {
@@ -89,9 +93,6 @@ module.exports = (sequelize, DataTypes) => {
       searchId: {
         type: DataTypes.STRING(100),
       },
-      transactionId: {
-        type: DataTypes.INTEGER,
-      },
     },
     {
       indexes: [
@@ -112,10 +113,6 @@ module.exports = (sequelize, DataTypes) => {
     HotelBooking.belongsTo(models.User, {
       foreignKey: "userId",
       as: "userData",
-    });
-    HotelBooking.belongsTo(models.Transaction, {
-      foreignKey: "transactionId",
-      as: "transactionData",
     });
   };
   return HotelBooking;
