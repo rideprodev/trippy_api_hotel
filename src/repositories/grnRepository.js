@@ -323,7 +323,6 @@ export default {
             cityCode: bodyData.cityCode,
             checkIn: bodyData.checkIn,
             checkOut: bodyData.checkOut,
-            // transactionId: bodyData.transactionId,
             commission: bodyData.commission,
             commissionAmount: bodyData.commissionAmount,
             totalPrice: bodyData.totalPrice,
@@ -345,7 +344,7 @@ export default {
               : "failed",
             paymentStatus: _response?.data?.payment_status
               ? _response?.data?.payment_status
-              : "",
+              : "pending",
             nonRefundable: nonRefundable,
             underCancellation: underCancellation,
             cancelByDate: cancelByDate,
