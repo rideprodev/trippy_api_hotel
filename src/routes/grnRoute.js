@@ -38,12 +38,12 @@ router.post(
 
 router.post(
   "/booking",
-  authMiddleware,
-  validateMiddleware({
-    schema: grnValidator.booking,
-  }),
-  hotelMiddleware.checkTransactionComplete,
-  hotelMiddleware.checkMemberExist,
+  // authMiddleware,
+  // validateMiddleware({
+  //   schema: grnValidator.booking,
+  // }),
+  // hotelMiddleware.checkTransactionComplete,
+  // hotelMiddleware.checkMemberExist,
   grnController.booking
 );
 

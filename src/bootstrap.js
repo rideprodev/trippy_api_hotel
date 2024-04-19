@@ -11,7 +11,6 @@ import models from "./models";
 import config from "./config";
 import loggers from "./services/logger";
 import logger from "morgan";
-// import appVersionMiddleware from "./middlewares/app-version-middleware";
 import path from "path";
 // import scheduleJob from "./services/schedule-job";
 // import schedule from "node-schedule";
@@ -69,10 +68,12 @@ export default class Bootstrap {
     const swaggerSpec = swaggerJSDoc(options);
     app.use(
       cors({
-        "Access-Control-Allow-Origin": `https://${config.app.swaggerHost}`,
+        "Access-Control-Allow-Origin": `https://${config.app.baseUrl}`,
       })
     );
-    app.use(logger("tiny"));
+    if (config.app.environment === "development") {
+      app.use(logger("tiny"));
+    }
     app.use(bodyParser.json({ limit: "500mb", extended: true }));
     app.use(compression());
     app.use(methodOverride());
