@@ -349,7 +349,7 @@ export default {
             underCancellation: underCancellation,
             cancelByDate: cancelByDate,
             cancellationPolicy: cancellationPolicy,
-            searchId: bodyData.search_id,
+            searchId: bodyData.searchId,
           };
           const booking = await HotelBooking.create(bookingData);
           console.log("================================");
