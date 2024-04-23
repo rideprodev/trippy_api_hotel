@@ -1,5 +1,5 @@
 import models from "../models";
-const { Bidding, BiddingPrices, User } = models;
+const { HotelBidding, HotelBiddingPrices, User } = models;
 import { Op } from "sequelize";
 
 export default {
@@ -11,10 +11,7 @@ export default {
   async getAllBiddings(req, where = {}) {
     try {
       const queryData = req.query;
-      where = {
-        ...where,
-        tripType: "Hotel",
-      };
+      where = where;
 
       let limit = null,
         offset = null;
@@ -22,12 +19,11 @@ export default {
         where = {
           ...where,
           [Op.or]: [
-            { name: { [Op.like]: `%${queryData.name}%` } },
-            { from: { [Op.like]: `%${queryData.name}%` } },
-            { to: { [Op.like]: `%${queryData.name}%` } },
-            { airlineHotelCode: { [Op.like]: `%${queryData.name}%` } },
-            { flightRoomNumber: { [Op.like]: `%${queryData.name}%` } },
-            { flightRoomNumber: { [Op.like]: `%${queryData.name}%` } },
+            { roomType: { [Op.like]: `%${queryData.name}%` } },
+            { checkIn: { [Op.like]: `%${queryData.name}%` } },
+            { checkOut: { [Op.like]: `%${queryData.name}%` } },
+            { hotelCode: { [Op.like]: `%${queryData.name}%` } },
+            { biddingPrice: { [Op.like]: `%${queryData.name}%` } },
           ],
         };
       }
@@ -37,7 +33,7 @@ export default {
         offset = +queryData.offset;
       }
 
-      return await Bidding.findAndCountAll({
+      return await HotelBidding.findAndCountAll({
         where: where,
         include: {
           attributes: ["firstName", "lastName"],
@@ -58,10 +54,10 @@ export default {
    * @param {Object} req
    * @param {Object} where
    */
-  async getOneBidding(req, where = {}) {
+  async getOneBidding(where = {}) {
     try {
-      return await Bidding.findOne({
-        where: { ...where, tripType: "Hotel" },
+      return await HotelBidding.findOne({
+        where: where,
         attributes: {
           exclude: [],
         },
@@ -85,7 +81,7 @@ export default {
       biddingId: bodyData.biddingId,
       latestPrice: bodyData.latestPrice,
     };
-    return await BiddingPrices.create(priceData);
+    return await HotelBiddingPrices.create(priceData);
   },
 
   /**
@@ -96,8 +92,7 @@ export default {
     try {
       const bodyData = req.body;
       bodyData.userId = req.user.id;
-      bodyData.membersId = JSON.stringify(bodyData.membersId);
-      const _response = await Bidding.create(bodyData);
+      const _response = await HotelBidding.create(bodyData);
       bodyData.biddingId = _response.id;
       await this.updateLatestPrice(bodyData);
       return _response;
@@ -114,7 +109,7 @@ export default {
     try {
       const userData = req.user;
       const { id } = req.params;
-      return await Bidding.findOne({
+      return await HotelBidding.findOne({
         where: { id: id, userId: userData.id },
         include: {
           attributes: ["latestPrice", "createdAt"],
@@ -135,9 +130,6 @@ export default {
   async updateMyBidding(req) {
     try {
       const bodyData = req.body;
-      if (bodyData.membersId) {
-        bodyData.membersId = JSON.stringify(bodyData.membersId);
-      }
       const biddingObject = req.biddingObject;
       return await biddingObject.update(bodyData);
     } catch (error) {
@@ -151,7 +143,7 @@ export default {
    * @param {Object} where
    */
   async getAllBidding(where) {
-    return await Bidding.findAll({
+    return await HotelBidding.findAll({
       where,
       include: { model: User, as: "userData" },
     });

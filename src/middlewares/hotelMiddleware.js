@@ -1,8 +1,13 @@
 import repositories from "../repositories";
 import utility from "../services/utility";
-const { hotelRepository, userRepository, transactionRepository } = repositories;
+const {
+  hotelRepository,
+  userRepository,
+  transactionRepository,
+  bookingRepository,
+  biddingRepository,
+} = repositories;
 import models from "../models";
-import bookingRepository from "../repositories/bookingRepository";
 const { UserMember, UserPersonalInformation, Setting } = models;
 
 export default {
@@ -101,7 +106,10 @@ export default {
    */
   async isBiddingExist(req, res, next) {
     try {
-      const biddingObject = await hotelRepository.getMyBidding(req);
+      const biddingObject = await biddingRepository.getOneBidding({
+        id: req.params.id,
+        status: "active",
+      });
       if (biddingObject) {
         req.biddingObject = biddingObject;
         next();
@@ -189,6 +197,102 @@ export default {
         next();
       } else {
         utility.getError(res, "Payment is not done please done payment first");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check Bidding Possible
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkBiddingExist(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const biddingData = await biddingRepository.getOneBidding({
+        groupId: bodyData.groupId,
+        hotelCode: bodyData.hotelCode,
+        checkIn: bodyData.checkIn,
+        checkOut: bodyData.checkOut,
+        room_type: bodyData.roomType,
+        status: "active",
+      });
+      if (biddingData) {
+        utility.getError(res, "Already have a bid of this hotel !");
+      } else {
+        next();
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check Bidding Possible
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkBiddingPossible(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const bookingData = await bookingRepository.getActiveBooking({
+        bookingGroupId: bodyData.groupId,
+        checkIn: bodyData.checkIn,
+        checkOut: bodyData.checkOut,
+        status: "confirmed",
+      });
+      if (bookingData) {
+        req.booking = bookingData;
+        next();
+      } else {
+        utility.getError(
+          res,
+          "Booking is not availible please book a hotel first"
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+  /**
+   * Check Booking is refundable or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkbookingRefundable(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const bookingData = req.booking;
+      if (
+        bookingData.checkIn === bodyData.checkIn &&
+        bookingData.checkOut === bodyData.checkOut
+      ) {
+        if (
+          bookingData.nonRefundable === "false" &&
+          bookingData.underCancellation === "false"
+        ) {
+          if (bookingData.hotelCode === bodyData.hotelCode) {
+            if (bookingData.roomType === bodyData.roomType) {
+              utility.getError(res, "Can't bid on the same room you booked !");
+            } else {
+              next();
+            }
+          } else {
+            next();
+          }
+        } else {
+          utility.getError(
+            res,
+            "Can't bid because the non-cancellation room you booked !"
+          );
+        }
+      } else {
+        utility.getError(res, "Can only bid on the same dates you booked !");
       }
     } catch (error) {
       next(error);

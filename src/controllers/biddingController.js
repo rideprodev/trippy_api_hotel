@@ -31,7 +31,7 @@ export default {
   },
 
   /**
-   * Get All User Bidding
+   * Get All User Bidding Admin Side
    * @param {Object} req
    * @param {Object} res
    * @param {Function} next
@@ -56,9 +56,10 @@ export default {
    */
   async placeMyBid(req, res, next) {
     try {
-      req.body.search_id = req.body.bookingClassReference;
-      req.body.group_code = req.body.groupCode;
-      req.body.rate_key = req.body.sorceCode;
+      const bodyData = req.body;
+      req.body.search_id = bodyData.searchId;
+      req.body.group_code = bodyData.groupCode;
+      req.body.rate_key = bodyData.rateKey;
       const revalidate = await grnRepository.revalidate(req);
       if (revalidate.status !== 200) {
         utility.getError(res, revalidate.message);
@@ -67,14 +68,48 @@ export default {
           res,
           `${revalidate.data.errors[0].code} : ${revalidate.data.errors[0].messages[0]}`
         );
+      } else if (revalidate?.data?.hotel?.rate?.rate_type !== "bookable") {
+        utility.getError(res, "Can't bid because this hotel is full !");
       } else {
-        req.body.latestPrice = revalidate.data.hotel.rate.price;
-        req.body.biddingInfromation = JSON.stringify(revalidate.data);
-        const result = await biddingRepository.placeMyBid(req);
-        if (result) {
-          utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
+        const rooms = revalidate.data.hotel.rate.rooms;
+        const checkRoomAvailiable = rooms.filter(
+          (x) => x.room_type === bodyData.roomType
+        );
+        if (checkRoomAvailiable.length > 0) {
+          let nonRefundable = null,
+            underCancellation = null;
+
+          if (
+            revalidate?.data?.hotel?.rate &&
+            typeof revalidate?.data?.hotel?.rate?.non_refundable === "boolean"
+          ) {
+            nonRefundable = `${revalidate?.data?.hotel?.rate?.non_refundable}`;
+            if (
+              typeof revalidate?.data?.hotel?.rate?.cancellation_policy
+                ?.under_cancellation === "boolean"
+            ) {
+              underCancellation = `${revalidate?.data?.hotel?.rate?.cancellation_policy?.under_cancellation}`;
+            }
+          }
+          if (nonRefundable === "false" && underCancellation === "false") {
+            req.body.latestPrice = revalidate.data.hotel.rate.price;
+            const result = await biddingRepository.placeMyBid(req);
+            if (result) {
+              utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
+            } else {
+              utility.getError(res, "WENT_WRONG");
+            }
+          } else {
+            utility.getError(
+              res,
+              "Can't bid, You can't bid on a non-refundable hotel !"
+            );
+          }
         } else {
-          utility.getError(res, "WENT_WRONG");
+          utility.getError(
+            res,
+            "Oops! You missed it, All rooms of this type had been booked !"
+          );
         }
       }
     } catch (error) {
@@ -96,6 +131,24 @@ export default {
       } else {
         utility.getError(res, "ID_NOT_FOUND");
       }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Get All my Bidding
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async getMyBiddings(req, res, next) {
+    try {
+      const { id } = req.user;
+      const bidding = await biddingRepository.getAllBiddings(req, {
+        userId: id,
+      });
+      utility.getResponse(res, bidding, "RETRIVED");
     } catch (error) {
       next(error);
     }
