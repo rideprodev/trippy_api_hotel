@@ -1,4 +1,3 @@
-
 module.exports = (sequelize, DataTypes) => {
   const Bidding = sequelize.define(
     "Bidding",
@@ -110,6 +109,10 @@ module.exports = (sequelize, DataTypes) => {
         {
           unique: false,
           fields: ["departure_to"],
+        },
+        {
+          unique: false,
+          fields: ["status"],
         },
       ],
       underscored: true,

@@ -23,7 +23,7 @@ export default {
         );
       } else {
         utility.getResponse(res, response.data, "RETRIVED");
-        hotelHelper.checkBiddingNotification(req, response.data);
+        // hotelHelper.checkBiddingNotification(req, response.data);
       }
     } catch (error) {
       next(error);

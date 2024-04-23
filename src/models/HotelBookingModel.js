@@ -104,6 +104,10 @@ module.exports = (sequelize, DataTypes) => {
           unique: false,
           fields: ["city_code"],
         },
+        {
+          unique: false,
+          fields: ["status"],
+        },
       ],
       underscored: true,
     }

@@ -164,4 +164,19 @@ export default {
       throw Error(error);
     }
   },
+
+  /**
+   * Get Active Hotel
+   * @param {Object} req
+   */
+  async getActiveBooking(where = {}) {
+    try {
+      const booking = await HotelBooking.findOne({
+        where: where,
+      });
+      return booking;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
 };

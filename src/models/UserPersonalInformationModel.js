@@ -43,7 +43,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       passportNumber: {
         type: DataTypes.STRING(255),
-        unique: true,
         allowNull: true,
       },
       passportExpiryDate: {
@@ -67,6 +66,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       indexes: [
+        {
+          unique: true,
+          fields: ["passport_number"],
+        },
         {
           unique: false,
           fields: ["type"],

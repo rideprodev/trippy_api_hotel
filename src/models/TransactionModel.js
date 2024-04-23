@@ -62,6 +62,12 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
+      indexes: [
+        {
+          unique: false,
+          fields: ["status"],
+        },
+      ],
       underscored: true,
     }
   );

@@ -16,6 +16,13 @@ const router = Router();
 // ------------ Backend Apis Start -----------------------
 
 router.get(
+  "/my-biddings",
+  authMiddleware,
+  resourceAccessMiddleware(["user"]),
+  biddingController.getMyBiddings
+);
+
+router.get(
   "/admin/user",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),
@@ -36,6 +43,9 @@ router.post(
   validateMiddleware({
     schema: biddingValidator.placeBid,
   }),
+  hotelMiddleware.checkBiddingExist,
+  hotelMiddleware.checkBiddingPossible,
+  hotelMiddleware.checkbookingRefundable,
   biddingController.placeMyBid
 );
 

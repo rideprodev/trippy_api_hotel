@@ -55,6 +55,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       indexes: [
         {
+          unique: true,
+          fields: ["passport_number"],
+        },
+        {
           unique: false,
           fields: ["first_name"],
         },
@@ -63,8 +67,8 @@ module.exports = (sequelize, DataTypes) => {
           fields: ["type"],
         },
         {
-          unique: true,
-          fields: ["passport_number"],
+          unique: false,
+          fields: ["status"],
         },
       ],
       underscored: true,
