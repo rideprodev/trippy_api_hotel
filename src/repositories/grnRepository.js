@@ -87,6 +87,9 @@ export default {
         client_nationality: bodyData.clientNationality,
         checkin: bodyData.checkIn,
         checkout: bodyData.checkOut,
+        cutoff_time: 60000,
+        purpose_of_travel: 1,
+        options: { rate_comments: true },
       };
       const _response = await requestHandler.fetchResponseFromHotel(
         GRN_Apis.search,
@@ -290,6 +293,16 @@ export default {
         console.log("================================");
 
         if (bookingGroup.id) {
+          await HotelBookingLog.create({
+            userId: userData.id,
+            groupId: bookingGroup.id,
+            bookingId: booking.id,
+            transactionId: bodyData.transactionId,
+            paymentStatus: "paid",
+          });
+          console.log("================================");
+          console.log("Booking Confirm Log Updated");
+          console.log("================================");
           let nonRefundable = null,
             underCancellation = null,
             cancelByDate = null,
@@ -410,19 +423,12 @@ export default {
             (_response.data.status === "pending" ||
               _response.data.status === "confirmed")
           ) {
-            await HotelBookingLog.create({
-              userId: userData.id,
-              groupId: bookingGroup.id,
-              bookingId: booking.id,
-              transactionId: bodyData.transactionId,
-              paymentStatus: "paid",
-            });
             console.log("================================");
-            console.log("Booking Confirm Log Updated");
+            console.log("Booking Confirm");
             console.log("================================");
           } else {
             console.log("================================");
-            console.log("Refund Intialize");
+            console.log("Booking not Confirm Refund Intialize");
             console.log("================================");
             // refund intiate
             const bookignLogs = await HotelBookingLog.create({

@@ -88,6 +88,10 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "bookingGroupId",
       as: "bookingDetils",
     });
+    HotelBookingGroup.hasMany(models.HotelBookingLog, {
+      foreignKey: "groupId",
+      as: "bookingLogs",
+    });
   };
   return HotelBookingGroup;
 };
