@@ -1,5 +1,5 @@
 import models from "../models";
-const { HotelBidding, HotelBiddingPrices, User } = models;
+const { HotelBidding, HotelBiddingPrices, User, HotelBookingGroup } = models;
 import { Op } from "sequelize";
 
 export default {
@@ -35,11 +35,18 @@ export default {
 
       return await HotelBidding.findAndCountAll({
         where: where,
-        include: {
-          attributes: ["firstName", "lastName"],
-          model: User,
-          as: "userData",
-        },
+        include: [
+          {
+            attributes: ["firstName", "lastName"],
+            model: User,
+            as: "userData",
+          },
+          {
+            attributes: ["id", "bookingId", "bookingName", "bookingComments"],
+            model: HotelBookingGroup,
+            as: "bookingGroupData",
+          },
+        ],
         order: [["id", "DESC"]],
         offset: offset,
         limit: limit,
@@ -61,11 +68,23 @@ export default {
         attributes: {
           exclude: [],
         },
-        include: {
-          attributes: ["firstName", "lastName"],
-          model: User,
-          as: "userData",
-        },
+        include: [
+          {
+            attributes: ["firstName", "lastName"],
+            model: User,
+            as: "userData",
+          },
+          {
+            attributes: ["id", "bookingId", "bookingName", "bookingComments"],
+            model: HotelBookingGroup,
+            as: "bookingGroupData",
+          },
+          {
+            attributes: ["createdAt", "latestPrice"],
+            model: HotelBiddingPrices,
+            as: "biddingData",
+          },
+        ],
       });
     } catch (error) {
       throw Error(error);

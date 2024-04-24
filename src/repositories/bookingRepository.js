@@ -8,6 +8,7 @@ const {
   Hotel,
   HotelCity,
   HotelCountry,
+  HotelBookingLog,
 } = models;
 
 export default {
@@ -68,6 +69,11 @@ export default {
             attributes: ["hotelCode", "cityCode"],
             model: HotelBooking,
             as: "booking",
+          },
+          {
+            attributes: ["createdAt", "paymentStatus", "transactionId"],
+            model: HotelBookingLog,
+            as: "bookingLogs",
           },
         ],
         order: [["id", "DESC"]],

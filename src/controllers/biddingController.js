@@ -20,7 +20,7 @@ export default {
         utility.getResponse(res, bidding, "RETRIVED");
       } else if (biddingId > 0) {
         where.id = biddingId;
-        const bidding = await biddingRepository.getOneBidding(req, where);
+        const bidding = await biddingRepository.getOneBidding(where);
         utility.getResponse(res, bidding, "RETRIVED");
       } else {
         utility.getResponse(res, null, "UNAUTHORISED_ACCESS");
