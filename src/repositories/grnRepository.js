@@ -11,6 +11,8 @@ const {
   Transaction,
   HotelBookingLog,
   Wallet,
+  PayBackRequest,
+  PayBackLog,
 } = models;
 
 export default {
@@ -577,7 +579,35 @@ export default {
           apiEndPoint,
           _response
         );
-        if (_response.data.status === "confirmed") {
+        if (
+          _response.data.status === "confirmed" ||
+          _response.data.status === "pending"
+        ) {
+          console.log("================================");
+          console.log("Booking Cancellation Confirm/pending Refund Intialize");
+          console.log("================================");
+          // refund intiate
+          const bookignLogs = await HotelBookingLog.create({
+            userId: bookingObject.userId,
+            groupId: bookingObject.id,
+            bookingId: bookingObject.bookingId,
+            paymentStatus: "refund-Intiated",
+          });
+          const payBackRequest = {
+            userId: bookingObject?.userId,
+            hotelGroupId: bookingObject?.id,
+            requestFor: "hotel",
+            requestType: "direct",
+            total: bookingObject?.booking?.price,
+            currency: bookingObject?.booking?.currency,
+          };
+          const payBackData = await PayBackRequest.create(payBackRequest);
+          if (payBackData) {
+            await PayBackLog.create({
+              userId: bookingObject?.userId,
+              requestId: payBackData.id,
+            });
+          }
           await this.bookingStatus(req);
         }
       }

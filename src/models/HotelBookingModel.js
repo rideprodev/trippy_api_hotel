@@ -41,6 +41,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(50),
         allowNull: false,
       },
+      currency: {
+        type: DataTypes.STRING(50),
+      },
       commission: {
         type: DataTypes.STRING(50),
         allowNull: false,

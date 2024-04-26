@@ -142,6 +142,24 @@ export default {
     }
   },
   /**
+   * Check the booking is exist or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isbookingCancelled(req, res, next) {
+    try {
+      const bookingObject = req.bookingObject;
+      if (bookingObject.status === "confirmed") {
+        next();
+      } else {
+        utility.getError(res, "Can not cacelled unconfirmed booking!");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+  /**
    * check the user exist o not
    * @param {Object} req
    * @param {Object} res

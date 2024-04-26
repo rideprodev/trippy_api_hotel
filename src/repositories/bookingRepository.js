@@ -111,6 +111,11 @@ export default {
         attributes: {
           exclude: [],
         },
+        include: {
+          attributes: ["price", "currency"],
+          model: HotelBooking,
+          as: "booking",
+        },
       });
       return booking;
     } catch (error) {
