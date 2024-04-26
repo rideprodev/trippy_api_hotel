@@ -58,6 +58,7 @@ router.delete(
   "/booking-cancel/:bookingId",
   authMiddleware,
   hotelMiddleware.isbookingExist,
+  hotelMiddleware.isbookingCancelled,
   grnController.bookingCancel
 );
 
