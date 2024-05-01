@@ -293,18 +293,7 @@ export default {
         console.log("================================");
         console.log("group created", bookingGroup.id);
         console.log("================================");
-
         if (bookingGroup.id) {
-          await HotelBookingLog.create({
-            userId: userData.id,
-            groupId: bookingGroup.id,
-            bookingId: booking.id,
-            transactionId: bodyData.transactionId,
-            paymentStatus: "paid",
-          });
-          console.log("================================");
-          console.log("Booking Confirm Log Updated");
-          console.log("================================");
           let nonRefundable = null,
             underCancellation = null,
             cancelByDate = null,
@@ -371,6 +360,17 @@ export default {
           console.log("booking created", booking.id);
           console.log("================================");
           if (booking) {
+            await HotelBookingLog.create({
+              userId: userData.id,
+              groupId: bookingGroup.id,
+              bookingId: booking.id,
+              transactionId: bodyData.transactionId,
+              paymentStatus: "paid",
+            });
+
+            console.log("================================");
+            console.log("Booking Confirm Log Updated");
+            console.log("================================");
             await bookingGroup.update({ bookingId: booking.id });
             for (let i = 1; i <= bodyData.bookingItems.length; i++) {
               const elementI = bodyData.bookingItems[i - 1];
