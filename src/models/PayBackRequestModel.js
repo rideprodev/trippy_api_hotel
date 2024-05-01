@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
   PayBackRequest.associate = function (models) {
     PayBackRequest.belongsTo(models.User, {
       foreignKey: "userId",
-      as: "PayBackRequest",
+      as: "payBackRequest",
     });
     PayBackRequest.belongsTo(models.HotelBookingGroup, {
       foreignKey: "hotelGroupId",
