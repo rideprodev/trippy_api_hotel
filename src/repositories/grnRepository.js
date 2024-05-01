@@ -202,12 +202,12 @@ export default {
         phone_number: `${userData.phoneNumberCountryCode}${userData.phoneNumber}`,
         client_nationality: userData.UserPersonalInformation.nationality,
       };
-      if (
-        userData.UserPersonalInformation.panNumber &&
-        userData.UserPersonalInformation.panNumber != ""
-      ) {
-        holder["pan_number"] = userData.UserPersonalInformation.panNumber;
-      }
+      // if (
+      //   userData.UserPersonalInformation.panNumber &&
+      //   userData.UserPersonalInformation.panNumber != ""
+      // ) {
+      //   holder["pan_number"] = userData.UserPersonalInformation.panNumber;
+      // }
       // Need to check the indian user pan card mandatary
 
       //  Set Booking Items
