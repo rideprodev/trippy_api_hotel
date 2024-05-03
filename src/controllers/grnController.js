@@ -22,7 +22,12 @@ export default {
           `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
         );
       } else {
-        utility.getResponse(res, response.data, "RETRIVED");
+        // const response =
+        const _response = await hotelHelper.setCountryCityName(
+          req,
+          response.data
+        );
+        utility.getResponse(res, _response, "RETRIVED");
         // hotelHelper.checkBiddingNotification(req, response.data);
       }
     } catch (error) {
