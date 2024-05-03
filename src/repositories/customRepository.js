@@ -1,5 +1,12 @@
 import models from "../models";
-const { Hotel, HotelCity, HotelCountry, HotelLocation, HotelCurrency } = models;
+const {
+  Hotel,
+  HotelCity,
+  HotelCountry,
+  HotelLocation,
+  HotelCurrency,
+  sequelize,
+} = models;
 import { Op } from "sequelize";
 
 const getObject = (queryData, model = "airports") => {
@@ -120,6 +127,18 @@ export default {
         limit: 15,
       });
       return _response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  async fetchCityData(cityCode) {
+    try {
+      const result = sequelize.query(
+        `SELECT hotel_cities.city_name AS cityName, hotel_countries.country_name AS countryName FROM hotel_cities LEFT JOIN hotel_countries ON hotel_cities.country_code = hotel_countries.country_code WHERE hotel_cities.city_code=${cityCode} GROUP BY hotel_cities.id`,
+        { type: sequelize.QueryTypes.SELECT }
+      );
+      return result;
     } catch (error) {
       throw Error(error);
     }

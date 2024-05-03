@@ -1,6 +1,6 @@
 import repositories from "../repositories";
 import requestHandler from "../services/requestHandler";
-const { biddingRepository } = repositories;
+const { biddingRepository, customRepository } = repositories;
 
 export default {
   async checkBiddingNotification(req, data) {
@@ -76,6 +76,26 @@ export default {
       }
     } else {
       console.log("Not ant bidding find");
+    }
+  },
+
+  async setCountryCityName(req, data) {
+    try {
+      const bodyData = req.body;
+      if (bodyData.cityCode != "" && data?.hotels) {
+        const cityData = await customRepository.fetchCityData(
+          bodyData.cityCode
+        );
+        const response = data.hotels?.map((x) => {
+          return { ...cityData[0], ...x };
+        });
+        data.hotels = response;
+        return data;
+      } else {
+        return data;
+      }
+    } catch (error) {
+      comsole.log(error);
     }
   },
 };
