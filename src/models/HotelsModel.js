@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       description: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT,
       },
       cityCode: {
         type: DataTypes.STRING(50),
@@ -29,32 +29,32 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
       },
       StarCategory: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(10),
       },
       address: {
         type: DataTypes.STRING(255),
       },
       postalCode: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
       latitude: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(10),
       },
       logitude: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(10),
       },
       accommodationType: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(10),
       },
       accommodationTypeSubName: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(10),
       },
       ChainName: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(10),
       },
       featured: {
-        type: DataTypes.ENUM("Y", "N"),
+        type: DataTypes.STRING(10),
         defaultValue: null,
       },
       createdAt: {
