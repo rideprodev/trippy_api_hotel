@@ -22,7 +22,6 @@ export default {
           `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
         );
       } else {
-        // const response =
         const _response = await hotelHelper.setCountryCityName(
           req,
           response.data
