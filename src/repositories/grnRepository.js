@@ -153,6 +153,7 @@ export default {
       const _request_data = {
         group_code: groupCode,
         rate_key: rateKey,
+        cutoff_time: 60000,
       };
       const apiEndPoint = GRN_Apis.revalidate(searchId);
       const _response = await requestHandler.fetchResponseFromHotel(
@@ -252,6 +253,7 @@ export default {
         booking_items: bodyData.bookingItems,
         payment_type: "AT_WEB",
         agent_reference: "",
+        cutoff_time: 120000,
         holder: holder,
       };
       // return _request_data;
@@ -566,9 +568,11 @@ export default {
       const apiEndPoint = GRN_Apis.bookingCancel(
         bookingObject.currentReference
       );
+
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
-        await this.getSessionToken()
+        await this.getSessionToken(),
+        { cutoff_time: 60000 }
       );
       // console.log(_response);
       if (_response !== undefined) {
