@@ -35,7 +35,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       currencyCode: {
         type: DataTypes.STRING(10),
-        defaultValue: "AUD",
       },
       panNumber: {
         type: DataTypes.STRING(255),
