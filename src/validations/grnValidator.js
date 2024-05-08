@@ -17,6 +17,8 @@ const search = Joi.object({
   checkOut: Joi.string().required(),
   currency: Joi.string().empty().allow(""),
   clientNationality: Joi.string().required(),
+  offset: Joi.number().min(0).required(),
+  limit: Joi.number().greater(99).required(),
 });
 
 const refetch = Joi.object({
