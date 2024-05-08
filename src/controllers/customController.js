@@ -33,4 +33,19 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Get all countries
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async getAllCountryList(req, res, next) {
+    try {
+      const places = await customRepository.getAllCountries();
+      utility.getResponse(res, places, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

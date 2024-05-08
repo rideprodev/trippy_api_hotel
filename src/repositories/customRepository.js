@@ -132,9 +132,21 @@ export default {
     }
   },
 
+  async getAllCountries() {
+    try {
+      const result = await sequelize.query(
+        `SELECT hotel_countries.country_name AS countryName, hotel_currencies.currency_code AS countryCode, hotel_currencies.currency, hotel_currencies.currency_code AS currencyCode FROM hotel_countries LEFT JOIN hotel_currencies ON hotel_currencies.country_code = hotel_countries.country_code;`,
+        { type: sequelize.QueryTypes.SELECT }
+      );
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   async fetchCityData(cityCode) {
     try {
-      const result = sequelize.query(
+      const result = await sequelize.query(
         `SELECT hotel_cities.city_name AS cityName, hotel_countries.country_name AS countryName FROM hotel_cities LEFT JOIN hotel_countries ON hotel_cities.country_code = hotel_countries.country_code WHERE hotel_cities.city_code=${cityCode} GROUP BY hotel_cities.id`,
         { type: sequelize.QueryTypes.SELECT }
       );
