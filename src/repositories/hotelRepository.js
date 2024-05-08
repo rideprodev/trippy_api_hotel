@@ -8,10 +8,12 @@ export default {
    * Get Hotel Token
    * @param {Object} where
    */
-  async fetchAll(where) {
+  async fetchAll(where, limit = null, offset = 0) {
     try {
       return await Hotel.findAll({
         where,
+        offset,
+        limit,
       });
     } catch (error) {
       throw Error(error);

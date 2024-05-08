@@ -83,9 +83,10 @@ export default {
     try {
       const bodyData = req.body;
       const cityData = await customRepository.fetchCityData(bodyData.cityCode);
-      const response = data.hotels?.map((x) => {
-        return { ...cityData[0], ...x };
+      const response = await data.hotels?.map((x) => {
+        return { search_id: data.search_id, ...cityData[0], ...x };
       });
+      await delete data.search_id;
       data.hotels = response;
       return data;
     } catch (error) {

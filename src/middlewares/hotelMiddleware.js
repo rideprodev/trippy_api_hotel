@@ -25,9 +25,11 @@ export default {
         req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
       } else {
-        const getAllHotelCodes = await hotelRepository.fetchAll({
-          cityCode: bodyData.cityCode,
-        });
+        const getAllHotelCodes = await hotelRepository.fetchAll(
+          { cityCode: bodyData.cityCode },
+          bodyData.limit,
+          bodyData.offset
+        );
         if (getAllHotelCodes.length > 0) {
           for (let index = 0; index < getAllHotelCodes.length; index++) {
             const element = getAllHotelCodes[index];
