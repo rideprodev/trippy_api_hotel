@@ -9,6 +9,7 @@ const { authMiddleware, resourceAccessMiddleware, validateMiddleware } =
 const router = Router();
 
 router.get("/", customController.getAllPlaces);
+router.get("/countries", customController.getAllCountryList);
 
 router.get(
   "/admin/:objectName",
