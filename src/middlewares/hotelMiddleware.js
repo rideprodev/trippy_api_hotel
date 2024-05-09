@@ -8,6 +8,7 @@ const {
   biddingRepository,
 } = repositories;
 import models from "../models";
+import { Op } from "sequelize";
 const { UserMember, UserPersonalInformation, Setting } = models;
 
 export default {
@@ -26,7 +27,7 @@ export default {
         next();
       } else {
         const getAllHotelCodes = await hotelRepository.fetchAll(
-          { cityCode: bodyData.cityCode },
+          { cityCode: bodyData.cityCode, StarCategory: { [Op.gt]: 0 } },
           bodyData.limit,
           bodyData.offset
         );
