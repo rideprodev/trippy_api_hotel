@@ -26,21 +26,16 @@ export default {
         req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
       } else {
-        const queryData = req.query;
-        let StarCategory = { [Op.gt]: 0 };
-        if (queryData.StarCategory && queryData.StarCategory != "") {
-          StarCategory = `${queryData.StarCategory}`.split(",");
-        }
         const where = {
           cityCode: bodyData.cityCode,
-          StarCategory: StarCategory,
+          StarCategory: { [Op.gt]: 0 },
         };
-        if (queryData.propertyType && queryData.propertyType != "") {
-          where.accommodationTypeSubName = `${queryData.propertyType}`.split(
-            ","
-          );
+        if (bodyData?.StarCategory?.length > 0) {
+          where.StarCategory = bodyData.StarCategory;
         }
-
+        if (bodyData?.propertyType?.length > 0) {
+          where.accommodationTypeSubName = bodyData.propertyType;
+        }
         const getAllHotelCodes = await hotelRepository.fetchAll(
           where,
           bodyData.limit,
