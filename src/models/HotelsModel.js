@@ -48,7 +48,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(10),
       },
       accommodationTypeSubName: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(50),
       },
       ChainName: {
         type: DataTypes.STRING(10),
