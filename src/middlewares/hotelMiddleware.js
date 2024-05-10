@@ -26,18 +26,33 @@ export default {
         req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
       } else {
+        const queryData = req.query;
+        let StarCategory = { [Op.gt]: 0 };
+        if (queryData.StarCategory && queryData.StarCategory != "") {
+          StarCategory = `${queryData.StarCategory}`.split(",");
+        }
+        const where = {
+          cityCode: bodyData.cityCode,
+          StarCategory: StarCategory,
+        };
+        if (queryData.propertyType && queryData.propertyType != "") {
+          where.accommodationTypeSubName = `${queryData.propertyType}`.split(
+            ","
+          );
+        }
+
         const getAllHotelCodes = await hotelRepository.fetchAll(
-          { cityCode: bodyData.cityCode, StarCategory: { [Op.gt]: 0 } },
+          where,
           bodyData.limit,
           bodyData.offset
         );
-        if (getAllHotelCodes.length > 0) {
-          for (let index = 0; index < getAllHotelCodes.length; index++) {
-            const element = getAllHotelCodes[index];
+        if (getAllHotelCodes.rows.length > 0) {
+          for (let index = 0; index < getAllHotelCodes.rows.length; index++) {
+            const element = getAllHotelCodes.rows[index];
             hotelCodes.push(element.hotelCode);
           }
           req.body.hotelCode = hotelCodes;
-          // console.log(hotelCodes);
+          req.body.count = getAllHotelCodes.count;
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");

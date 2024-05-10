@@ -26,7 +26,7 @@ export default {
           req,
           response.data
         );
-        utility.getResponse(res, _response, "RETRIVED");
+        utility.getResponse(res, _response, "RETRIVED", 200, req.body.count);
         // hotelHelper.checkBiddingNotification(req, response.data);
       }
     } catch (error) {

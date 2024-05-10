@@ -10,7 +10,8 @@ export default {
    */
   async fetchAll(where, limit = null, offset = 0) {
     try {
-      return await Hotel.findAll({
+      return await Hotel.findAndCountAll({
+        attributes: ["hotelCode"],
         where,
         offset,
         limit,
