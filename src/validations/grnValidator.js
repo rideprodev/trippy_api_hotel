@@ -19,6 +19,8 @@ const search = Joi.object({
   clientNationality: Joi.string().required(),
   offset: Joi.number().min(0).required(),
   limit: Joi.number().greater(99).required(),
+  StarCategory: Joi.array().optional(),
+  propertyType: Joi.array().optional(),
 });
 
 const refetch = Joi.object({
