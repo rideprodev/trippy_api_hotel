@@ -8,6 +8,22 @@ export default {
    * Get Hotel Token
    * @param {Object} where
    */
+  async fetchAllImagesWhereHotel(where) {
+    try {
+      return await HotelImage.findAll({
+        attributes: {
+          exclude: ["id", "createdAt", "updatedAt"],
+        },
+        where,
+      });
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+  /**
+   * Get Hotel Token
+   * @param {Object} where
+   */
   async fetchAll(where, limit = null, offset = 0) {
     try {
       return await Hotel.findAndCountAll({

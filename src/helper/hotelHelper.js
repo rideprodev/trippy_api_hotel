@@ -1,6 +1,6 @@
 import repositories from "../repositories";
 import requestHandler from "../services/requestHandler";
-const { biddingRepository, customRepository } = repositories;
+const { biddingRepository, customRepository, hotelRepository } = repositories;
 
 export default {
   async checkBiddingNotification(req, data) {
@@ -88,6 +88,18 @@ export default {
       });
       await delete data.search_id;
       data.hotels = response;
+      return data;
+    } catch (error) {
+      comsole.log(error);
+    }
+  },
+
+  async getAllImages(req, data) {
+    try {
+      const images = await hotelRepository.fetchAllImagesWhereHotel({
+        hotelCode: req.body.hotelCode,
+      });
+      data.images = images;
       return data;
     } catch (error) {
       comsole.log(error);
