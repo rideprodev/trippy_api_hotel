@@ -8,19 +8,10 @@ export default {
    * Get Message According the parameter
    * @param {Message}
    */
-  getResponse(
-    res,
-    data,
-    messageKey,
-    statusCode = 200,
-    count,
-    req = {},
-    key = false
-  ) {
+  getResponse(res, data, messageKey, statusCode = 200, req = {}, key = false) {
     res.status(statusCode).json({
       success: true,
       message: this.getMessage(req, key, messageKey),
-      count: count,
       data: data,
     });
   },
