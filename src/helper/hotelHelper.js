@@ -123,6 +123,9 @@ export default {
         totalPrice = +data?.hotel?.rate?.price + commissionAmount;
         data.serviceChages = commissionAmount;
         data.finalAmount = totalPrice;
+      } else {
+        data.serviceChages = 0;
+        data.finalAmount = +data?.hotel?.rate?.price;
       }
 
       return data;
