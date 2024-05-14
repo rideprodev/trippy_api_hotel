@@ -147,6 +147,11 @@ export default {
           },
           {
             model: HotelBooking,
+            as: "booking",
+            attributes: ["hotelCode"],
+          },
+          {
+            model: HotelBooking,
             as: "bookings",
           },
           {
@@ -158,23 +163,42 @@ export default {
       });
       for (let i = 0; i < _hotel.bookings.length; i++) {
         const element = _hotel.bookings[i];
-        element.dataValues.hotelData = await Hotel.findOne({
-          attributes: ["hotelCode", "hotelName", "countryCode"],
-          where: { hotelCode: element.hotelCode },
-        });
-        element.dataValues.cityData = await HotelCity.findOne({
-          attributes: ["cityCode", "cityName"],
-          where: { cityCode: element.cityCode },
-        });
-        element.dataValues.countryData = await HotelCountry.findOne({
-          attributes: ["countryCode", "countryName"],
-          where: { countryCode: element.dataValues.hotelData.countryCode },
-        });
+        if (element?.hotelCode) {
+          element.dataValues.hotelData = await Hotel.findOne({
+            attributes: ["hotelCode", "hotelName", "countryCode"],
+            where: { hotelCode: element.hotelCode },
+          });
+        }
+        if (element?.cityCode) {
+          element.dataValues.cityData = await HotelCity.findOne({
+            attributes: ["cityCode", "cityName"],
+            where: { cityCode: element.cityCode },
+          });
+        }
+        if (element.dataValues?.hotelData?.countryCode) {
+          element.dataValues.countryData = await HotelCountry.findOne({
+            attributes: ["countryCode", "countryName"],
+            where: { countryCode: element.dataValues.hotelData.countryCode },
+          });
+        }
       }
       for (let i = 0; i < _hotel.bookingDetils.length; i++) {
         const element = _hotel.bookingDetils[i];
         element.paxes = `${element.paxes}`.split(",");
         element.ages = `${element.ages}`.split(",");
+      }
+      if (_hotel?.booking?.hotelCode) {
+        const hotelData = await Hotel.findOne({
+          attributes: [
+            "hotelCode",
+            "hotelName",
+            "countryCode",
+            "address",
+            "StarCategory",
+          ],
+          where: { hotelCode: _hotel.booking.hotelCode },
+        });
+        _hotel.booking.dataValues = hotelData.dataValues;
       }
       return _hotel;
     } catch (error) {

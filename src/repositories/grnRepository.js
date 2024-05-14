@@ -294,6 +294,13 @@ export default {
         const bookingGroup = await HotelBookingGroup.create(bookingGroupData);
         console.log("================================");
         console.log("group created", bookingGroup.id);
+        console.log(
+          bodyData.commission,
+          bodyData.commissionAmount,
+          bodyData.totalPrice,
+          _response?.data?.price?.total,
+          bodyData.price
+        );
         console.log("================================");
         if (bookingGroup.id) {
           let nonRefundable = null,
