@@ -529,12 +529,14 @@ export default {
           _response.data.booking_status === "confirmed" &&
           _response.data.booking_type === "B"
         ) {
-          await bookingObject.update({ status: _response.data.booking_status });
+          await bookingObject.update({
+            status: _response?.data?.booking_status,
+          });
           await HotelBooking.update(
-            { status: _response.data.booking_status },
+            { status: _response?.data?.booking_status },
             {
               where: {
-                id: bookingObject.bookingId,
+                id: bookingObject?.bookingId,
               },
             }
           );
@@ -546,14 +548,14 @@ export default {
           await HotelBooking.update(
             {
               status: "cancelled",
-              cancelledDate: _response.data.cancellation_details?.cancel_date,
-              refundAmout: _response.data.cancellation_details?.refund_amount,
+              cancelledDate: _response?.data?.cancellation_details?.cancel_date,
+              refundAmout: _response?.data?.cancellation_details?.refund_amount,
               cancellationCharge:
-                _response.data.cancellation_details?.cancellation_charge,
+                _response.data?.cancellation_details?.cancellation_charge,
             },
             {
               where: {
-                id: bookingObject.bookingId,
+                id: bookingObject?.bookingId,
               },
             }
           );
@@ -598,7 +600,7 @@ export default {
           console.log("Booking Cancellation Confirm/pending Refund Intialize");
           console.log("================================");
           // refund intiate
-          const bookignLogs = await HotelBookingLog.create({
+          await HotelBookingLog.create({
             userId: bookingObject.userId,
             groupId: bookingObject.id,
             bookingId: bookingObject.bookingId,
@@ -619,6 +621,15 @@ export default {
               requestId: payBackData.id,
             });
           }
+          await bookingObject.update({ status: "pending" });
+          await HotelBooking.update(
+            { status: "pending" },
+            {
+              where: {
+                id: bookingObject?.bookingId,
+              },
+            }
+          );
           await this.bookingStatus(req);
         }
       }

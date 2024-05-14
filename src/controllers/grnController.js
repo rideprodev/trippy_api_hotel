@@ -81,7 +81,8 @@ export default {
           `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
         );
       } else {
-        utility.getResponse(res, response.data, "RETRIVED");
+        const _response = await hotelHelper.getCommission(req, response.data);
+        utility.getResponse(res, _response, "RETRIVED");
       }
     } catch (error) {
       next(error);
