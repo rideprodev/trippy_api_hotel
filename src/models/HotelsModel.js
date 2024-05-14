@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
       },
       StarCategory: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.DOUBLE(4, 2),
       },
       address: {
         type: DataTypes.STRING(255),

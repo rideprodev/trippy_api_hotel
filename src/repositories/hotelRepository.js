@@ -27,10 +27,11 @@ export default {
   async fetchAll(where, limit = null, offset = 0) {
     try {
       return await Hotel.findAndCountAll({
-        attributes: ["hotelCode"],
+        attributes: ["hotelCode", "StarCategory"],
         where,
         offset,
         limit,
+        order: [["StarCategory", "DESC"]],
       });
     } catch (error) {
       throw Error(error);
