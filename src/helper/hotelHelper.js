@@ -1,5 +1,7 @@
 import repositories from "../repositories";
 import requestHandler from "../services/requestHandler";
+import models from "../models";
+const { Setting } = models;
 const { biddingRepository, customRepository, hotelRepository } = repositories;
 
 export default {
@@ -90,7 +92,7 @@ export default {
       data.hotels = response;
       return data;
     } catch (error) {
-      comsole.log(error);
+      console.log(error);
     }
   },
 
@@ -102,7 +104,30 @@ export default {
       data.images = images;
       return data;
     } catch (error) {
-      comsole.log(error);
+      console.log(error);
+    }
+  },
+
+  async getCommission(req, data) {
+    try {
+      const userData = req.user;
+      if (userData.commission === "relevant") {
+        let commission = 0,
+          commissionAmount = 0,
+          totalPrice = 0;
+        const comissionPercent = await Setting.findOne({
+          where: { key: "grn_margin" },
+        });
+        commission = +comissionPercent.value;
+        commissionAmount = (+data?.hotel?.rate?.price * commission) / 100;
+        totalPrice = +data?.hotel?.rate?.price + commissionAmount;
+        data.serviceChages = commissionAmount;
+        data.finalAmount = totalPrice;
+      }
+
+      return data;
+    } catch (error) {
+      console.log(error);
     }
   },
 };
