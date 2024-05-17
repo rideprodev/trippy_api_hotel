@@ -15,6 +15,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("active", "inactive"),
         defaultValue: "active",
       },
+      comment: {
+        type: DataTypes.TEXT,
+      },
     },
     {
       underscored: true,
