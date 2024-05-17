@@ -204,7 +204,7 @@ export default {
       const userData = req.user;
       let commission = 0,
         commissionAmount = 0,
-        totalPrice = +bodyData.price;
+        totalPrice = parseFloat(bodyData.price);
       const result = await transactionRepository.findOneTransaction({
         userId: userData.id,
         id: bodyData.transactionId,
@@ -214,15 +214,15 @@ export default {
       if (result && result.status === "complete") {
         if (userData.commission === "relevant") {
           const comissionPercent = await Setting.findOne({
-            where: { key: "grn_margin" },
+            where: { key: "b05970e2431ae626c0f4a0f67c56848bdf22811d" },
           });
-          commission = +comissionPercent.value;
-          commissionAmount = (+bodyData.price * commission) / 100;
-          totalPrice = +bodyData.price + commissionAmount;
+          commission = parseFloat(comissionPercent.value);
+          commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
+          totalPrice = parseFloat(bodyData.price) + commissionAmount;
         }
         bodyData.commission = commission;
-        bodyData.commissionAmount = commissionAmount;
-        bodyData.totalPrice = totalPrice;
+        bodyData.commissionAmount = `${commissionAmount.toFixed(2)}`;
+        bodyData.totalPrice = `${totalPrice.toFixed(2)}`;
         bodyData.transactionAmount = result.total;
         bodyData.transactionCurrency = result.currency;
         next();

@@ -284,9 +284,7 @@ export default {
           bookingDate: _response?.data?.booking_date
             ? _response?.data?.booking_date
             : currentDatatime,
-          price: _response?.data?.price?.total
-            ? _response?.data?.price?.total
-            : bodyData.price,
+          price: bodyData.totalPrice,
           status: _response?.data?.status ? _response?.data?.status : "failed",
           totalRooms: bodyData.totalRooms,
           totalMember: bodyData.totalMember,
@@ -338,6 +336,7 @@ export default {
             cityCode: bodyData.cityCode,
             checkIn: bodyData.checkIn,
             checkOut: bodyData.checkOut,
+            currency: bodyData.transactionCurrency,
             commission: bodyData.commission,
             commissionAmount: bodyData.commissionAmount,
             totalPrice: bodyData.totalPrice,
@@ -366,6 +365,7 @@ export default {
             cancellationPolicy: cancellationPolicy,
             searchId: bodyData.searchId,
           };
+          // console.log(bookingData);
           const booking = await HotelBooking.create(bookingData);
           console.log("================================");
           console.log("booking created", booking.id);
@@ -602,18 +602,38 @@ export default {
           console.log("Booking Cancellation Confirm/pending Refund Intialize");
           console.log("================================");
           // refund intiate
+
+          const walletObject = await Wallet.findOne({
+            where: { userId: bookingObject?.userId },
+          });
+          const fianlBalance =
+            parseFloat(walletObject?.balance) +
+            parseFloat(bookingObject?.price);
+          const transactionRequest = {
+            userId: bookingObject?.userId,
+            gatewayMode: "Mint",
+            paymentFor: "hotel",
+            paymentType: "adjust",
+            total: bookingObject?.price,
+            currency: bookingObject?.booking?.currency,
+            description: `Refund for cancellation hotel booking`,
+            paymentId: bookingObject?.id,
+            paymentContent: null,
+            status: "complete",
+          };
+          const transactionData = await Transaction.create(transactionRequest);
           await HotelBookingLog.create({
             userId: bookingObject.userId,
             groupId: bookingObject.id,
             bookingId: bookingObject.bookingId,
+            transactionId: transactionData.id,
             paymentStatus: "refund-Intiated",
           });
+          await walletObject.update({ balance: fianlBalance });
           const payBackRequest = {
             userId: bookingObject?.userId,
-            hotelGroupId: bookingObject?.id,
-            requestFor: "hotel",
-            requestType: "direct",
-            total: bookingObject?.booking?.price,
+            balance: fianlBalance,
+            total: bookingObject?.price,
             currency: bookingObject?.booking?.currency,
           };
           const payBackData = await PayBackRequest.create(payBackRequest);
@@ -632,7 +652,7 @@ export default {
               },
             }
           );
-          await this.bookingStatus(req);
+          this.bookingStatus(req);
         }
       }
       return _response;

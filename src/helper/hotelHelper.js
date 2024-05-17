@@ -116,16 +116,17 @@ export default {
           commissionAmount = 0,
           totalPrice = 0;
         const comissionPercent = await Setting.findOne({
-          where: { key: "grn_margin" },
+          where: { key: "b05970e2431ae626c0f4a0f67c56848bdf22811d" },
         });
-        commission = +comissionPercent.value;
-        commissionAmount = (+data?.hotel?.rate?.price * commission) / 100;
-        totalPrice = +data?.hotel?.rate?.price + commissionAmount;
-        data.serviceChages = commissionAmount;
-        data.finalAmount = totalPrice;
+        commission = parseFloat(comissionPercent.value);
+        commissionAmount =
+          (parseFloat(data?.hotel?.rate?.price) * commission) / 100;
+        totalPrice = parseFloat(data?.hotel?.rate?.price) + commissionAmount;
+        data.serviceChages = `${commissionAmount}`;
+        data.finalAmount = `${parseFloat(totalPrice).toFixed(2)}`;
       } else {
-        data.serviceChages = 0;
-        data.finalAmount = +data?.hotel?.rate?.price;
+        data.serviceChages = "0";
+        data.finalAmount = `${parseFloat(data?.hotel?.rate?.price).toFixed(2)}`;
       }
 
       return data;
