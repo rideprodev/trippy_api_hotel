@@ -64,7 +64,9 @@ export default {
   async getSessionToken() {
     try {
       // fetch token from settings
-      const token = await Setting.findOne({ where: { key: "grn_access_key" } });
+      const token = await Setting.findOne({
+        where: { key: "4f0f3b74542a1bfd35ad8f7531eb2376c9631ccb" },
+      });
       if (token?.value.length > 5) {
         return token.value;
       } else {
