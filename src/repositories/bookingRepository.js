@@ -9,6 +9,8 @@ const {
   HotelCity,
   HotelCountry,
   HotelBookingLog,
+  HotelBidding,
+  HotelBiddingPrices,
 } = models;
 
 export default {
@@ -18,6 +20,7 @@ export default {
    */
   async getAllHotelBooking(req, where = {}) {
     try {
+      const userData = req.user;
       const queryData = req.query;
       let limit = null,
         offset = null;
@@ -65,42 +68,11 @@ export default {
             model: User,
             as: "userData",
           },
-          {
-            attributes: ["hotelCode", "cityCode"],
-            model: HotelBooking,
-            as: "booking",
-          },
-          {
-            attributes: ["createdAt", "paymentStatus", "transactionId"],
-            model: HotelBookingLog,
-            as: "bookingLogs",
-          },
         ],
         order: [["id", "DESC"]],
         offset: offset,
         limit: limit,
       });
-      for (let i = 0; i < _hotels.rows.length; i++) {
-        const element = _hotels.rows[i];
-        if (element?.booking?.hotelCode) {
-          element.dataValues.hotelData = await Hotel.findOne({
-            attributes: ["hotelCode", "hotelName", "countryCode"],
-            where: { hotelCode: element.booking.hotelCode },
-          });
-        }
-        if (element?.booking?.cityCode) {
-          element.dataValues.cityData = await HotelCity.findOne({
-            attributes: ["cityCode", "cityName"],
-            where: { cityCode: element.booking.cityCode },
-          });
-        }
-        if (element?.dataValues?.hotelData?.countryCode) {
-          element.dataValues.countryData = await HotelCountry.findOne({
-            attributes: ["countryCode", "countryName"],
-            where: { countryCode: element.dataValues.hotelData.countryCode },
-          });
-        }
-      }
       return _hotels;
     } catch (error) {
       throw Error(error);
@@ -114,14 +86,6 @@ export default {
     try {
       const booking = await HotelBookingGroup.findOne({
         where: where,
-        attributes: {
-          exclude: [],
-        },
-        include: {
-          attributes: ["price", "currency"],
-          model: HotelBooking,
-          as: "booking",
-        },
       });
       return booking;
     } catch (error) {
@@ -141,7 +105,14 @@ export default {
         },
         include: [
           {
-            attributes: ["firstName", "lastName"],
+            attributes: [
+              "firstName",
+              "lastName",
+              "profilePicture",
+              "email",
+              "phoneNumberCountryCode",
+              "phoneNumber",
+            ],
             model: User,
             as: "userData",
           },
@@ -155,9 +126,24 @@ export default {
             as: "bookings",
           },
           {
+            // attributes: [],
+            model: HotelBidding,
+            as: "biddingData",
+            include: {
+              // attributes: [],
+              model: HotelBiddingPrices,
+              as: "biddingPriceData",
+            },
+          },
+          {
             attributes: ["roomNumber", "paxes", "ages"],
             model: HotelBookingDetail,
             as: "bookingDetils",
+          },
+          {
+            attributes: ["createdAt", "paymentStatus", "transactionId"],
+            model: HotelBookingLog,
+            as: "bookingLogs",
           },
         ],
       });
