@@ -76,7 +76,7 @@ module.exports = (sequelize, DataTypes) => {
     });
     HotelBidding.hasMany(models.HotelBiddingPrices, {
       foreignKey: "biddingId",
-      as: "biddingData",
+      as: "biddingPriceData",
     });
   };
   return HotelBidding;

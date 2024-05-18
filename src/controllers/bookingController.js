@@ -27,7 +27,13 @@ export default {
   async getOneBooking(req, res, next) {
     try {
       const bookingObject = req.bookingObject;
-      utility.getResponse(res, bookingObject, "RETRIVED");
+      const bookingData = await bookingRepository.getOneHotelUserWiseBooking(
+        req,
+        {
+          id: bookingObject.id,
+        }
+      );
+      utility.getResponse(res, bookingData, "RETRIVED");
     } catch (error) {
       next(error);
     }
