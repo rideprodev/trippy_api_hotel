@@ -594,18 +594,33 @@ export default {
           apiEndPoint,
           _response
         );
+        console.log("================================");
+        console.log(_response.data.status);
+        console.log("================================");
         if (
           _response.data.status === "confirmed" ||
           _response.data.status === "pending"
         ) {
           console.log("================================");
-          console.log("Booking Cancellation Confirm/pending Refund Intialize");
+          console.log(
+            "Booking Cancellation Confirm/pending Refund Intialize",
+            _response.data.status
+          );
           console.log("================================");
           // refund intiate
 
-          const walletObject = await Wallet.findOne({
+          let walletObject = await Wallet.findOne({
             where: { userId: bookingObject?.userId },
           });
+          console.log("================================");
+          console.log("Booking Cancellation Confirm/pending Refund Intialize");
+          console.log("================================");
+          if (!walletObject) {
+            walletObject = await Wallet.create({
+              userId: bookingObject?.userId,
+              balance: "0.00",
+            });
+          }
           const fianlBalance =
             parseFloat(walletObject?.balance) +
             parseFloat(bookingObject?.price);
@@ -622,6 +637,9 @@ export default {
             status: "complete",
           };
           const transactionData = await Transaction.create(transactionRequest);
+          console.log("================================");
+          console.log("Tramsaction created", transactionData.id);
+          console.log("================================");
           await HotelBookingLog.create({
             userId: bookingObject.userId,
             groupId: bookingObject.id,
@@ -638,6 +656,9 @@ export default {
           };
           const payBackData = await PayBackRequest.create(payBackRequest);
           if (payBackData) {
+            console.log("================================");
+            console.log("payback created", payBackData.id);
+            console.log("================================");
             await PayBackLog.create({
               userId: bookingObject?.userId,
               requestId: payBackData.id,
