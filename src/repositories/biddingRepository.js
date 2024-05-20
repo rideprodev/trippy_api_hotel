@@ -33,7 +33,7 @@ export default {
         offset = +queryData.offset;
       }
 
-      return await HotelBidding.findAndCountAll({
+      const _biddingData = await HotelBidding.findAndCountAll({
         where: where,
         include: [
           {
@@ -45,12 +45,41 @@ export default {
             attributes: ["id", "bookingId", "bookingName", "bookingComments"],
             model: HotelBookingGroup,
             as: "bookingGroupData",
+            // include: {
+            //   attributes: ["hotelCode", "cityCode"],
+            //   model: HotelBooking,
+            //   as: "booking",
+            // },
           },
         ],
         order: [["id", "DESC"]],
         offset: offset,
         limit: limit,
       });
+
+      // for (let i = 0; i < _biddingData.rows?.bookingGroupData?.length; i++) {
+      //   const element = _hotels.rows[i];
+      //   if (element?.booking?.hotelCode) {
+      //     element.dataValues.hotelData = await Hotel.findOne({
+      //       attributes: ["hotelCode", "hotelName", "countryCode"],
+      //       where: { hotelCode: element.booking.hotelCode },
+      //     });
+      //   }
+      //   if (element?.booking?.cityCode) {
+      //     element.dataValues.cityData = await HotelCity.findOne({
+      //       attributes: ["cityCode", "cityName"],
+      //       where: { cityCode: element.booking.cityCode },
+      //     });
+      //   }
+      //   if (element?.dataValues?.hotelData?.countryCode) {
+      //     element.dataValues.countryData = await HotelCountry.findOne({
+      //       attributes: ["countryCode", "countryName"],
+      //       where: { countryCode: element.dataValues.hotelData.countryCode },
+      //     });
+      //   }
+      // }
+
+      return _biddingData;
     } catch (error) {
       throw Error(error);
     }
