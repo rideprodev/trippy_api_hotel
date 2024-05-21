@@ -33,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
           unique: false,
           fields: ["hotel_code"],
         },
+        {
+          unique: false,
+          fields: ["main_image"],
+        },
       ],
       underscored: true,
     }
