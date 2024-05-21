@@ -343,9 +343,43 @@ export default {
         {
           checkIn: bodyData.checkIn,
           checkOut: bodyData.checkOut,
+          totalRooms: bodyData.totalRooms,
+          totalMember: bodyData.totalMember,
+          status: "confirmed",
         }
       );
-      utility.getResponse(res, booking, "");
+      if (booking?.length > 0) {
+        for (let i = 0; i < booking.length; i++) {
+          const element = booking[i];
+          const checkAlreadyHave = element?.dataValues?.biddingData.filter(
+            (x) =>
+              x.roomType == bodyData.roomType &&
+              x.hotelCode == bodyData.hotelCode
+          );
+          if (checkAlreadyHave.length === 0) {
+            element.dataValues.isBiddable = true;
+          } else {
+            element.dataValues.isBiddable = false;
+          }
+        }
+        const bookingFilter = booking.filter(
+          (x) => x.dataValues.isBiddable === true
+        );
+        // console.log(bookingFilter.length);
+        if (bookingFilter.length > 0) {
+          const bookingList = bookingFilter.map((x) => {
+            delete x.dataValues.biddingData;
+            delete x.dataValues.isBiddable;
+            return x.dataValues;
+          });
+          req.bookingList = bookingList;
+          next();
+        } else {
+          utility.getError(res, "NO_BOOKING_FOUND");
+        }
+      } else {
+        utility.getError(res, "NO_BOOKING_FOUND");
+      }
     } catch (error) {
       next(error);
     }

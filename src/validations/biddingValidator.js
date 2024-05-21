@@ -22,12 +22,14 @@ const updateBid = Joi.object({
   expairationAt: Joi.string().optional(),
 });
 
-const checkBookingForBidding = {
+const checkBookingForBidding = Joi.object({
   hotelCode: Joi.string().required(),
   roomType: Joi.string().required(),
   checkIn: Joi.string().required(),
   checkOut: Joi.string().required(),
-};
+  totalRooms: Joi.string().required(),
+  totalMember: Joi.string().required(),
+});
 
 export default {
   placeBid,

@@ -1,16 +1,10 @@
 import { Router } from "express";
 import controllers from "../controllers";
 import middlewares from "../middlewares";
-import validations from "../validations";
 
 const { bookingController } = controllers;
-const { biddingValidator } = validations;
-const {
-  authMiddleware,
-  resourceAccessMiddleware,
-  hotelMiddleware,
-  validateMiddleware,
-} = middlewares;
+const { authMiddleware, resourceAccessMiddleware, hotelMiddleware } =
+  middlewares;
 
 const router = Router();
 // ------------ Backend Apis Start -----------------------
@@ -50,17 +44,6 @@ router.get(
   resourceAccessMiddleware(["admin"]),
   hotelMiddleware.isbookingExist,
   bookingController.getOneBooking
-);
-
-router.post(
-  "/booking-availiablity",
-  authMiddleware,
-  validateMiddleware({
-    schema: biddingValidator.checkBookingForBidding,
-  }),
-  resourceAccessMiddleware(["user"]),
-  hotelMiddleware.checkBookingForBidding,
-  bookingController.bookingAvaliablity
 );
 
 export default router;
