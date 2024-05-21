@@ -23,6 +23,13 @@ router.get(
 );
 
 router.get(
+  "/my-biddings/:biddingId",
+  authMiddleware,
+  resourceAccessMiddleware(["user"]),
+  biddingController.getAllBidding
+);
+
+router.get(
   "/admin/user",
   authMiddleware,
   resourceAccessMiddleware(["admin"]),

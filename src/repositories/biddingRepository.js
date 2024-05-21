@@ -1,5 +1,13 @@
 import models from "../models";
-const { HotelBidding, HotelBiddingPrices, User, HotelBookingGroup } = models;
+const {
+  HotelBidding,
+  HotelBiddingPrices,
+  User,
+  HotelBookingGroup,
+  Hotel,
+  HotelCountry,
+  HotelCity,
+} = models;
 import { Op } from "sequelize";
 
 export default {
@@ -45,11 +53,6 @@ export default {
             attributes: ["id", "bookingId", "bookingName", "bookingComments"],
             model: HotelBookingGroup,
             as: "bookingGroupData",
-            // include: {
-            //   attributes: ["hotelCode", "cityCode"],
-            //   model: HotelBooking,
-            //   as: "booking",
-            // },
           },
         ],
         order: [["id", "DESC"]],
@@ -57,27 +60,15 @@ export default {
         limit: limit,
       });
 
-      // for (let i = 0; i < _biddingData.rows?.bookingGroupData?.length; i++) {
-      //   const element = _hotels.rows[i];
-      //   if (element?.booking?.hotelCode) {
-      //     element.dataValues.hotelData = await Hotel.findOne({
-      //       attributes: ["hotelCode", "hotelName", "countryCode"],
-      //       where: { hotelCode: element.booking.hotelCode },
-      //     });
-      //   }
-      //   if (element?.booking?.cityCode) {
-      //     element.dataValues.cityData = await HotelCity.findOne({
-      //       attributes: ["cityCode", "cityName"],
-      //       where: { cityCode: element.booking.cityCode },
-      //     });
-      //   }
-      //   if (element?.dataValues?.hotelData?.countryCode) {
-      //     element.dataValues.countryData = await HotelCountry.findOne({
-      //       attributes: ["countryCode", "countryName"],
-      //       where: { countryCode: element.dataValues.hotelData.countryCode },
-      //     });
-      //   }
-      // }
+      for (let i = 0; i < _biddingData.rows?.length; i++) {
+        const element = _biddingData.rows[i];
+        if (element?.hotelCode) {
+          element.dataValues.hotelData = await Hotel.findOne({
+            attributes: ["hotelCode", "hotelName", "countryCode"],
+            where: { hotelCode: element?.hotelCode },
+          });
+        }
+      }
 
       return _biddingData;
     } catch (error) {
@@ -92,11 +83,8 @@ export default {
    */
   async getOneBidding(where = {}) {
     try {
-      return await HotelBidding.findOne({
+      const _biddingData = await HotelBidding.findOne({
         where: where,
-        attributes: {
-          exclude: [],
-        },
         include: [
           {
             attributes: ["firstName", "lastName"],
@@ -111,10 +99,31 @@ export default {
           {
             attributes: ["createdAt", "latestPrice"],
             model: HotelBiddingPrices,
-            as: "biddingData",
+            as: "biddingPriceData",
           },
         ],
       });
+
+      if (_biddingData?.hotelCode) {
+        _biddingData.dataValues.hotelData = await Hotel.findOne({
+          attributes: ["hotelCode", "hotelName", "countryCode", "cityCode"],
+          where: { hotelCode: _biddingData?.hotelCode },
+        });
+      }
+      if (_biddingData?.dataValues?.hotelData?.cityCode) {
+        _biddingData.dataValues.cityData = await HotelCity.findOne({
+          attributes: ["cityCode", "cityName"],
+          where: { cityCode: _biddingData?.dataValues?.hotelData.cityCode },
+        });
+      }
+      if (_biddingData?.dataValues?.hotelData?.countryCode) {
+        _biddingData.dataValues.countryData = await HotelCountry.findOne({
+          attributes: ["countryCode", "countryName"],
+          where: { countryCode: _biddingData.dataValues.hotelData.countryCode },
+        });
+      }
+
+      return _biddingData;
     } catch (error) {
       throw Error(error);
     }
