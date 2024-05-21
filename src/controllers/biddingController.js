@@ -153,4 +153,19 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Get All Booking
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async bookingAvaliablity(req, res, next) {
+    try {
+      const bookingData = req.bookingList;
+      utility.getResponse(res, bookingData, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

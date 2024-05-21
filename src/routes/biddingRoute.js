@@ -66,4 +66,15 @@ router.put(
   biddingController.updateBidding
 );
 
+router.post(
+  "/booking-availiablity",
+  authMiddleware,
+  validateMiddleware({
+    schema: biddingValidator.checkBookingForBidding,
+  }),
+  resourceAccessMiddleware(["user"]),
+  hotelMiddleware.checkBookingForBidding,
+  biddingController.bookingAvaliablity
+);
+
 export default router;
