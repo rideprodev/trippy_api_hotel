@@ -329,4 +329,25 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Check Booking is refundable or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkBookingForBidding(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const booking = await bookingRepository.checkBookingAvailiblityForBidding(
+        {
+          checkIn: bodyData.checkIn,
+          checkOut: bodyData.checkOut,
+        }
+      );
+      utility.getResponse(res, booking, "");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

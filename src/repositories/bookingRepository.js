@@ -11,6 +11,7 @@ const {
   HotelBookingLog,
   HotelBidding,
   HotelBiddingPrices,
+  HotelImage,
 } = models;
 
 export default {
@@ -86,6 +87,13 @@ export default {
             attributes: ["hotelCode", "hotelName", "countryCode"],
             where: { hotelCode: element.booking.hotelCode },
           });
+          element.dataValues.image = await HotelImage.findOne({
+            attributes: ["imageUrl"],
+            where: {
+              mainImage: "Y",
+              hotelCode: element.booking.hotelCode,
+            },
+          });
         }
         if (element?.booking?.cityCode) {
           element.dataValues.cityData = await HotelCity.findOne({
@@ -153,11 +161,9 @@ export default {
             as: "bookings",
           },
           {
-            // attributes: [],
             model: HotelBidding,
             as: "biddingData",
             include: {
-              // attributes: [],
               model: HotelBiddingPrices,
               as: "biddingPriceData",
             },
@@ -180,6 +186,13 @@ export default {
           element.dataValues.hotelData = await Hotel.findOne({
             attributes: ["hotelCode", "hotelName", "countryCode"],
             where: { hotelCode: element.hotelCode },
+          });
+          element.dataValues.image = await HotelImage.findOne({
+            attributes: ["imageUrl"],
+            where: {
+              mainImage: "Y",
+              hotelCode: element.hotelCode,
+            },
           });
         }
         if (element?.cityCode) {
@@ -213,6 +226,24 @@ export default {
         });
         _hotel.booking.dataValues = hotelData.dataValues;
       }
+      if (_hotel?.biddingData?.length > 0) {
+        for (let i = 0; i < _hotel.biddingData.length; i++) {
+          const element = _hotel.biddingData[i];
+          if (element?.dataValues?.hotelCode) {
+            element.dataValues.hotelData = await Hotel.findOne({
+              attributes: ["hotelCode", "hotelName", "countryCode"],
+              where: { hotelCode: element?.dataValues?.hotelCode },
+            });
+            element.dataValues.image = await HotelImage.findOne({
+              attributes: ["imageUrl"],
+              where: {
+                mainImage: "Y",
+                hotelCode: element?.dataValues?.hotelCode,
+              },
+            });
+          }
+        }
+      }
       return _hotel;
     } catch (error) {
       throw Error(error);
@@ -226,6 +257,21 @@ export default {
   async getActiveBooking(where = {}) {
     try {
       const booking = await HotelBooking.findOne({
+        where: where,
+      });
+      return booking;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Find Hotel list where the date for bidding
+   * @param {Object} req
+   */
+  async checkBookingAvailiblityForBidding(where = {}) {
+    try {
+      const booking = await HotelBookingGroup.findAll({
         where: where,
       });
       return booking;

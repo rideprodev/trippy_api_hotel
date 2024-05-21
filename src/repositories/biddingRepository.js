@@ -7,6 +7,7 @@ const {
   Hotel,
   HotelCountry,
   HotelCity,
+  HotelImage,
 } = models;
 import { Op } from "sequelize";
 
@@ -67,6 +68,13 @@ export default {
             attributes: ["hotelCode", "hotelName", "countryCode"],
             where: { hotelCode: element?.hotelCode },
           });
+          element.dataValues.image = await HotelImage.findOne({
+            attributes: ["imageUrl"],
+            where: {
+              mainImage: "Y",
+              hotelCode: element?.hotelCode,
+            },
+          });
         }
       }
 
@@ -108,6 +116,13 @@ export default {
         _biddingData.dataValues.hotelData = await Hotel.findOne({
           attributes: ["hotelCode", "hotelName", "countryCode", "cityCode"],
           where: { hotelCode: _biddingData?.hotelCode },
+        });
+        _biddingData.dataValues.image = await HotelImage.findOne({
+          attributes: ["imageUrl"],
+          where: {
+            mainImage: "Y",
+            hotelCode: _biddingData?.hotelCode,
+          },
         });
       }
       if (_biddingData?.dataValues?.hotelData?.cityCode) {

@@ -92,4 +92,18 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Get All Booking
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async bookingAvaliablity(req, res, next) {
+    try {
+      utility.getResponse(res, booking, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };
