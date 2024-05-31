@@ -270,6 +270,7 @@ export default {
   async checkBiddingPossible(req, res, next) {
     try {
       const bodyData = req.body;
+      body.isGrouped = true;
       if (
         bodyData?.groupId &&
         +bodyData?.groupId > 0 &&
@@ -283,6 +284,7 @@ export default {
           status: "confirmed",
         });
         if (bookingData) {
+          body.isGrouped = false;
           req.booking = bookingData;
           next();
         } else {
@@ -308,31 +310,38 @@ export default {
     try {
       const bodyData = req.body;
       const bookingData = req.booking;
-      if (
-        bookingData.checkIn === bodyData.checkIn &&
-        bookingData.checkOut === bodyData.checkOut
-      ) {
+      if (bookingData) {
         if (
-          bookingData.nonRefundable === "false" &&
-          bookingData.underCancellation === "false"
+          bookingData.checkIn === bodyData.checkIn &&
+          bookingData.checkOut === bodyData.checkOut
         ) {
-          if (bookingData.hotelCode === bodyData.hotelCode) {
-            if (bookingData.roomType === bodyData.roomType) {
-              utility.getError(res, "Can't bid on the same room you booked !");
+          if (
+            bookingData.nonRefundable === "false" &&
+            bookingData.underCancellation === "false"
+          ) {
+            if (bookingData.hotelCode === bodyData.hotelCode) {
+              if (bookingData.roomType === bodyData.roomType) {
+                utility.getError(
+                  res,
+                  "Can't bid on the same room you booked !"
+                );
+              } else {
+                next();
+              }
             } else {
               next();
             }
           } else {
-            next();
+            utility.getError(
+              res,
+              "Can't bid because the non-cancellation room you booked !"
+            );
           }
         } else {
-          utility.getError(
-            res,
-            "Can't bid because the non-cancellation room you booked !"
-          );
+          utility.getError(res, "Can only bid on the same dates you booked !");
         }
       } else {
-        utility.getError(res, "Can only bid on the same dates you booked !");
+        next();
       }
     } catch (error) {
       next(error);
