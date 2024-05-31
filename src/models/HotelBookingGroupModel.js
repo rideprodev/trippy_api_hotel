@@ -39,7 +39,8 @@ module.exports = (sequelize, DataTypes) => {
           "confirmed",
           "cancelled",
           "failed",
-          "rejected"
+          "rejected",
+          "bidding"
         ),
         defaultValue: "pending",
       },
@@ -83,10 +84,6 @@ module.exports = (sequelize, DataTypes) => {
     HotelBookingGroup.hasMany(models.HotelBooking, {
       foreignKey: "bookingGroupId",
       as: "bookings",
-    });
-    HotelBookingGroup.hasMany(models.HotelBidding, {
-      foreignKey: "groupId",
-      as: "biddingData",
     });
     HotelBookingGroup.hasMany(models.HotelBookingDetail, {
       foreignKey: "bookingGroupId",

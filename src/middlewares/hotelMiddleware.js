@@ -347,15 +347,9 @@ export default {
    */
   async checkBiddingForSearch(req, res, next) {
     try {
-      const bodyData = req.body;
       const biddingData =
-        await biddingRepository.checkBiddingAvailiblityForSearch({
-          checkIn: bodyData.checkIn,
-          checkOut: bodyData.checkOut,
-          totalRooms: bodyData.totalRooms,
-          totalMember: bodyData.totalMember,
-        });
-
+        await biddingRepository.checkBiddingAvailiblityForSearch(req);
+      req.biddings = biddingData;
       next();
     } catch (error) {
       next(error);

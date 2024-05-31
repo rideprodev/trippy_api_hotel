@@ -225,14 +225,26 @@ export default {
    * Find Hotel list where the date for bidding
    * @param {Object} req
    */
-  async checkBiddingAvailiblityForSearch(where = {}) {
+  async checkBiddingAvailiblityForSearch(req) {
     try {
+      const bodyData = req.body;
+      const where = {
+        checkIn: bodyData.checkIn,
+        checkOut: bodyData.checkOut,
+        status: "active",
+      };
+
       const _biddingData = await HotelBidding.findAll({
         where: where,
+        attributes: ["hotelCode", "roomType"],
         include: {
-          attributes: ["id", "bookingId", "bookingName", "bookingComments"],
+          attributes: ["id", "totalRooms", "totalMember", "status"],
           model: HotelBookingGroup,
           as: "bookingGroupData",
+          where: {
+            totalRooms: bodyData.totalRooms,
+            totalMember: bodyData.totalMember,
+          },
         },
         order: [["id", "DESC"]],
       });

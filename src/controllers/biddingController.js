@@ -162,8 +162,11 @@ export default {
    */
   async bookingAvaliablity(req, res, next) {
     try {
-      const bookingData = req.bookingList;
-      utility.getResponse(res, bookingData, "RETRIVED");
+      const biddingData = req.biddings;
+      const filterHotelCodes = biddingData.map((x) => {
+        return { hotelCode: x.hotelCode, roomType: x.roomType };
+      });
+      utility.getResponse(res, filterHotelCodes, "RETRIVED");
     } catch (error) {
       next(error);
     }
