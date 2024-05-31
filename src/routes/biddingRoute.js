@@ -67,13 +67,13 @@ router.put(
 );
 
 router.post(
-  "/booking-availiablity",
+  "/running-biddings",
   authMiddleware,
   validateMiddleware({
     schema: biddingValidator.checkBookingForBidding,
   }),
   resourceAccessMiddleware(["user"]),
-  hotelMiddleware.checkBookingForBidding,
+  hotelMiddleware.checkBiddingForSearch,
   biddingController.bookingAvaliablity
 );
 
