@@ -264,25 +264,4 @@ export default {
       throw Error(error);
     }
   },
-
-  /**
-   * Find Hotel list where the date for bidding
-   * @param {Object} req
-   */
-  async checkBookingAvailiblityForBidding(where = {}) {
-    try {
-      const booking = await HotelBookingGroup.findAll({
-        attributes: ["id", "bookingName", "checkIn", "checkOut", "bookingDate"],
-        where: where,
-        include: {
-          attributes: ["roomType", "hotelCode"],
-          model: HotelBidding,
-          as: "biddingData",
-        },
-      });
-      return booking;
-    } catch (error) {
-      throw Error(error);
-    }
-  },
 };

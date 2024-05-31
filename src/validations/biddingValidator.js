@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 const placeBid = Joi.object({
-  groupId: Joi.string().required(),
+  groupId: Joi.string().optional(),
   roomType: Joi.string().required(),
   checkIn: Joi.string().required(),
   checkOut: Joi.string().required(),
@@ -23,8 +23,6 @@ const updateBid = Joi.object({
 });
 
 const checkBookingForBidding = Joi.object({
-  hotelCode: Joi.string().required(),
-  roomType: Joi.string().required(),
   checkIn: Joi.string().required(),
   checkOut: Joi.string().required(),
   totalRooms: Joi.string().required(),

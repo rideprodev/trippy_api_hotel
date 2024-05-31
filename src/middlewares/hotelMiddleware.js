@@ -270,20 +270,29 @@ export default {
   async checkBiddingPossible(req, res, next) {
     try {
       const bodyData = req.body;
-      const bookingData = await bookingRepository.getActiveBooking({
-        bookingGroupId: bodyData.groupId,
-        checkIn: bodyData.checkIn,
-        checkOut: bodyData.checkOut,
-        status: "confirmed",
-      });
-      if (bookingData) {
-        req.booking = bookingData;
-        next();
+      if (
+        bodyData?.groupId &&
+        +bodyData?.groupId > 0 &&
+        bodyData.checkIn &&
+        bodyData.checkOut
+      ) {
+        const bookingData = await bookingRepository.getActiveBooking({
+          bookingGroupId: bodyData.groupId,
+          checkIn: bodyData.checkIn,
+          checkOut: bodyData.checkOut,
+          status: "confirmed",
+        });
+        if (bookingData) {
+          req.booking = bookingData;
+          next();
+        } else {
+          utility.getError(
+            res,
+            "Booking is not availible please book a hotel first"
+          );
+        }
       } else {
-        utility.getError(
-          res,
-          "Booking is not availible please book a hotel first"
-        );
+        next();
       }
     } catch (error) {
       next(error);
@@ -336,50 +345,18 @@ export default {
    * @param {Object} res
    * @param {Function} next
    */
-  async checkBookingForBidding(req, res, next) {
+  async checkBiddingForSearch(req, res, next) {
     try {
       const bodyData = req.body;
-      const booking = await bookingRepository.checkBookingAvailiblityForBidding(
-        {
+      const biddingData =
+        await biddingRepository.checkBiddingAvailiblityForSearch({
           checkIn: bodyData.checkIn,
           checkOut: bodyData.checkOut,
           totalRooms: bodyData.totalRooms,
           totalMember: bodyData.totalMember,
-          status: "confirmed",
-        }
-      );
-      if (booking?.length > 0) {
-        for (let i = 0; i < booking.length; i++) {
-          const element = booking[i];
-          const checkAlreadyHave = element?.dataValues?.biddingData.filter(
-            (x) =>
-              x.roomType == bodyData.roomType &&
-              x.hotelCode == bodyData.hotelCode
-          );
-          if (checkAlreadyHave.length === 0) {
-            element.dataValues.isBiddable = true;
-          } else {
-            element.dataValues.isBiddable = false;
-          }
-        }
-        const bookingFilter = booking.filter(
-          (x) => x.dataValues.isBiddable === true
-        );
-        // console.log(bookingFilter.length);
-        if (bookingFilter.length > 0) {
-          const bookingList = bookingFilter.map((x) => {
-            delete x.dataValues.biddingData;
-            delete x.dataValues.isBiddable;
-            return x.dataValues;
-          });
-          req.bookingList = bookingList;
-          next();
-        } else {
-          utility.getError(res, "NO_BOOKING_FOUND");
-        }
-      } else {
-        utility.getError(res, "NO_BOOKING_FOUND");
-      }
+        });
+
+      next();
     } catch (error) {
       next(error);
     }

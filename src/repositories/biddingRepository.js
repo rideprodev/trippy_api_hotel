@@ -220,4 +220,25 @@ export default {
       include: { model: User, as: "userData" },
     });
   },
+
+  /**
+   * Find Hotel list where the date for bidding
+   * @param {Object} req
+   */
+  async checkBiddingAvailiblityForSearch(where = {}) {
+    try {
+      const _biddingData = await HotelBidding.findAll({
+        where: where,
+        include: {
+          attributes: ["id", "bookingId", "bookingName", "bookingComments"],
+          model: HotelBookingGroup,
+          as: "bookingGroupData",
+        },
+        order: [["id", "DESC"]],
+      });
+      return _biddingData;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
 };
