@@ -244,7 +244,6 @@ export default {
     try {
       const bodyData = req.body;
       const biddingData = await biddingRepository.getOneBidding({
-        groupId: bodyData.groupId,
         hotelCode: bodyData.hotelCode,
         checkIn: bodyData.checkIn,
         checkOut: bodyData.checkOut,
@@ -270,7 +269,7 @@ export default {
   async checkBiddingPossible(req, res, next) {
     try {
       const bodyData = req.body;
-      body.isGrouped = true;
+      bodyData.isGrouped = true;
       if (
         bodyData?.groupId &&
         +bodyData?.groupId > 0 &&
@@ -284,7 +283,7 @@ export default {
           status: "confirmed",
         });
         if (bookingData) {
-          body.isGrouped = false;
+          bodyData.isGrouped = false;
           req.booking = bookingData;
           next();
         } else {
