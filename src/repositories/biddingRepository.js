@@ -164,6 +164,13 @@ export default {
     try {
       const bodyData = req.body;
       bodyData.userId = req.user.id;
+      if (body?.isGrouped) {
+        bodyData.status = "bidding";
+        const groupData = await HotelBookingGroup.create(bodyData);
+        if (groupData && groupData?.id) {
+          bodyData.groupId = groupData.id;
+        }
+      }
       const _response = await HotelBidding.create(bodyData);
       bodyData.biddingId = _response.id;
       await this.updateLatestPrice(bodyData);
