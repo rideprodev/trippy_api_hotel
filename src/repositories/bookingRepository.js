@@ -25,7 +25,7 @@ export default {
       const queryData = req.query;
       let limit = null,
         offset = null;
-
+      where = { ...where, status: { [Op.ne]: "bidding" } };
       if (queryData.name) {
         where = {
           ...where,
