@@ -111,6 +111,11 @@ export default {
       const images = await hotelRepository.fetchAllImagesWhereHotel({
         hotelCode: req.body.hotelCode,
       });
+
+      data.hotel.rates = await data?.hotel?.rates?.filter(
+        (x) => x?.non_refundable == false
+      );
+
       data.images = images;
       return data;
     } catch (error) {
