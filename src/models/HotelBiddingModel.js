@@ -49,9 +49,16 @@ module.exports = (sequelize, DataTypes) => {
         ),
         defaultValue: "active",
       },
+      latestPrice: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
       paymentMode: {
         type: DataTypes.ENUM("wallete"),
         defaultValue: "wallete",
+      },
+      reavalidateResponse: {
+        type: DataTypes.TEXT,
       },
     },
     {

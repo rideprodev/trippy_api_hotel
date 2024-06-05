@@ -83,6 +83,16 @@ export default {
 
   async setCountryCityName(req, data) {
     try {
+      for (let index = 0; index < data?.hotels?.length; index++) {
+        const element = data?.hotels?.[index];
+        const rates = await element?.rates?.filter(
+          (x) => x.non_refundable == false
+        );
+        element.rates = rates;
+      }
+
+      data.hotels = data?.hotels?.filter((x) => x.rates.length > 0);
+
       const bodyData = req.body;
       const cityData = await customRepository.fetchCityData(bodyData.cityCode);
       const response = await data.hotels?.map((x) => {
@@ -101,6 +111,11 @@ export default {
       const images = await hotelRepository.fetchAllImagesWhereHotel({
         hotelCode: req.body.hotelCode,
       });
+
+      data.hotel.rates = await data?.hotel?.rates?.filter(
+        (x) => x?.non_refundable == false
+      );
+
       data.images = images;
       return data;
     } catch (error) {

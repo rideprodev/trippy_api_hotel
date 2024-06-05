@@ -220,6 +220,7 @@ export default {
           commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
           totalPrice = parseFloat(bodyData.price) + commissionAmount;
         }
+        req.transaction = result;
         bodyData.commission = commission;
         bodyData.commissionAmount = `${commissionAmount.toFixed(2)}`;
         bodyData.totalPrice = `${totalPrice.toFixed(2)}`;

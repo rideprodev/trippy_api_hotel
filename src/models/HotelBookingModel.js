@@ -93,6 +93,9 @@ module.exports = (sequelize, DataTypes) => {
       cancellationPolicy: {
         type: DataTypes.TEXT,
       },
+      reavalidateResponse: {
+        type: DataTypes.TEXT,
+      },
       searchId: {
         type: DataTypes.STRING(100),
       },

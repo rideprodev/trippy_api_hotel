@@ -72,7 +72,7 @@ const booking = Joi.object({
       })
     )
     .required(),
-  // holder: Joi.string().required(),
+  reavalidateResponse: Joi.string().required(),
 });
 
 const bookingStatus = Joi.object({

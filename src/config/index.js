@@ -9,6 +9,7 @@ export default {
     mediaUploadSizeLimit: 1024 * 1024 * 100,
     baseUrl: process.env.BASE_URL,
     adminUrl: process.env.ADMIN_URL,
+    authUrl: process.env.AUTH_URL,
     environment: process.env.NODE_ENV,
     swaggerHost: process.env.SWAGGER_HOST,
     MailerHost: process.env.MAILER_HOST,
