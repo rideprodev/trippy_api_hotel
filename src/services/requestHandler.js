@@ -1,6 +1,7 @@
 import axios from "axios";
 import utility from "./utility";
 import logger from "./logger";
+import config from "../config";
 
 export default {
   async fetchResponseFromHotel(requestApiBase, Token, _requestData = {}) {
@@ -59,6 +60,36 @@ export default {
       const { data } = await axios(_request);
       // console.log(data);
       return data.success;
+    } catch (error) {
+      logger.requestErrorLogger.error(
+        `${
+          config.app.EmailBaseUrl
+        } calling error ${new Date()} ${JSON.stringify(error)}`
+      );
+      return response.data;
+    }
+  },
+
+  //commumnication with the auth server
+  async sendForRefund(refundId, userId) {
+    try {
+      console.log(refundId, userId);
+      const requestData = {
+        refundId: `${refundId}`,
+        userId: `${userId}`,
+      };
+      const _request = {
+        method: "post",
+        url: `${config.app.authUrl}/payment/refund-by-id`,
+        data: requestData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      // console.log(_request);
+      const { data } = await axios(_request);
+      // console.log(data);
+      return data;
     } catch (error) {
       logger.requestErrorLogger.error(
         `${

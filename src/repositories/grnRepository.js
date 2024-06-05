@@ -189,6 +189,7 @@ export default {
       const membersData = req.members;
       const userData = req.user;
       bodyData.roomsData = bodyData.bookingItems;
+      const transactionData = req.transaction;
       //  Set Holder Data
       const holder = {
         title:
@@ -443,50 +444,15 @@ export default {
             console.log("================================");
             console.log("Booking not Confirm Refund Intialize");
             console.log("================================");
+            console.log(transactionData.paymentId);
+
             // refund intiate
-            const bookignLogs = await HotelBookingLog.create({
-              userId: userData.id,
-              groupId: bookingGroup.id,
-              bookingId: booking.id,
-              paymentStatus: "refund-Intiated",
-            });
-            const transactionRequest = {
-              userId: userData.id,
-              gatewayMode: "system",
-              paymentFor: "wallet",
-              paymentType: "adjust",
-              total: bodyData.transactionAmount,
-              currency: bodyData.transactionCurrency,
-              description: `Refund on the booking of ${booking.id}`,
-              status: "refund",
-            };
-            const transactionData = await Transaction.create(
-              transactionRequest
+            const refundIntialization = await requestHandler.sendForRefund(
+              transactionData.id,
+              userData.id
             );
-
-            if (transactionData && transactionData.id) {
-              await transactionData.update({
-                hotelBookingId: booking.id,
-              });
-
-              console.log("====== check wallete ========");
-              const checkWallet = await Wallet.findOne({
-                where: {
-                  userId: userData.id,
-                },
-              });
-              // update wallet
-              if (checkWallet && checkWallet.balance !== null) {
-                const balance =
-                  checkWallet.balance + parseFloat(transactionData.total);
-                await checkWallet.update({ balance });
-              } else {
-                await Wallet.create({
-                  balance: parseFloat(transactionData.total),
-                  userId: userData.id,
-                });
-              }
-
+            // console.log(refundIntialization);
+            if (refundIntialization?.message === "APPROVED") {
               await bookignLogs.update({
                 paymentStatus: "refunded",
                 transactionId: transactionData.id,
@@ -609,61 +575,11 @@ export default {
           console.log("================================");
           // refund intiate
 
-          let walletObject = await Wallet.findOne({
-            where: { userId: bookingObject?.userId },
-          });
-          console.log("================================");
-          console.log("Booking Cancellation Confirm/pending Refund Intialize");
-          console.log("================================");
-          if (!walletObject) {
-            walletObject = await Wallet.create({
-              userId: bookingObject?.userId,
-              balance: "0.00",
-            });
-          }
-          const fianlBalance =
-            parseFloat(walletObject?.balance) +
-            parseFloat(bookingObject?.price);
-          const transactionRequest = {
-            userId: bookingObject?.userId,
-            gatewayMode: "Mint",
-            paymentFor: "hotel",
-            paymentType: "adjust",
-            total: bookingObject?.price,
-            currency: bookingObject?.booking?.currency,
-            description: `Refund for cancellation hotel booking`,
-            paymentId: bookingObject?.id,
-            paymentContent: null,
-            status: "complete",
-          };
-          const transactionData = await Transaction.create(transactionRequest);
-          console.log("================================");
-          console.log("Tramsaction created", transactionData.id);
-          console.log("================================");
-          await HotelBookingLog.create({
-            userId: bookingObject.userId,
-            groupId: bookingObject.id,
-            bookingId: bookingObject.bookingId,
-            transactionId: transactionData.id,
-            paymentStatus: "refund-Intiated",
-          });
-          await walletObject.update({ balance: fianlBalance });
-          const payBackRequest = {
-            userId: bookingObject?.userId,
-            balance: fianlBalance,
-            total: bookingObject?.price,
-            currency: bookingObject?.booking?.currency,
-          };
-          const payBackData = await PayBackRequest.create(payBackRequest);
-          if (payBackData) {
-            console.log("================================");
-            console.log("payback created", payBackData.id);
-            console.log("================================");
-            await PayBackLog.create({
-              userId: bookingObject?.userId,
-              requestId: payBackData.id,
-            });
-          }
+          const refundIntialization = await requestHandler.sendForRefund(
+            transactionData.id,
+            userData.id
+          );
+
           await bookingObject.update({ status: "pending" });
           await HotelBooking.update(
             { status: "pending" },
