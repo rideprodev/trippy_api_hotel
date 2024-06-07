@@ -73,6 +73,9 @@ const booking = Joi.object({
     )
     .required(),
   reavalidateResponse: Joi.string().required(),
+  hotelName: Joi.string().required(),
+  fullAddress: Joi.string().required(),
+  imageUrl: Joi.string().required(),
 });
 
 const bookingStatus = Joi.object({
