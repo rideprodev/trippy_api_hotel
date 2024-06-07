@@ -437,10 +437,44 @@ export default {
             (_response.data.status === "pending" ||
               _response.data.status === "confirmed")
           ) {
+            const sendmail = requestHandler.sendEmail(
+              userData.email,
+              "hotelBooking",
+              "Booking Confirmation",
+              {
+                name: `${userData.firstName} ${userData.lastName}`,
+                hotel_name: bodyData.hotelName,
+                full_address: bodyData.fullAddress,
+                image_url: bodyData.imageUrl,
+                check_in: bodyData.checkIn,
+                check_out: bodyData.checkOut,
+                room_type: bodyData.roomType,
+                total_members: bodyData.totalMember,
+                cancellation_date: cancelByDate,
+                total_price: bodyData.totalPrice,
+              }
+            );
             console.log("================================");
             console.log("Booking Confirm");
             console.log("================================");
           } else {
+            const sendmail = requestHandler.sendEmail(
+              userData.email,
+              "hotelBooking",
+              "Booking not Confirmed!",
+              {
+                name: `${userData.firstName} ${userData.lastName}`,
+                hotel_name: bodyData.hotelName,
+                full_address: bodyData.fullAddress,
+                image_url: bodyData.imageUrl,
+                check_in: bodyData.checkIn,
+                check_out: bodyData.checkOut,
+                room_type: bodyData.roomType,
+                total_members: bodyData.totalMember,
+                cancellation_date: cancelByDate,
+                total_price: bodyData.totalPrice,
+              }
+            );
             console.log("================================");
             console.log("Booking not Confirm Refund Intialize");
             console.log("================================");
@@ -457,6 +491,7 @@ export default {
                 paymentStatus: "refunded",
                 transactionId: transactionData.id,
               });
+              const sendmail = requestHandler.sendEmail();
               console.log("================================");
               console.log("Refund Done in transaction Id=", transactionData.id);
               console.log("================================");

@@ -99,4 +99,36 @@ export default {
       return response.data;
     }
   },
+
+  //send email to notification service
+  async sendEmail(email, pageName, subject, forwordData) {
+    try {
+      // console.log(email, pageName, subject, forwordData);
+      const requestData = {
+        email,
+        pageName,
+        subject,
+        forwordData,
+      };
+      const _request = {
+        method: "post",
+        url: `${config.app.MailerHost}notification/email`,
+        data: requestData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      // console.log(_request);
+      const { data } = await axios(_request);
+      // console.log(data);
+      return data.success;
+    } catch (error) {
+      logger.requestErrorLogger.error(
+        `${
+          config.app.EmailBaseUrl
+        } calling error ${new Date()} ${JSON.stringify(error)}`
+      );
+      return error.response.data;
+    }
+  },
 };
