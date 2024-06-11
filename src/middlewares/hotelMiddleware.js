@@ -21,7 +21,9 @@ export default {
   async fetchHotelsCodes(req, res, next) {
     try {
       const bodyData = req.body;
-      const hotelCodes = [];
+      let hotelCodes = [];
+      let getAllHotelCodes = [];
+      let checkFilter = false;
       if (bodyData.hotelCode && bodyData.hotelCode !== "") {
         req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
@@ -36,15 +38,36 @@ export default {
         if (bodyData?.propertyType?.length > 0) {
           where.accommodationTypeSubName = bodyData.propertyType;
         }
-        const getAllHotelCodes = await hotelRepository.fetchAll(
+        if (bodyData.offset == 0) {
+          getAllHotelCodes = await hotelRepository.fetchAllFromTop(
+            where,
+            bodyData.limit,
+            bodyData.offset
+          );
+        }
+        const hotelcodes = await hotelRepository.fetchAll(
           where,
           bodyData.limit,
           bodyData.offset
         );
+
+        if (getAllHotelCodes.count > 0) {
+          getAllHotelCodes.count = getAllHotelCodes.count + hotelcodes.count;
+          checkFilter = true;
+        }
+
+        getAllHotelCodes.rows = [...getAllHotelCodes.rows, ...hotelcodes.rows];
+
         if (getAllHotelCodes.rows.length > 0) {
           for (let index = 0; index < getAllHotelCodes.rows.length; index++) {
             const element = getAllHotelCodes.rows[index];
             hotelCodes.push(element.hotelCode);
+          }
+          if (checkFilter) {
+            hotelCodes = hotelCodes.filter(
+              (value, index) => hotelCodes.indexOf(value) === index
+            );
+            getAllHotelCodes.count = hotelCodes.length;
           }
           req.body.hotelCode = hotelCodes;
           req.body.count = getAllHotelCodes.count;
