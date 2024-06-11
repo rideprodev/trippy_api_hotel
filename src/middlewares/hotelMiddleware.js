@@ -55,8 +55,14 @@ export default {
           getAllHotelCodes.count = getAllHotelCodes.count + hotelcodes.count;
           checkFilter = true;
         }
-
-        getAllHotelCodes.rows = [...getAllHotelCodes.rows, ...hotelcodes.rows];
+        if (bodyData.offset == 0) {
+          getAllHotelCodes.rows = [
+            ...getAllHotelCodes.rows,
+            ...hotelcodes.rows,
+          ];
+        } else {
+          getAllHotelCodes = hotelcodes;
+        }
 
         if (getAllHotelCodes.rows.length > 0) {
           for (let index = 0; index < getAllHotelCodes.rows.length; index++) {
