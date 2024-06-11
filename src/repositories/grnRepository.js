@@ -190,6 +190,8 @@ export default {
       const userData = req.user;
       bodyData.roomsData = bodyData.bookingItems;
       const transactionData = req.transaction;
+      const revalidateResponse = bodyData.reavalidateResponse;
+
       //  Set Holder Data
       const holder = {
         title:
@@ -365,6 +367,7 @@ export default {
             cancelByDate: cancelByDate,
             cancellationPolicy: cancellationPolicy,
             searchId: bodyData.searchId,
+            reavalidateResponse: JSON.stringify(bodyData.reavalidateResponse),
           };
           // console.log(bookingData);
           const booking = await HotelBooking.create(bookingData);
@@ -437,44 +440,66 @@ export default {
             (_response.data.status === "pending" ||
               _response.data.status === "confirmed")
           ) {
-            const sendmail = requestHandler.sendEmail(
-              userData.email,
-              "hotelBooking",
-              "Booking Confirmation",
-              {
-                name: `${userData.firstName} ${userData.lastName}`,
-                hotel_name: bodyData.hotelName,
-                full_address: bodyData.fullAddress,
-                image_url: bodyData.imageUrl,
-                check_in: bodyData.checkIn,
-                check_out: bodyData.checkOut,
-                room_type: bodyData.roomType,
-                total_members: bodyData.totalMember,
-                cancellation_date: cancelByDate,
-                total_price: bodyData.totalPrice,
-              }
-            );
+            try {
+              const sendmail = requestHandler.sendEmail(
+                userData.email,
+                "hotelBooking",
+                `Your Reservation has been Confirmed - Booking ID: ${bookingGroup.currentReference}`,
+                {
+                  name: `${userData.firstName} ${userData.lastName}`,
+                  email: userData.email,
+                  hotel_name: bodyData.hotelName,
+                  full_address: bodyData.fullAddress,
+                  image_url: bodyData.imageUrl,
+                  check_in: bodyData.checkIn,
+                  check_out: bodyData.checkOut,
+                  room_type: bodyData.roomType,
+                  total_members: bodyData.totalMember,
+                  cancellation_date: cancelByDate,
+                  total_price: bodyData.totalPrice,
+                  booking_id: bookingGroup.currentReference,
+                  booking_date: new Date(),
+                  service_tax: revalidateResponse.serviceChages,
+                  total_rooms: bodyData.totalRooms,
+                  total_nights: bodyData.totalNight,
+                  price_distribution:
+                    revalidateResponse?.hotel?.rate?.price_details,
+                  currency: revalidateResponse?.hotel?.rate?.currency,
+                }
+              );
+            } catch (err) {}
             console.log("================================");
             console.log("Booking Confirm");
             console.log("================================");
           } else {
-            const sendmail = requestHandler.sendEmail(
-              userData.email,
-              "hotelBooking",
-              "Booking not Confirmed!",
-              {
-                name: `${userData.firstName} ${userData.lastName}`,
-                hotel_name: bodyData.hotelName,
-                full_address: bodyData.fullAddress,
-                image_url: bodyData.imageUrl,
-                check_in: bodyData.checkIn,
-                check_out: bodyData.checkOut,
-                room_type: bodyData.roomType,
-                total_members: bodyData.totalMember,
-                cancellation_date: cancelByDate,
-                total_price: bodyData.totalPrice,
-              }
-            );
+            try {
+              const sendmail = requestHandler.sendEmail(
+                userData.email,
+                "hotelBookingFailed",
+                `Your Reservation has been failed`,
+                {
+                  name: `${userData.firstName} ${userData.lastName}`,
+                  email: userData.email,
+                  hotel_name: bodyData.hotelName,
+                  full_address: bodyData.fullAddress,
+                  image_url: bodyData.imageUrl,
+                  check_in: bodyData.checkIn,
+                  check_out: bodyData.checkOut,
+                  room_type: bodyData.roomType,
+                  total_members: bodyData.totalMember,
+                  cancellation_date: cancelByDate,
+                  total_price: bodyData.totalPrice,
+                  booking_id: bookingGroup.currentReference,
+                  booking_date: new Date(),
+                  service_tax: revalidateResponse.serviceChages,
+                  total_rooms: bodyData.totalRooms,
+                  total_nights: bodyData.totalNight,
+                  price_distribution:
+                    revalidateResponse?.hotel?.rate?.price_details,
+                  currency: revalidateResponse?.hotel?.rate?.currency,
+                }
+              );
+            } catch (err) {}
             console.log("================================");
             console.log("Booking not Confirm Refund Intialize");
             console.log("================================");
@@ -515,6 +540,7 @@ export default {
       const apiEndPoint = GRN_Apis.bookingStatus(
         bookingObject.currentReference
       );
+      const userData = req.user;
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
         await this.getSessionToken()
@@ -562,6 +588,26 @@ export default {
               },
             }
           );
+          try {
+            const sendmail = requestHandler.sendEmail(
+              userData.email,
+              "hotelBookingCancelled",
+              `Reservation with ID: ${bookingObject.currentReference} has been Cancelled`,
+              {
+                name: `${userData.firstName} ${userData.lastName}`,
+                email: userData.email,
+                check_in: bookingObject.checkIn,
+                check_out: bookingObject.checkOut,
+                room_type: bookingObject.roomType,
+                total_members: bookingObject.totalMember,
+                total_rooms: bookingObject.totalRooms,
+                cancellation_date:
+                  _response?.data?.cancellation_details?.cancel_date,
+                booking_id: bookingObject.currentReference,
+                booking_date: bookingObject.createdAt,
+              }
+            );
+          } catch (err) {}
         }
       }
       return _response;
