@@ -120,15 +120,16 @@ export default {
       };
       // console.log(_request);
       const { data } = await axios(_request);
-      // console.log(data);
+      console.log("data", data);
       return data.success;
     } catch (error) {
-      logger.requestErrorLogger.error(
-        `${
-          config.app.EmailBaseUrl
-        } calling error ${new Date()} ${JSON.stringify(error)}`
-      );
-      return error.response.data;
+      console.log("error", error);
+      // logger.requestErrorLogger.error(
+      //   `${
+      //     config.app.EmailBaseUrl
+      //   } calling error ${new Date()} ${JSON.stringify(error)}`
+      // );
+      // return error.response.data;
     }
   },
 };
