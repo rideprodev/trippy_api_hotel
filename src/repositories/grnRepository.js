@@ -3,6 +3,7 @@ import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
 import utility from "../services/utility";
+import { Op, where } from "sequelize";
 const {
   HotelBookingGroup,
   HotelBooking,
@@ -540,7 +541,6 @@ export default {
       const apiEndPoint = GRN_Apis.bookingStatus(
         bookingObject.currentReference
       );
-      const userData = req.user;
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
         await this.getSessionToken()
@@ -588,26 +588,6 @@ export default {
               },
             }
           );
-          try {
-            const sendmail = requestHandler.sendEmail(
-              userData.email,
-              "hotelBookingCancelled",
-              `Reservation with ID: ${bookingObject.currentReference} has been Cancelled`,
-              {
-                name: `${userData.firstName} ${userData.lastName}`,
-                email: userData.email,
-                check_in: bookingObject.checkIn,
-                check_out: bookingObject.checkOut,
-                room_type: bookingObject.roomType,
-                total_members: bookingObject.totalMember,
-                total_rooms: bookingObject.totalRooms,
-                cancellation_date:
-                  _response?.data?.cancellation_details?.cancel_date,
-                booking_id: bookingObject.currentReference,
-                booking_date: bookingObject.createdAt,
-              }
-            );
-          } catch (err) {}
         }
       }
       return _response;
@@ -626,6 +606,7 @@ export default {
       const apiEndPoint = GRN_Apis.bookingCancel(
         bookingObject.currentReference
       );
+      const userData = req.user;
 
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
@@ -656,10 +637,37 @@ export default {
           console.log("================================");
           // refund intiate
 
+          const bookingLog = await HotelBookingLog.findOne({
+            where: {
+              bookingId: bookingObject?.bookingId,
+              transactionId: { [Op.ne]: null },
+            },
+          });
+
           const refundIntialization = await requestHandler.sendForRefund(
-            transactionData.id,
+            bookingLog.transactionId,
             userData.id
           );
+          try {
+            const sendmail = requestHandler.sendEmail(
+              userData.email,
+              "hotelBookingCancelled",
+              `Reservation with ID: ${bookingObject.currentReference} has been Cancelled`,
+              {
+                name: `${userData.firstName} ${userData.lastName}`,
+                email: userData.email,
+                check_in: bookingObject.checkIn,
+                check_out: bookingObject.checkOut,
+                room_type: bookingObject.roomType,
+                total_members: bookingObject.totalMember,
+                total_rooms: bookingObject.totalRooms,
+                cancellation_date:
+                  _response?.data?.cancellation_details?.cancel_date,
+                booking_id: bookingObject.currentReference,
+                booking_date: bookingObject.createdAt,
+              }
+            );
+          } catch (err) {}
 
           await bookingObject.update({ status: "pending" });
           await HotelBooking.update(
