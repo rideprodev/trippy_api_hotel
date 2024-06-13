@@ -123,13 +123,12 @@ export default {
       console.log("data", data);
       return data.success;
     } catch (error) {
-      console.log("error", error);
-      // logger.requestErrorLogger.error(
-      //   `${
-      //     config.app.EmailBaseUrl
-      //   } calling error ${new Date()} ${JSON.stringify(error)}`
-      // );
-      // return error.response.data;
+      logger.requestErrorLogger.error(
+        `${
+          config.app.EmailBaseUrl
+        } calling error ${new Date()} ${JSON.stringify(error)}`
+      );
+      return error.response.data;
     }
   },
 };
