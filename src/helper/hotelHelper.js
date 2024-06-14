@@ -86,7 +86,9 @@ export default {
       for (let index = 0; index < data?.hotels?.length; index++) {
         const element = data?.hotels?.[index];
         const rates = await element?.rates?.filter(
-          (x) => x.non_refundable == false
+          (x) =>
+            x.non_refundable == false &&
+            x.cancellation_policy.under_cancellation == false
         );
         element.rates = rates;
       }
@@ -113,7 +115,9 @@ export default {
       });
 
       data.hotel.rates = await data?.hotel?.rates?.filter(
-        (x) => x?.non_refundable == false
+        (x) =>
+          x?.non_refundable == false &&
+          x.cancellation_policy.under_cancellation == false
       );
 
       data.images = images;
