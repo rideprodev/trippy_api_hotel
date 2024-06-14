@@ -167,6 +167,9 @@ export default {
       if (bodyData?.isGrouped) {
         bodyData.status = "bidding";
         bodyData.searchPayload = JSON.stringify(bodyData.searchPayload);
+        bodyData.reavalidateResponse = JSON.stringify(
+          bodyData.reavalidateResponse
+        );
         const groupData = await HotelBookingGroup.create(bodyData);
         if (groupData && groupData?.id) {
           bodyData.groupId = groupData.id;
