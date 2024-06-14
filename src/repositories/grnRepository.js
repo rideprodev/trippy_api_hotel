@@ -513,9 +513,13 @@ export default {
             );
             // console.log(refundIntialization);
             if (refundIntialization?.message === "APPROVED") {
-              await bookignLogs.update({
-                paymentStatus: "refunded",
-                transactionId: transactionData.id,
+              console.log("refund");
+              await HotelBookingLog.create({
+                userId: userData.id,
+                groupId: bookingGroup.id,
+                bookingId: booking.id,
+                transactionId: bodyData.transactionId,
+                paymentStatus: "refund-Intiated",
               });
               console.log("================================");
               console.log("Refund Done in transaction Id=", transactionData.id);
