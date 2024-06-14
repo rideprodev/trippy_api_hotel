@@ -681,6 +681,13 @@ export default {
               },
             }
           );
+          await HotelBookingLog.create({
+            userId: userData.id,
+            groupId: bookingObject.id,
+            bookingId: bookingObject?.bookingId,
+            transactionId: bookingLog.transactionId,
+            paymentStatus: "refund-Intiated",
+          });
           this.bookingStatus(req);
         }
       }
