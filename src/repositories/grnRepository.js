@@ -517,7 +517,6 @@ export default {
                 paymentStatus: "refunded",
                 transactionId: transactionData.id,
               });
-              const sendmail = requestHandler.sendEmail();
               console.log("================================");
               console.log("Refund Done in transaction Id=", transactionData.id);
               console.log("================================");
