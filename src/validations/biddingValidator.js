@@ -45,7 +45,7 @@ const placeBid = Joi.object({
     )
     .optional()
     .allow(""),
-  reavalidateResponse: Joi.string().required(),
+  reavalidateResponse: Joi.object().required(),
 });
 
 const updateBid = Joi.object({
