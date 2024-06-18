@@ -96,10 +96,21 @@ export default {
       data.hotels = data?.hotels?.filter((x) => x.rates.length > 0);
 
       const bodyData = req.body;
+      const response = [];
       const cityData = await customRepository.fetchCityData(bodyData.cityCode);
-      const response = await data.hotels?.map((x) => {
-        return { search_id: data.search_id, ...cityData[0], ...x };
-      });
+      for (let i = 0; i < data.hotels.length; i++) {
+        const x = data.hotels[i];
+        const hotelData = await hotelRepository.fetchOneWithoutCount({
+          hotelCode: x.hotel_code,
+        });
+        response.push({
+          search_id: data.search_id,
+          ...cityData[0],
+          propery_type: hotelData.accommodationTypeSubName,
+          chain_name: hotelData.ChainName,
+          ...x,
+        });
+      }
       await delete data.search_id;
       data.hotels = response;
       return data;
