@@ -92,7 +92,7 @@ export default {
         client_nationality: bodyData.clientNationality,
         checkin: bodyData.checkIn,
         checkout: bodyData.checkOut,
-        cutoff_time: 30000,
+        cutoff_time: 60000,
         purpose_of_travel: 1,
         options: { rate_comments: true },
       };
