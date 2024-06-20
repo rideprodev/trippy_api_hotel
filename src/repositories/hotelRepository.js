@@ -1,12 +1,5 @@
 import models from "../models";
-const {
-  Hotel,
-  HotelTop10k,
-  HotelCity,
-  HotelImage,
-  HotelDestination,
-  HotelCountry,
-} = models;
+const { Hotel, HotelCity, HotelImage, HotelDestination, HotelCountry } = models;
 import { Op } from "sequelize";
 import genrateResponse from "../services/responseGenrater";
 
@@ -33,8 +26,8 @@ export default {
    */
   async fetchAll(where, limit = null, offset = 0) {
     try {
-      return await Hotel.findAndCountAll({
-        attributes: ["hotelCode", "StarCategory"],
+      return await Hotel.findAll({
+        attributes: ["hotelCode"],
         where,
         offset,
         limit,
@@ -53,24 +46,6 @@ export default {
     try {
       return await Hotel.findOne({
         attributes: ["accommodationTypeSubName", "ChainName"],
-        where,
-        offset,
-        limit,
-        order: [["StarCategory", "DESC"]],
-      });
-    } catch (error) {
-      throw Error(error);
-    }
-  },
-
-  /**
-   * Get Hotel Token
-   * @param {Object} where
-   */
-  async fetchAllFromTop(where, limit = null, offset = 0) {
-    try {
-      return await HotelTop10k.findAndCountAll({
-        attributes: ["hotelCode", "StarCategory"],
         where,
         offset,
         limit,

@@ -45,9 +45,10 @@ module.exports = (sequelize, DataTypes) => {
           "cancelled",
           "completed",
           "Not Availiable",
-          "expaired"
+          "expired"
         ),
         defaultValue: "active",
+        allowNull: false,
       },
       latestPrice: {
         type: DataTypes.STRING(50),

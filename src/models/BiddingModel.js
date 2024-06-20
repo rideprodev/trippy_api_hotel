@@ -91,9 +91,10 @@ module.exports = (sequelize, DataTypes) => {
           "cancelled",
           "completed",
           "Not Availiable",
-          "expaired"
+          "expired"
         ),
         defaultValue: "active",
+        allowNull: false,
       },
       paymentMode: {
         type: DataTypes.ENUM("wallete"),

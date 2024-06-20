@@ -164,6 +164,7 @@ export default {
     try {
       const bodyData = req.body;
       bodyData.userId = req.user.id;
+      bodyData.status = "active";
       if (bodyData?.isGrouped) {
         bodyData.status = "bidding";
         bodyData.searchPayload = JSON.stringify(bodyData.searchPayload);
