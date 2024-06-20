@@ -21,62 +21,18 @@ export default {
   async fetchHotelsCodes(req, res, next) {
     try {
       const bodyData = req.body;
-      let hotelCodes = [];
-      let getAllHotelCodes = [];
-      let checkFilter = false;
       if (bodyData.hotelCode && bodyData.hotelCode !== "") {
         req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
       } else {
         const where = {
           cityCode: bodyData.cityCode,
-          StarCategory: { [Op.gt]: 0 },
         };
-        if (bodyData?.StarCategory?.length > 0) {
-          where.StarCategory = bodyData.StarCategory;
-        }
-        if (bodyData?.propertyType?.length > 0) {
-          where.accommodationTypeSubName = bodyData.propertyType;
-        }
-        if (bodyData.offset == 0) {
-          getAllHotelCodes = await hotelRepository.fetchAllFromTop(
-            where,
-            bodyData.limit,
-            bodyData.offset
-          );
-        }
-        const hotelcodes = await hotelRepository.fetchAll(
-          where,
-          bodyData.limit,
-          bodyData.offset
-        );
+        const getAllHotelCodes = await hotelRepository.fetchAll(where);
 
-        if (getAllHotelCodes.count > 0) {
-          getAllHotelCodes.count = getAllHotelCodes.count + hotelcodes.count;
-          checkFilter = true;
-        }
-        if (bodyData.offset == 0) {
-          getAllHotelCodes.rows = [
-            ...getAllHotelCodes.rows,
-            ...hotelcodes.rows,
-          ];
-        } else {
-          getAllHotelCodes = hotelcodes;
-        }
-
-        if (getAllHotelCodes.rows.length > 0) {
-          for (let index = 0; index < getAllHotelCodes.rows.length; index++) {
-            const element = getAllHotelCodes.rows[index];
-            hotelCodes.push(element.hotelCode);
-          }
-          if (checkFilter) {
-            hotelCodes = hotelCodes.filter(
-              (value, index) => hotelCodes.indexOf(value) === index
-            );
-            getAllHotelCodes.count = hotelCodes.length;
-          }
-          req.body.hotelCode = hotelCodes;
-          req.body.count = getAllHotelCodes.count;
+        if (getAllHotelCodes.length > 0) {
+          req.body.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
+          console.log(req.body.hotelCode);
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
