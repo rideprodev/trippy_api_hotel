@@ -75,6 +75,13 @@ export default class Bootstrap {
       app.use(logger("tiny"));
     }
     app.use(bodyParser.json({ limit: "500mb", extended: true }));
+    app.use(
+      bodyParser.urlencoded({
+        limit: "500mb",
+        extended: true,
+        parameterLimit: 50000,
+      })
+    );
     app.use(compression());
     app.use(methodOverride());
     app.use(helmet());
