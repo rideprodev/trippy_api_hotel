@@ -31,8 +31,7 @@ export default {
         const getAllHotelCodes = await hotelRepository.fetchAll(where);
 
         if (getAllHotelCodes.length > 0) {
-          req.body.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
-          console.log(req.body.hotelCode);
+          req.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
