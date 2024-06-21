@@ -13,22 +13,66 @@ export default {
    */
   async search(req, res, next) {
     try {
-      const response = await grnRepository.search(req);
-      if (response.status !== 200) {
-        utility.getError(res, response.message);
-      } else if (response.data.errors && response.data.errors.length > 0) {
-        utility.getError(
-          res,
-          `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
-        );
+      const bodyData = req.body;
+      const hotelCodes = req.hotelCode;
+      let result = [];
+      if (bodyData.hotelCode && bodyData.hotelCode !== "") {
+        result.push(await grnRepository.search(req));
       } else {
-        const _response = await hotelHelper.setCountryCityName(
-          req,
-          response.data
-        );
+        const chaunkArray = [],
+          counts = 50;
+        const arrayLenght = hotelCodes.length;
+        const numberCount = arrayLenght / counts;
+        const floatCount = numberCount % 1 === 0;
+        const loopCount =
+          floatCount === false
+            ? parseInt(numberCount + 1)
+            : parseInt(numberCount);
+        let start = 0;
+        for (let index = 0; index < loopCount; index++) {
+          let end = start + counts;
+          chaunkArray.push(hotelCodes.slice(start, end));
+          start = end;
+        }
+        let searchPromise = chaunkArray.map(async (element) => {
+          req.body.hotelCode = element;
+          return await grnRepository.search(req);
+        });
+        try {
+          result = await Promise.all(searchPromise);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      const response = result.filter((x) => x.status === 200);
+      if (response.length === 0) {
+        utility.getError(res, "No data Found!");
+        // } else if (response.data.errors && response.data.errors.length > 0) {
+        //   utility.getError(
+        //     res,
+        //     `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
+        //   );
+      } else {
+        let dataCustomise = response.map(async (element) => {
+          return await hotelHelper.setCountryCityName(req, element.data);
+        });
+        const _response = await Promise.all(dataCustomise);
+
+        let _combineHotelResponse = [];
+        for (let i = 0; i < _response.length; i++) {
+          const ele = _response[i];
+          _combineHotelResponse = [..._combineHotelResponse, ...ele.hotels];
+        }
+
+        const finalResponseForSent = _response[0];
+        finalResponseForSent.hotels = _combineHotelResponse;
+
         utility.getResponse(
           res,
-          { count: req.body?.count ? req.body?.count : 0, ..._response },
+          {
+            count: _combineHotelResponse.length,
+            ...finalResponseForSent,
+          },
           "RETRIVED",
           200
         );
