@@ -7,7 +7,7 @@ const {
   HotelCurrency,
   sequelize,
 } = models;
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 const getObject = (queryData, model = "airports") => {
   if (model === "cities") {
@@ -101,13 +101,28 @@ export default {
     try {
       const { name } = req.query;
       const whereCity = {
-          [Op.or]: [{ cityName: { [Op.like]: `%${name}%` } }],
+          $col: Sequelize.where(
+            Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+            {
+              [Op.like]: `%${name.replace(/\./g, "")}%`,
+            }
+          ),
         },
         whereHotel = {
-          [Op.or]: [{ hotelName: { [Op.like]: `%${name}%` } }],
+          $col: Sequelize.where(
+            Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+            {
+              [Op.like]: `%${name.replace(/\./g, "")}%`,
+            }
+          ),
         },
         whereLocation = {
-          [Op.or]: [{ locationName: { [Op.like]: `%${name}%` } }],
+          $col: Sequelize.where(
+            Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+            {
+              [Op.like]: `%${name.replace(/\./g, "")}%`,
+            }
+          ),
         },
         _response = {};
 
