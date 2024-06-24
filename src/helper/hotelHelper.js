@@ -131,6 +131,19 @@ export default {
           x.cancellation_policy.under_cancellation == false
       );
 
+      const arraySorted = await data?.hotel?.rates?.sort(
+        (a, b) => a.price - b.price
+      );
+
+      const roomTypes = [];
+      const arrayFilter = arraySorted.filter((x) => {
+        if (roomTypes.indexOf(x.rooms[0].room_type)) {
+          roomTypes.push(x.rooms[0].room_type);
+          return x;
+        }
+      });
+      data.hotel.rates = arrayFilter;
+
       data.images = images;
       return data;
     } catch (error) {
