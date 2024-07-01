@@ -65,10 +65,6 @@ module.exports = (sequelize, DataTypes) => {
           unique: true,
           fields: ["passport_number"],
         },
-        {
-          unique: false,
-          fields: ["type"],
-        },
       ],
       underscored: true,
     }
