@@ -60,10 +60,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
           unique: false,
-          fields: ["type"],
-        },
-        {
-          unique: false,
           fields: ["status"],
         },
       ],
