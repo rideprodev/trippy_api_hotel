@@ -9,10 +9,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("Mr", "Mrs", "Ms", "Miss", "Mstr"),
         defaultValue: "Mr",
       },
-      type: {
-        type: DataTypes.ENUM("ADT", "CHD", "INF"),
-        defaultValue: "ADT",
-      },
       gender: {
         type: DataTypes.ENUM("M", "F", "U"),
         defaultValue: "M",
