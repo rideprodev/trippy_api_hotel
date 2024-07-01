@@ -17,10 +17,6 @@ module.exports = (sequelize, DataTypes) => {
       lastName: {
         type: DataTypes.STRING(255),
       },
-      type: {
-        type: DataTypes.ENUM("ADT", "CHD", "INF"),
-        defaultValue: "ADT",
-      },
       gender: {
         type: DataTypes.ENUM("M", "F", "U"),
         defaultValue: "M",
