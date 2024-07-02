@@ -235,7 +235,7 @@ export default {
                   : "Ms.",
               name: paxesData.firstName,
               surname: paxesData.lastName,
-              type: paxesData.type === "ADT" ? "AD" : "CH",
+              type: e.rooms[i].ages[k] >= 12 ? "AD" : "CH",
               age: e.rooms[i].ages[k],
             };
           });
@@ -244,7 +244,7 @@ export default {
         }
       }
 
-      // console.log(bodyData.booking_items[0].rooms[0].paxes);
+      // console.log(bodyData.bookingItems[0].rooms[0].paxes);
 
       // Request Data
       const _request_data = {
