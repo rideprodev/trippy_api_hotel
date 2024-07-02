@@ -59,7 +59,13 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: "0.00",
       },
       bookingStatus: {
-        type: DataTypes.ENUM("Pending", "Confirmed", "Booked", "NotBooked"),
+        type: DataTypes.ENUM(
+          "Pending",
+          "Confirmed",
+          "Booked",
+          "NotBooked",
+          "BookingInProcess"
+        ),
         defaultValue: "Pending",
         allowNull: false,
       },
