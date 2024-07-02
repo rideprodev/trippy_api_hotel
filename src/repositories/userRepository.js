@@ -34,7 +34,6 @@ export default {
           attributes: [
             "title",
             "nationality",
-            "type",
             "gender",
             "contry",
             "currencyCode",
