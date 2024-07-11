@@ -11,11 +11,20 @@ module.exports = (sequelize, DataTypes) => {
       bookingId: {
         type: DataTypes.INTEGER,
       },
+      cardId: {
+        type: DataTypes.INTEGER,
+      },
       transactionId: {
         type: DataTypes.INTEGER,
       },
       paymentStatus: {
-        type: DataTypes.ENUM("paid", "refund-Intiated", "refunded"),
+        type: DataTypes.ENUM(
+          "booked",
+          "cancelled",
+          "paid",
+          "refund-Intiated",
+          "refunded"
+        ),
         defaultValue: null,
       },
     },
@@ -46,6 +55,10 @@ module.exports = (sequelize, DataTypes) => {
     HotelBookingLog.belongsTo(models.Transaction, {
       foreignKey: "transactionId",
       as: "transactionData",
+    });
+    HotelBookingLog.belongsTo(models.Cards, {
+      foreignKey: "cardId",
+      as: "cardData",
     });
   };
   return HotelBookingLog;

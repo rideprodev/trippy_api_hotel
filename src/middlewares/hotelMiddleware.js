@@ -9,7 +9,7 @@ const {
 } = repositories;
 import models from "../models";
 import { Op } from "sequelize";
-const { UserMember, UserPersonalInformation, Setting } = models;
+const { UserMember, UserPersonalInformation, Setting, Cards } = models;
 
 export default {
   /**
@@ -182,37 +182,58 @@ export default {
    * @param {Object} res
    * @param {Function} next
    */
-  async checkTransactionComplete(req, res, next) {
+  async checkUserRelevance(req, res, next) {
     try {
       const bodyData = req.body;
       const userData = req.user;
       let commission = 0,
         commissionAmount = 0,
         totalPrice = parseFloat(bodyData.price);
-      const result = await transactionRepository.findOneTransaction({
-        userId: userData.id,
-        id: bodyData.transactionId,
-        hotelBookingId: null,
-      });
+      // const result = await transactionRepository.findOneTransaction({
+      //   userId: userData.id,
+      //   id: bodyData.transactionId,
+      //   hotelBookingId: null,
+      // });
 
-      if (result && result.status === "complete") {
-        if (userData.commission === "relevant") {
-          const comissionPercent = await Setting.findOne({
-            where: { key: "b05970e2431ae626c0f4a0f67c56848bdf22811d" },
-          });
-          commission = parseFloat(comissionPercent.value);
-          commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
-          totalPrice = parseFloat(bodyData.price) + commissionAmount;
-        }
-        req.transaction = result;
-        bodyData.commission = commission;
-        bodyData.commissionAmount = `${commissionAmount.toFixed(2)}`;
-        bodyData.totalPrice = `${totalPrice.toFixed(2)}`;
-        bodyData.transactionAmount = result.total;
-        bodyData.transactionCurrency = result.currency;
+      // if (result && result.status === "complete") {
+      if (userData.commission === "relevant") {
+        const comissionPercent = await Setting.findOne({
+          where: { key: "b05970e2431ae626c0f4a0f67c56848bdf22811d" },
+        });
+        commission = parseFloat(comissionPercent.value);
+        commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
+        totalPrice = parseFloat(bodyData.price) + commissionAmount;
+      }
+      // req.transaction = result;
+      bodyData.commission = commission;
+      bodyData.commissionAmount = `${commissionAmount.toFixed(2)}`;
+      bodyData.totalPrice = `${totalPrice.toFixed(2)}`;
+      bodyData.transactionAmount = parseFloat(bodyData.price);
+      bodyData.transactionCurrency = bodyData.currency;
+      next();
+      // } else {
+      //   utility.getError(res, "Payment is not done please done payment first");
+      // }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check Card Exist
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkCardExist(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const userData = req.user;
+      const card = await Cards.findOne({ where: { id: bodyData.cardId } });
+      if (card) {
         next();
       } else {
-        utility.getError(res, "Payment is not done please done payment first");
+        utility.getError(res, "Card is bot valid please add befor transaction");
       }
     } catch (error) {
       next(error);

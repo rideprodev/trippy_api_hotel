@@ -142,8 +142,9 @@ export default {
   async booking(req, res, next) {
     try {
       const response = await grnRepository.booking(req);
+
       if (response.status !== 200) {
-        utility.getError(res, `${response.message} And your refund intiated`);
+        utility.getError(res, `${response.message}`);
       } else if (
         response.data &&
         response.data.errors &&
@@ -151,7 +152,7 @@ export default {
       ) {
         utility.getError(
           res,
-          `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]} And your refund intiated`
+          `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
         );
       } else {
         if (
