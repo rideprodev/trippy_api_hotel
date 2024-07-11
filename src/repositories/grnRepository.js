@@ -190,7 +190,7 @@ export default {
       const membersData = req.members;
       const userData = req.user;
       bodyData.roomsData = bodyData.bookingItems;
-      const transactionData = req.transaction;
+      // const transactionData = req.transaction;
       const revalidateResponse = bodyData.reavalidateResponse;
 
       //  Set Holder Data
@@ -376,17 +376,6 @@ export default {
           console.log("booking created", booking.id);
           console.log("================================");
           if (booking) {
-            await HotelBookingLog.create({
-              userId: userData.id,
-              groupId: bookingGroup.id,
-              bookingId: booking.id,
-              transactionId: bodyData.transactionId,
-              paymentStatus: "paid",
-            });
-
-            console.log("================================");
-            console.log("Booking Confirm Log Updated");
-            console.log("================================");
             await bookingGroup.update({ bookingId: booking.id });
             for (let i = 1; i <= bodyData.bookingItems.length; i++) {
               const elementI = bodyData.bookingItems[i - 1];
@@ -420,27 +409,39 @@ export default {
             { requestData: _request_data, responseData: _response },
             { groupId: bookingGroup.id, bookingId: booking.id }
           );
-          await Transaction.update(
-            {
-              hotelBookingId: booking.id,
-            },
-            {
-              where: { id: bodyData.transactionId },
-            }
-          );
-          console.log("================================");
-          console.log(
-            "transaction updated on booking Id=",
-            booking.id,
-            "and transactionId=",
-            bodyData.transactionId
-          );
-          console.log("================================");
+          // await Transaction.update(
+          //   {
+          //     hotelBookingId: booking.id,
+          //   },
+          //   {
+          //     where: { id: bodyData.transactionId },
+          //   }
+          // );
+          // console.log("================================");
+          // console.log(
+          //   "transaction updated on booking Id=",
+          //   booking.id,
+          //   "and transactionId=",
+          //   bodyData.transactionId
+          // );
+          // console.log("================================");
           if (
             _response?.data?.booking_id &&
             (_response.data.status === "pending" ||
               _response.data.status === "confirmed")
           ) {
+            await HotelBookingLog.create({
+              userId: userData.id,
+              groupId: bookingGroup.id,
+              bookingId: booking.id,
+              transactionId: null,
+              cardId: bodyData.cardId,
+              paymentStatus: "booked",
+            });
+
+            console.log("================================");
+            console.log("Booking Log Updated");
+            console.log("================================");
             try {
               const sendmail = requestHandler.sendEmail(
                 userData.email,
@@ -501,30 +502,30 @@ export default {
                 }
               );
             } catch (err) {}
-            console.log("================================");
-            console.log("Booking not Confirm Refund Intialize");
-            console.log("================================");
-            console.log(transactionData.paymentId);
+            // console.log("================================");
+            // console.log("Booking not Confirm Refund Intialize");
+            // console.log("================================");
+            // console.log(transactionData.paymentId);
 
-            // refund intiate
-            const refundIntialization = await requestHandler.sendForRefund(
-              transactionData.id,
-              userData.id
-            );
-            // console.log(refundIntialization);
-            if (refundIntialization?.message === "APPROVED") {
-              console.log("refund");
-              await HotelBookingLog.create({
-                userId: userData.id,
-                groupId: bookingGroup.id,
-                bookingId: booking.id,
-                transactionId: bodyData.transactionId,
-                paymentStatus: "refund-Intiated",
-              });
-              console.log("================================");
-              console.log("Refund Done in transaction Id=", transactionData.id);
-              console.log("================================");
-            }
+            // // refund intiate
+            // const refundIntialization = await requestHandler.sendForRefund(
+            //   transactionData.id,
+            //   userData.id
+            // );
+            // // console.log(refundIntialization);
+            // if (refundIntialization?.message === "APPROVED") {
+            //   console.log("refund");
+            //   await HotelBookingLog.create({
+            //     userId: userData.id,
+            //     groupId: bookingGroup.id,
+            //     bookingId: booking.id,
+            //     transactionId: bodyData.transactionId,
+            //     paymentStatus: "refund-Intiated",
+            //   });
+            //   console.log("================================");
+            //   console.log("Refund Done in transaction Id=", transactionData.id);
+            //   console.log("================================");
+            // }
           }
         }
       }
@@ -647,10 +648,10 @@ export default {
             },
           });
 
-          const refundIntialization = await requestHandler.sendForRefund(
-            bookingLog.transactionId,
-            userData.id
-          );
+          // const refundIntialization = await requestHandler.sendForRefund(
+          //   bookingLog.transactionId,
+          //   userData.id
+          // );
           try {
             const sendmail = requestHandler.sendEmail(
               userData.email,
@@ -686,7 +687,7 @@ export default {
             groupId: bookingObject.id,
             bookingId: bookingObject?.bookingId,
             transactionId: bookingLog.transactionId,
-            paymentStatus: "refund-Intiated",
+            paymentStatus: "cancelled",
           });
           this.bookingStatus(req);
         }
