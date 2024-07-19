@@ -63,4 +63,12 @@ router.delete(
   grnController.bookingCancel
 );
 
+router.post(
+  "/payment/:bookingId",
+  authMiddleware,
+  hotelMiddleware.isbookingExist,
+  hotelMiddleware.isbookingCancelled,
+  grnController.payNow
+);
+
 export default router;

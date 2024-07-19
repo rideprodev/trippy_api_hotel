@@ -251,12 +251,40 @@ export default {
   },
 
   /**
+   * Get One Active Hotel
+   * @param {Object} req
+   */
+  async getOneActiveBooking(where = {}) {
+    try {
+      const booking = await HotelBooking.findOne({
+        where: where,
+      });
+      return booking;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
    * Get Active Hotel
    * @param {Object} req
    */
-  async getActiveBooking(where = {}) {
+  async getAllActiveBooking(req) {
     try {
-      const booking = await HotelBooking.findOne({
+      const bodyData = req.body;
+      const userData = req.user;
+
+      // totalRooms: bodyData.totalRooms,
+      // totalMember: bodyData.totalMember,
+
+      const where = {
+        checkIn: bodyData.checkIn,
+        checkOut: bodyData.checkOut,
+        userId: userData.id,
+        [Op.or]: [{ status: "confirmed" }, { status: "pending" }],
+      };
+      const booking = await HotelBooking.findAll({
+        attributes: ["hotelCode", "roomType"],
         where: where,
       });
       return booking;
