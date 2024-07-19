@@ -282,7 +282,7 @@ export default {
         bodyData.checkIn &&
         bodyData.checkOut
       ) {
-        const bookingData = await bookingRepository.getActiveBooking({
+        const bookingData = await bookingRepository.getOneActiveBooking({
           bookingGroupId: bodyData.groupId,
           checkIn: bodyData.checkIn,
           checkOut: bodyData.checkOut,
@@ -354,7 +354,7 @@ export default {
   },
 
   /**
-   * Check Booking is refundable or not
+   * Check bidding is for search
    * @param {Object} req
    * @param {Object} res
    * @param {Function} next
@@ -364,6 +364,22 @@ export default {
       const biddingData =
         await biddingRepository.checkBiddingAvailiblityForSearch(req);
       req.biddings = biddingData;
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check Booking is for search
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkBookingForSearch(req, res, next) {
+    try {
+      const biddingData = await bookingRepository.getAllActiveBooking(req);
+      req.bookings = biddingData;
       next();
     } catch (error) {
       next(error);

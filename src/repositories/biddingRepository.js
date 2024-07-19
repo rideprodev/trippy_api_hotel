@@ -257,10 +257,12 @@ export default {
   async checkBiddingAvailiblityForSearch(req) {
     try {
       const bodyData = req.body;
+      const userData = req.user;
       const where = {
         checkIn: bodyData.checkIn,
         checkOut: bodyData.checkOut,
         status: "active",
+        userId: userData.id,
       };
 
       const _biddingData = await HotelBidding.findAll({

@@ -163,10 +163,19 @@ export default {
   async bookingAvaliablity(req, res, next) {
     try {
       const biddingData = req.biddings;
-      const filterHotelCodes = biddingData.map((x) => {
+      const bookingData = req.bookings;
+      const filterHotelBiddings = biddingData.map((x) => {
         return { hotelCode: x.hotelCode, roomType: x.roomType };
       });
-      utility.getResponse(res, filterHotelCodes, "RETRIVED");
+
+      const filterHotelBookings = bookingData.map((x) => {
+        return { hotelCode: x.hotelCode, roomType: x.roomType };
+      });
+      const _response = {
+        biddings: filterHotelBiddings,
+        bookings: filterHotelBookings,
+      };
+      utility.getResponse(res, _response, "RETRIVED");
     } catch (error) {
       next(error);
     }

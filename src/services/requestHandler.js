@@ -131,4 +131,24 @@ export default {
       return error.response.data;
     }
   },
+
+  //Pay Now
+  async sendForPay(_requestData) {
+    try {
+      const requestData = _requestData;
+
+      const _request = {
+        method: "post",
+        url: `${config.app.authUrl}/payment/purchase`,
+        data: requestData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      // console.log(_request);
+      const { data } = await axios(_request);
+      // console.log(data);
+      return data;
+    } catch (error) {}
+  },
 };
