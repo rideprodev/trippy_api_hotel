@@ -46,4 +46,12 @@ router.get(
   bookingController.getOneBooking
 );
 
+router.post(
+  "/payment/:bookingId",
+  authMiddleware,
+  hotelMiddleware.isbookingExist,
+  hotelMiddleware.isbookingCancelled,
+  bookingController.payNow
+);
+
 export default router;

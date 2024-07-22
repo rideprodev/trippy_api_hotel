@@ -92,4 +92,23 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Pay Naow
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async payNow(req, res, next) {
+    try {
+      const response = await bookingRepository.payNow(req);
+      if (response === "Paid") {
+        utility.getResponse(res, null, "Payment has been done");
+      } else {
+        utility.getError(res, "Already paid for this booking");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
 };
