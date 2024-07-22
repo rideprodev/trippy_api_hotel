@@ -176,6 +176,7 @@ export default {
           {
             attributes: [
               "createdAt",
+              "bookingId",
               "paymentStatus",
               "cardId",
               "transactionId",
