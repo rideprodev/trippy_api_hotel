@@ -335,6 +335,10 @@ export default {
           transactionId: bodyData.transactionId,
           paymentStatus: "paid",
         });
+        await HotelBooking.update(
+          { platformPaymentStatus: "paid" },
+          { where: { id: bookingObject?.bookingId } }
+        );
         await HotelBidding.update(
           { status: "cancelled" },
           { where: { groupId: bookingObject.id } }

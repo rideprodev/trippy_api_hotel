@@ -6,6 +6,7 @@ import biddingRepository from "./biddingRepository";
 import grnRepository from "./grnRepository";
 import bookingRepository from "./bookingRepository";
 import transactionRepository from "./transactionRepository";
+import schedulerRepository from "./schedulerRepository";
 
 export default {
   userRepository,
@@ -16,4 +17,5 @@ export default {
   grnRepository,
   bookingRepository,
   transactionRepository,
+  schedulerRepository,
 };

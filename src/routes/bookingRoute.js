@@ -1,10 +1,15 @@
 import { Router } from "express";
 import controllers from "../controllers";
 import middlewares from "../middlewares";
+import grnValidator from "../validations/grnValidator";
 
 const { bookingController } = controllers;
-const { authMiddleware, resourceAccessMiddleware, hotelMiddleware } =
-  middlewares;
+const {
+  authMiddleware,
+  resourceAccessMiddleware,
+  validateMiddleware,
+  hotelMiddleware,
+} = middlewares;
 
 const router = Router();
 // ------------ Backend Apis Start -----------------------
@@ -49,6 +54,9 @@ router.get(
 router.post(
   "/payment/:bookingId",
   authMiddleware,
+  validateMiddleware({
+    schema: grnValidator.payment,
+  }),
   hotelMiddleware.isbookingExist,
   hotelMiddleware.isbookingCancelled,
   bookingController.payNow

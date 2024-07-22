@@ -139,7 +139,7 @@ export default {
 
       const _request = {
         method: "post",
-        url: `${config.app.authUrl}/payment/purchase`,
+        url: `${config.app.authUrl}payment/purchase/server`,
         data: requestData,
         headers: {
           "Content-Type": "application/json",
@@ -149,6 +149,8 @@ export default {
       const { data } = await axios(_request);
       // console.log(data);
       return data;
-    } catch (error) {}
+    } catch (error) {
+      console.log(error?.response?.data);
+    }
   },
 };

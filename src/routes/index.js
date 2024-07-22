@@ -8,6 +8,7 @@ import grnRoute from "./grnRoute";
 import hotelRoute from "./hotelRoute";
 import biddingRoute from "./biddingRoute";
 import bookingRoute from "./bookingRoute";
+import schedulerRoute from "./schedulerRoute";
 
 const router = Router();
 const register = (app) => {
@@ -24,6 +25,7 @@ const register = (app) => {
     router.use("/hotel", [grnRoute, hotelRoute]),
     router.use("/bidding", biddingRoute),
     router.use("/booking", bookingRoute),
+    router.use("/scheduler", schedulerRoute),
   ]);
 
   app.use((error, req, res, next) => {
