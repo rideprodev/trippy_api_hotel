@@ -334,6 +334,10 @@ export default {
           transactionId: bodyData.transactionId,
           paymentStatus: "paid",
         });
+        await HotelBidding.update(
+          { status: "cancelled" },
+          { where: { groupId: bookingObject.id } }
+        );
         return "Paid";
       } else {
         return "Already Paid";
