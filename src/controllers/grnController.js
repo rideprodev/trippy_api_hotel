@@ -224,22 +224,4 @@ export default {
       next(error);
     }
   },
-  /**
-   * Pay Naow
-   * @param {Object} req
-   * @param {Object} res
-   * @param {Function} next
-   */
-  async payNow(req, res, next) {
-    try {
-      const response = await grnRepository.payNow(req);
-      if (response.status !== 200) {
-        utility.getError(res, response.message);
-      } else {
-        utility.getResponse(res, response.data, "RETRIVED");
-      }
-    } catch (error) {
-      next(error);
-    }
-  },
 };

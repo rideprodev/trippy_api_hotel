@@ -174,7 +174,12 @@ export default {
             as: "bookingDetils",
           },
           {
-            attributes: ["createdAt", "paymentStatus", "transactionId"],
+            attributes: [
+              "createdAt",
+              "paymentStatus",
+              "cardId",
+              "transactionId",
+            ],
             model: HotelBookingLog,
             as: "bookingLogs",
           },
@@ -288,6 +293,51 @@ export default {
         where: where,
       });
       return booking;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Pay Now
+   * @param {Object} req
+   */
+  async payNow(req) {
+    try {
+      let isPayment = false,
+        cardId = null;
+      const bookingObject = req.bookingObject;
+      const userData = req.user;
+      const bodyData = req.body;
+
+      const bookingLog = await HotelBookingLog.findAll({
+        where: {
+          groupId: bookingObject.id,
+          bookingId: bookingObject.bookingId,
+        },
+      });
+
+      for (let i = 0; i < bookingLog.length; i++) {
+        const element = bookingLog[i];
+        cardId = element.cardId;
+        if (element.transactionId > 0) {
+          isPayment = true;
+        }
+      }
+      if (isPayment === false) {
+        // update bookingLog;
+        await HotelBookingLog.create({
+          userId: userData.id,
+          groupId: bookingObject.id,
+          bookingId: bookingObject?.bookingId,
+          cardId: cardId,
+          transactionId: bodyData.transactionId,
+          paymentStatus: "paid",
+        });
+        return "Paid";
+      } else {
+        return "Already Paid";
+      }
     } catch (error) {
       throw Error(error);
     }

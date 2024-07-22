@@ -697,30 +697,4 @@ export default {
       throw Error(error);
     }
   },
-
-  /**
-   * Pay Now
-   * @param {Object} req
-   */
-  async payNow(req) {
-    try {
-      const bookingObject = req.bookingObject;
-      const userData = req.user;
-      const _requestData = {
-        paymentFor: "hotel",
-        paymentType: "direct",
-        description: `Hotel Payment for booking referense - ${bookingObject.id}`,
-        amount: `${bookingObject.price}`,
-        currency: "AUD",
-        cardId: "",
-        card: {},
-        isAdded: false,
-      };
-
-      console.log(_requestData);
-      // const _response = await requestHandler.sendForPay(_requestData);
-    } catch (error) {
-      throw Error(error);
-    }
-  },
 };
