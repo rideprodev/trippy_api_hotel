@@ -123,4 +123,27 @@ export default {
       throw Error(error);
     }
   },
+
+  /**
+   * Get date difference
+   * @param {Date} date
+   * @param {String} interval
+   * @param {Number} units
+   */
+  dateDifference(date1, date2, DiifIn = "hours") {
+    let diffrence = null;
+    const start_date = moment(date1, "YYYY-MM-DD HH:mm:ss");
+    const end_date = moment(date2, "YYYY-MM-DD HH:mm:ss");
+    const duration = moment.duration(end_date.diff(start_date));
+    if (DiifIn == "minutes") {
+      diffrence = duration.asMinutes();
+    } else if (DiifIn == "days") {
+      diffrence = duration.asDays();
+    } else if (DiifIn == "years") {
+      diffrence = duration.asYears();
+    } else {
+      diffrence = duration.asHours();
+    }
+    return diffrence;
+  },
 };

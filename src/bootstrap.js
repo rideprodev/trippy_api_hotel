@@ -171,7 +171,7 @@ export default class Bootstrap {
    * @memberOf Bootstrap
    */
   // scheduleJob() {
-  //   // schedule.scheduleJob('* */1 * * *', scheduleJob.deleteMedia);
+  // schedule.scheduleJob("* */1 * * *", scheduleJob.deleteMedia);
   //   // schedule.scheduleJob("0 7 * * *", (fireDate) => {
   //   //   console.log(
   //   //     "This job was supposed to run at " +

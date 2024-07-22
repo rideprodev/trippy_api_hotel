@@ -79,10 +79,15 @@ const bookingStatus = Joi.object({
   bookingId: Joi.string().required(),
 });
 
+const payment = Joi.object({
+  transactionId: Joi.number().greater(0).required(),
+});
+
 export default {
   search,
   revalidate,
   booking,
   refetch,
   bookingStatus,
+  payment,
 };
