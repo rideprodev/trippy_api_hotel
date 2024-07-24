@@ -12,8 +12,8 @@ import config from "./config";
 import loggers from "./services/logger";
 import logger from "morgan";
 import path from "path";
-// import scheduleJob from "./services/schedule-job";
-// import schedule from "node-schedule";
+import scheduleJob from "./services/schedule-job";
+import schedule from "node-schedule";
 // import socket from "./socket";
 /**
  * Application startup class
@@ -161,7 +161,7 @@ export default class Bootstrap {
       console.log("Server has started on port %d", port);
     });
     // delete unused media from media temp
-    // this.scheduleJob();
+    this.scheduleJob();
     //socket
     // socket(server);
   }
@@ -170,23 +170,15 @@ export default class Bootstrap {
    * Execute schedule job
    * @memberOf Bootstrap
    */
-  // scheduleJob() {
-  // schedule.scheduleJob("* */1 * * *", scheduleJob.deleteMedia);
-  //   // schedule.scheduleJob("0 7 * * *", (fireDate) => {
-  //   //   console.log(
-  //   //     "This job was supposed to run at " +
-  //   //       fireDate +
-  //   //       ", but actually ran at " +
-  //   //       new Date()
-  //   //   );
-  //   //   scheduleJob.sendBookingRequestNotification();
-  //   // });
-  //   schedule.scheduleJob("*/1 * * * *", (fireDate) => {
-  //     scheduleJob.sendUpComingBookingNotification();
-  //   });
+  scheduleJob() {
+    // if (config.app.environment !== "development") {
+    schedule.scheduleJob("0 0 * * *", (fireDate) => {
+      scheduleJob.AutoPayment();
+    });
 
-  //   schedule.scheduleJob("0 2 * * *", (fireDate) => {
-  //     scheduleJob.sendCourseExpirationNotification();
-  //   });
-  // }
+    //   schedule.scheduleJob("0 2 * * *", (fireDate) => {
+    //     scheduleJob.checkBidding();
+    //   });
+    // }
+  }
 }

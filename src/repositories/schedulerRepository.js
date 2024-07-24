@@ -57,7 +57,6 @@ export default {
           { where: { id: expairedBooking } }
         );
       }
-
       // check the latest date on the booking
       for (let index = 0; index < finalBookings.length; index++) {
         const element = finalBookings[index];
