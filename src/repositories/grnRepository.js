@@ -186,6 +186,7 @@ export default {
    */
   async booking(req) {
     try {
+      let bookingGroup = {};
       const bodyData = req.body;
       const membersData = req.members;
       const userData = req.user;
@@ -295,7 +296,7 @@ export default {
           isUserTravelled: bodyData.isUserTravelled,
           searchPayload: JSON.stringify(bodyData.searchPayload),
         };
-        const bookingGroup = await HotelBookingGroup.create(bookingGroupData);
+        bookingGroup = await HotelBookingGroup.create(bookingGroupData);
         console.log("================================");
         console.log("group created", bookingGroup.id);
         console.log(
@@ -409,22 +410,6 @@ export default {
             { requestData: _request_data, responseData: _response },
             { groupId: bookingGroup.id, bookingId: booking.id }
           );
-          // await Transaction.update(
-          //   {
-          //     hotelBookingId: booking.id,
-          //   },
-          //   {
-          //     where: { id: bodyData.transactionId },
-          //   }
-          // );
-          // console.log("================================");
-          // console.log(
-          //   "transaction updated on booking Id=",
-          //   booking.id,
-          //   "and transactionId=",
-          //   bodyData.transactionId
-          // );
-          // console.log("================================");
           if (
             _response?.data?.booking_id &&
             (_response.data.status === "pending" ||
@@ -502,33 +487,13 @@ export default {
                 }
               );
             } catch (err) {}
-            // console.log("================================");
-            // console.log("Booking not Confirm Refund Intialize");
-            // console.log("================================");
-            // console.log(transactionData.paymentId);
-
-            // // refund intiate
-            // const refundIntialization = await requestHandler.sendForRefund(
-            //   transactionData.id,
-            //   userData.id
-            // );
-            // // console.log(refundIntialization);
-            // if (refundIntialization?.message === "APPROVED") {
-            //   console.log("refund");
-            //   await HotelBookingLog.create({
-            //     userId: userData.id,
-            //     groupId: bookingGroup.id,
-            //     bookingId: booking.id,
-            //     transactionId: bodyData.transactionId,
-            //     paymentStatus: "refund-Intiated",
-            //   });
-            //   console.log("================================");
-            //   console.log("Refund Done in transaction Id=", transactionData.id);
-            //   console.log("================================");
-            // }
           }
         }
+        if (_response?.data) {
+          _response.data.bookingGroupData = bookingGroup;
+        }
       }
+
       return _response;
     } catch (error) {
       throw Error(error);
