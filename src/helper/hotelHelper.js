@@ -14,7 +14,7 @@ export default {
 
     const Bidding = await biddingRepository.getAllBidding(where);
     if (Bidding.length > 0) {
-      console.log("Bidding is=>", Bidding.length);
+      // console.log("Bidding is=>", Bidding.length);
       const currentDate = new Date();
       const unExpiredBidding = [];
       for (let i = 0; i < Bidding.length; i++) {
