@@ -74,6 +74,19 @@ export default {
             model: HotelBooking,
             as: "booking",
           },
+          {
+            attributes: [
+              "hotelCode",
+              "latestPrice",
+              "biddingPrice",
+              "minBid",
+              "maxBid",
+              "expairationAt",
+              "status",
+            ],
+            model: HotelBidding,
+            as: "biddingData",
+          },
         ],
         order: [["id", "DESC"]],
         offset: offset,
@@ -106,6 +119,19 @@ export default {
             attributes: ["countryCode", "countryName"],
             where: { countryCode: element.dataValues.hotelData.countryCode },
           });
+        }
+        if (element?.dataValues?.biddingData.length > 0) {
+          for (
+            let index = 0;
+            index < element?.dataValues?.biddingData.length;
+            index++
+          ) {
+            const ele = element?.dataValues?.biddingData[index];
+            ele.dataValues.hotelInfo = await Hotel.findOne({
+              attributes: ["hotelCode", "hotelName", "countryCode"],
+              where: { hotelCode: ele.hotelCode },
+            });
+          }
         }
       }
       return _hotels;
