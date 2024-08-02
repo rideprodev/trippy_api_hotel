@@ -131,6 +131,13 @@ export default {
               attributes: ["hotelCode", "hotelName", "countryCode"],
               where: { hotelCode: ele.hotelCode },
             });
+            wlw.dataValues.image = await HotelImage.findOne({
+              attributes: ["imageUrl"],
+              where: {
+                mainImage: "Y",
+                hotelCode: ele.hotelCode,
+              },
+            });
           }
         }
       }
