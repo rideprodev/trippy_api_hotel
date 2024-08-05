@@ -1,23 +1,10 @@
-import moment from "moment";
 import models from "../models";
 import utility from "../services/utility";
-import { Op } from "sequelize";
 import requestHandler from "../services/requestHandler";
 import config from "../config";
+import grnRepository from "./grnRepository";
 import biddingRepository from "./biddingRepository";
-const {
-  User,
-  HotelBookingGroup,
-  HotelBooking,
-  HotelBookingDetail,
-  Hotel,
-  HotelCity,
-  HotelCountry,
-  HotelBookingLog,
-  HotelBidding,
-  HotelBiddingPrices,
-  HotelImage,
-} = models;
+const { User, HotelBooking, HotelBookingLog, HotelBidding } = models;
 
 export default {
   /**
@@ -167,10 +154,31 @@ export default {
    */
   async autoBooking() {
     try {
-      const fetchAllBookings = await biddingRepository.getAllBidding({
-        status: "active",
-      });
-      return fetchAllBookings;
+      const Bidding = await biddingRepository.getAllBiddingForScduler();
+      //  check for expairation
+      const currentDate = new Date();
+      const unExpiredBidding = [];
+      for (let i = 0; i < Bidding.length; i++) {
+        const x = Bidding[i].dataValues;
+        if (x.expairationAt < currentDate) {
+          await biddingRepository.updateBiddingStatus(null, "expired", x.id);
+        } else {
+          unExpiredBidding.push(x);
+        }
+      }
+      console.log("unExpiredBidding=>", unExpiredBidding.length);
+      //  searching the latest price
+      for (let i = 0; i < unExpiredBidding.length; i++) {
+        const request = {},
+          element = unExpiredBidding[i];
+        request.body = JSON.parse(element.bookingGroupData.searchPayload);
+        request.body.hotelCode = [element.hotelCode];
+        const search_respose = await grnRepository.search(request);
+        if (search_respose?.data?.hotels) {
+        }
+        return search_respose.data;
+      }
+      // return unExpiredBidding;
     } catch (error) {
       throw Error(error);
     }

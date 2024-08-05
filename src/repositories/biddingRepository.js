@@ -275,4 +275,32 @@ export default {
       throw Error(error);
     }
   },
+
+  /**
+   * Get All Bidding for scheduler
+   *
+   * @param {Object} where
+   */
+  async getAllBiddingForScduler(where = {}) {
+    where = { ...where, status: "active", id: 37 };
+    return await HotelBidding.findAll({
+      attributes: [
+        "roomType",
+        "checkIn",
+        "checkOut",
+        "hotelCode",
+        "biddingPrice",
+        "minBid",
+        "maxBid",
+        "expairationAt",
+        "latestPrice",
+      ],
+      where: where,
+      include: {
+        attributes: ["searchPayload"],
+        model: HotelBookingGroup,
+        as: "bookingGroupData",
+      },
+    });
+  },
 };
