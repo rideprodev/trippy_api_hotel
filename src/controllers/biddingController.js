@@ -71,46 +71,48 @@ export default {
       } else if (revalidate?.data?.hotel?.rate?.rate_type !== "bookable") {
         utility.getError(res, "Can't bid because this hotel is full !");
       } else {
-        const rooms = revalidate.data.hotel.rate.rooms;
-        const checkRoomAvailiable = rooms.filter(
-          (x) => x.room_type === bodyData.roomType
-        );
-        if (checkRoomAvailiable.length > 0) {
-          let nonRefundable = null,
-            underCancellation = null;
+        //  Condition for same room booking on the
+        // const rooms = revalidate.data.hotel.rate.rooms;
+        // const checkRoomAvailiable = rooms.filter(
+        //   (x) => x.room_type === bodyData.roomType
+        // );
+        // console.log(rooms, bodyData.roomType);
+        // if (checkRoomAvailiable.length > 0) {
+        let nonRefundable = null,
+          underCancellation = null;
 
+        if (
+          revalidate?.data?.hotel?.rate &&
+          typeof revalidate?.data?.hotel?.rate?.non_refundable === "boolean"
+        ) {
+          nonRefundable = `${revalidate?.data?.hotel?.rate?.non_refundable}`;
           if (
-            revalidate?.data?.hotel?.rate &&
-            typeof revalidate?.data?.hotel?.rate?.non_refundable === "boolean"
+            typeof revalidate?.data?.hotel?.rate?.cancellation_policy
+              ?.under_cancellation === "boolean"
           ) {
-            nonRefundable = `${revalidate?.data?.hotel?.rate?.non_refundable}`;
-            if (
-              typeof revalidate?.data?.hotel?.rate?.cancellation_policy
-                ?.under_cancellation === "boolean"
-            ) {
-              underCancellation = `${revalidate?.data?.hotel?.rate?.cancellation_policy?.under_cancellation}`;
-            }
+            underCancellation = `${revalidate?.data?.hotel?.rate?.cancellation_policy?.under_cancellation}`;
           }
-          if (nonRefundable === "false" && underCancellation === "false") {
-            req.body.latestPrice = revalidate.data.hotel.rate.price;
-            const result = await biddingRepository.placeMyBid(req);
-            if (result) {
-              utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
-            } else {
-              utility.getError(res, "WENT_WRONG");
-            }
+        }
+        if (nonRefundable === "false" && underCancellation === "false") {
+          req.body.latestPrice = revalidate.data.hotel.rate.price;
+          const result = await biddingRepository.placeMyBid(req);
+          if (result) {
+            utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
           } else {
-            utility.getError(
-              res,
-              "Can't bid, You can't bid on a non-refundable hotel !"
-            );
+            utility.getError(res, "WENT_WRONG");
           }
         } else {
           utility.getError(
             res,
-            "Oops! You missed it, All rooms of this type had been booked !"
+            "Can't bid, You can't bid on a non-refundable hotel !"
           );
         }
+        // } else {
+        //   utility.getError(
+        //     res,
+        //     "Oops! You missed it, All rooms of this type had been booked !"
+        //   );
+        // }
       }
     } catch (error) {
       next(error);

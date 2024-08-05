@@ -76,6 +76,7 @@ export default {
           },
           {
             attributes: [
+              "id",
               "hotelCode",
               "latestPrice",
               "biddingPrice",
@@ -131,7 +132,7 @@ export default {
               attributes: ["hotelCode", "hotelName", "countryCode"],
               where: { hotelCode: ele.hotelCode },
             });
-            wlw.dataValues.image = await HotelImage.findOne({
+            ele.dataValues.image = await HotelImage.findOne({
               attributes: ["imageUrl"],
               where: {
                 mainImage: "Y",
