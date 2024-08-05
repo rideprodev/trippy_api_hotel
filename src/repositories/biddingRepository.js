@@ -164,19 +164,10 @@ export default {
     try {
       const bodyData = req.body;
       bodyData.userId = req.user.id;
-      bodyData.status = "active";
       bodyData.reavalidateResponse = JSON.stringify(
         bodyData.reavalidateResponse
       );
-      if (bodyData?.isGrouped) {
-        bodyData.status = "bidding";
-        bodyData.searchPayload = JSON.stringify(bodyData.searchPayload);
-        const groupData = await HotelBookingGroup.create(bodyData);
-        if (groupData && groupData?.id) {
-          bodyData.groupId = groupData.id;
-        }
-      }
-      bodyData.status = "active";
+      //  need to get the expairation date backend
       const _response = await HotelBidding.create(bodyData);
       bodyData.biddingId = _response.id;
       await this.updateLatestPrice(bodyData);

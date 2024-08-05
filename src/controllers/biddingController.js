@@ -94,6 +94,8 @@ export default {
           }
         }
         if (nonRefundable === "false" && underCancellation === "false") {
+          // need to add user commission
+
           req.body.latestPrice = revalidate.data.hotel.rate.price;
           const result = await biddingRepository.placeMyBid(req);
           if (result) {

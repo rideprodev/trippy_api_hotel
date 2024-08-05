@@ -4,6 +4,7 @@ import utility from "../services/utility";
 import { Op } from "sequelize";
 import requestHandler from "../services/requestHandler";
 import config from "../config";
+import biddingRepository from "./biddingRepository";
 const {
   User,
   HotelBookingGroup,
@@ -155,6 +156,21 @@ export default {
       } else {
         return true;
       }
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Auto payment scheduler
+   * @param {Object}
+   */
+  async autoBooking() {
+    try {
+      const fetchAllBookings = await biddingRepository.getAllBidding({
+        status: "active",
+      });
+      return fetchAllBookings;
     } catch (error) {
       throw Error(error);
     }

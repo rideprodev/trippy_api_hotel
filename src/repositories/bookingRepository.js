@@ -59,32 +59,37 @@ export default {
       }
 
       const _hotels = await HotelBookingGroup.findAndCountAll({
-        attributes: {
-          exclude: ["updatedAt", "searchPayload"],
-        },
         where: where,
         include: [
+          {
+            attributes: ["roomNumber", "paxes", "ages"],
+            model: HotelBookingDetail,
+            as: "bookingDetils",
+          },
           {
             attributes: ["firstName", "lastName"],
             model: User,
             as: "userData",
           },
           {
-            attributes: ["hotelCode", "cityCode"],
+            attributes: ["hotelCode", "cityCode", "cancelByDate"],
             model: HotelBooking,
             as: "booking",
+            where: { status: "confirmed" },
+            required: false,
           },
           {
-            attributes: [
-              "id",
-              "hotelCode",
-              "latestPrice",
-              "biddingPrice",
-              "minBid",
-              "maxBid",
-              "expairationAt",
-              "status",
-            ],
+            // attributes: [
+            //   "id",
+            //   "hotelCode",
+            //   "latestPrice",
+            //   "biddingPrice",
+            //   "minBid",
+            //   "maxBid",
+            //   "expairationAt",
+            //   "status",
+            // "reavalidateResponse",
+            // ],
             model: HotelBidding,
             as: "biddingData",
           },

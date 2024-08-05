@@ -10,4 +10,6 @@ const router = Router();
 
 router.get("/auto-pay", schedulerController.autoPayemnt);
 
+router.get("/auto-booking", schedulerController.autoBooking);
+
 export default router;
