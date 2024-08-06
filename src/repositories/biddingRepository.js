@@ -301,6 +301,7 @@ export default {
       where: where,
       include: {
         attributes: [
+          "bookingId",
           "searchPayload",
           "totalRooms",
           "bookingName",
