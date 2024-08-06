@@ -60,7 +60,7 @@ export default {
         userData.dataValues.id = userData.id;
         userData.dataValues.title = userInformation.title;
         userData.dataValues.nationality = userInformation.nationality;
-        userData.dataValues.type = userInformation.type;
+        userData.dataValues.type = "AD";
         members = [...members, userData.dataValues];
       }
       let membersId = [];
@@ -125,7 +125,7 @@ export default {
    */
   async isbookingExist(req, res, next) {
     try {
-      const bookingObject = await bookingRepository.getOneHotelBooking(req, {
+      const bookingObject = await bookingRepository.getOneHotelBooking({
         id: req.params.bookingId,
       });
       if (bookingObject) {

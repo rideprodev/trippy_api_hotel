@@ -285,6 +285,9 @@ export default {
     where = { ...where, status: "active", id: 37 };
     return await HotelBidding.findAll({
       attributes: [
+        "id",
+        "userId",
+        "groupId",
         "roomType",
         "checkIn",
         "checkOut",
@@ -297,7 +300,12 @@ export default {
       ],
       where: where,
       include: {
-        attributes: ["searchPayload"],
+        attributes: [
+          "searchPayload",
+          "totalRooms",
+          "bookingName",
+          "bookingComments",
+        ],
         model: HotelBookingGroup,
         as: "bookingGroupData",
       },
