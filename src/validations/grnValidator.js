@@ -83,6 +83,10 @@ const payment = Joi.object({
   transactionId: Joi.number().greater(0).required(),
 });
 
+const updateCardOnBooking = Joi.object({
+  cardId: Joi.number().greater(0).required(),
+});
+
 export default {
   search,
   revalidate,
@@ -90,4 +94,5 @@ export default {
   refetch,
   bookingStatus,
   payment,
+  updateCardOnBooking,
 };

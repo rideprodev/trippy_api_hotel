@@ -395,4 +395,29 @@ export default {
       throw Error(error);
     }
   },
+
+  /**
+   * update card on pay now in booking
+   * @param {Object} req
+   */
+  async updateCardOnBooking(req) {
+    try {
+      const bodyData = req.body;
+      const userData = req.user;
+      const bookingData = req.bookingObject;
+      return await HotelBookingLog.update(
+        {
+          cardId: bodyData.cardId,
+        },
+        {
+          where: {
+            userId: userData.id,
+            groupId: bookingData.id,
+          },
+        }
+      );
+    } catch (error) {
+      throw Error(error);
+    }
+  },
 };
