@@ -176,9 +176,9 @@ export default class Bootstrap {
       scheduleJob.AutoPayment();
     });
 
-    //   schedule.scheduleJob("0 2 * * *", (fireDate) => {
-    //     scheduleJob.checkBidding();
-    //   });
+    schedule.scheduleJob("0 0 * * *", (fireDate) => {
+      scheduleJob.AutoBookingOnBidding();
+    });
     // }
   }
 }

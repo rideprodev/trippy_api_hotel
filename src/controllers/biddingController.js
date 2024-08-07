@@ -96,7 +96,34 @@ export default {
         if (nonRefundable === "false" && underCancellation === "false") {
           // need to add user commission
 
-          req.body.latestPrice = revalidate.data.hotel.rate.price;
+          let commission = 0,
+            commissionAmount = 0,
+            totalPrice = 0;
+
+          const userData = req.user;
+          if (userData.commission === "relevant") {
+            const comissionPercent = await Setting.findOne({
+              where: { key: "b05970e2431ae626c0f4a0f67c56848bdf22811d" },
+            });
+            commission = parseFloat(comissionPercent.value);
+            commissionAmount =
+              (parseFloat(revalidate.data?.hotel?.rate?.price) * commission) /
+              100;
+            totalPrice =
+              parseFloat(revalidate.data?.hotel?.rate?.price) +
+              commissionAmount;
+            revalidate.data.serviceChages = `${commissionAmount}`;
+            revalidate.data.finalAmount = `${parseFloat(totalPrice).toFixed(
+              2
+            )}`;
+          } else {
+            revalidate.data.serviceChages = "0";
+            revalidate.data.finalAmount = `${parseFloat(
+              revalidate.data?.hotel?.rate?.price
+            ).toFixed(2)}`;
+          }
+
+          req.body.latestPrice = totalPrice;
           const result = await biddingRepository.placeMyBid(req);
           if (result) {
             utility.getResponse(res, null, "ADDED", httpStatus.CREATED);

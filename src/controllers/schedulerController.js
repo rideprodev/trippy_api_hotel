@@ -25,9 +25,9 @@ export default {
    * @param {Object} res
    * @param {Function} next
    */
-  async autoBooking(req, res, next) {
+  async autoBookingOnBidding(req, res, next) {
     try {
-      const response = await schedulerRepository.autoBooking(req);
+      const response = await schedulerRepository.autoBookingOnBidding(req);
       utility.getResponse(res, response, "RETRIVED");
     } catch (error) {
       next(error);

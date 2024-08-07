@@ -15,4 +15,15 @@ export default {
       errorLogger.error(JSON.stringify(error));
     }
   },
+
+  /**
+   * bidding scheduler
+   */
+  async AutoBookingOnBidding(req, res, next) {
+    try {
+      await schedulerRepository.autoBookingOnBidding(req);
+    } catch (error) {
+      errorLogger.error(JSON.stringify(error));
+    }
+  },
 };
