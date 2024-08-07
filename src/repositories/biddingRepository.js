@@ -302,9 +302,12 @@ export default {
       include: {
         attributes: [
           "bookingId",
+          "currentReference",
           "searchPayload",
           "totalRooms",
           "bookingName",
+          "totalMember",
+          "createdAt",
           "bookingComments",
         ],
         model: HotelBookingGroup,

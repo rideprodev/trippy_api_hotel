@@ -473,90 +473,130 @@ export default {
                   },
                   { where: { id: element.groupId } }
                 );
-                // update the log
-                // await HotelBookingLog.create({
-                //   userId: userData.id,
-                //   groupId: bookingGroup.id,
-                //   bookingId: booking.id,
-                //   transactionId: null,
-                //   cardId: bodyData.cardId,
-                //   paymentStatus: "booked",
-                // });
+
                 // send the mail of success fully booked from the bidding
-                // try {
-                //   const sendmail = requestHandler.sendEmail(
-                //     userData.email,
-                //     "hotelBooking",
-                //     `Your Reservation has been Confirmed - Booking ID: ${bookingGroup.currentReference}`,
-                //     {
-                //       name: `${userData.firstName} ${userData.lastName}`,
-                //       email: userData.email,
-                //       hotel_name: bodyData.hotelName,
-                //       full_address: bodyData.fullAddress,
-                //       image_url: bodyData.imageUrl,
-                //       check_in: bodyData.checkIn,
-                //       check_out: bodyData.checkOut,
-                //       room_type: bodyData.roomType,
-                //       total_members: bodyData.totalMember,
-                //       cancellation_date: cancelByDate,
-                //       total_price: bodyData.totalPrice,
-                //       booking_id: bookingGroup.currentReference,
-                //       booking_date: new Date(),
-                //       service_tax: revalidateResponse.serviceChages,
-                //       total_rooms: bodyData.totalRooms,
-                //       total_nights: bodyData.totalNight,
-                //       price_distribution:
-                //         revalidateResponse?.hotel?.rate?.price_details,
-                //       currency: revalidateResponse?.hotel?.rate?.currency,
-                //     }
-                //   );
-                // } catch (err) {}
+                try {
+                  const sendmail_confirm = requestHandler.sendEmail(
+                    userData.email,
+                    "hotelBooking",
+                    `Your Reservation has been Confirmed - Booking ID: ${bookingGroup.currentReference}`,
+                    {
+                      name: `${userData.firstName} ${userData.lastName}`,
+                      email: userData.email,
+                      hotel_name: reavalidateResponse.data.hotel.name,
+                      full_address: reavalidateResponse.data.hotel.address,
+                      image_url: reavalidateResponse.data.hotel.images.url,
+                      check_in: booking_request_data.checkin,
+                      check_out: booking_request_data.checkout,
+                      room_type: element.roomType,
+                      total_members: element.totalMember,
+                      cancellation_date: cancelByDate,
+                      total_price: totalPrice,
+                      booking_id: bookingGroup.currentReference,
+                      booking_date: currentDatatime,
+                      service_tax: commissionAmount,
+                      total_rooms: element.totalRooms,
+                      total_nights: bodyData.totalNight,
+                      price_distribution: totalPrice,
+                      currency: request.body.currency,
+                    }
+                  );
+                } catch (err) {}
                 // Update the booking for cancel
-                // await grnRepository.bookingCancel();
-                // await HotelBooking.update(
-                //   {
-                //     status: "cancelled",
-                //   },
-                //   { where: { id: element.bookingGroupData.bookingId } }
-                // );
+                const apiEndPoint = GRN_Apis.bookingCancel(
+                  element.bookingGroupData.currentReference
+                );
+
+                const _response_cancel =
+                  await requestHandler.fetchResponseFromHotel(
+                    apiEndPoint,
+                    await this.getSessionToken(),
+                    { cutoff_time: 60000 }
+                  );
+                // console.log(_response_cancel);
+                if (_response_cancel !== undefined) {
+                  this.genrateGrnLogger(
+                    req,
+                    _response_cancel.status,
+                    _response_cancel.message,
+                    apiEndPoint,
+                    _response_cancel
+                  );
+                  console.log("================================");
+                  console.log(_response_cancel.data.status);
+                  console.log("================================");
+                  if (
+                    _response_cancel.data.status === "confirmed" ||
+                    _response_cancel.data.status === "pending"
+                  ) {
+                    console.log("================================");
+                    console.log(
+                      "Booking Cancellation Confirm/pending Refund Intialize",
+                      _response_cancel.data.status
+                    );
+                    console.log("================================");
+                    try {
+                      const sendmail_cancel = requestHandler.sendEmail(
+                        userData.email,
+                        "hotelBookingCancelled",
+                        `Reservation with ID: ${element.currentReference} has been Cancelled`,
+                        {
+                          name: `${userData.firstName} ${userData.lastName}`,
+                          email: userData.email,
+                          check_in: booking_request_data.checkin,
+                          check_out: booking_request_data.checkout,
+                          room_type: element.roomType,
+                          total_members: element.totalMember,
+                          total_rooms: element.totalRooms,
+                          cancellation_date:
+                            _response_cancel?.data?.cancellation_details
+                              ?.cancel_date,
+                          booking_id: element.currentReference,
+                          booking_date: element.createdAt,
+                        }
+                      );
+                    } catch (err) {}
+                  }
+                }
+                //  update the old booking cancelled
+                await HotelBooking.update(
+                  {
+                    status: "cancelled",
+                  },
+                  { where: { id: element.bookingGroupData.bookingId } }
+                );
                 // update cancel log
-                // await HotelBookingLog.create({
-                //   userId: userData.id,
-                //   groupId: bookingGroup.id,
-                //   bookingId: booking.id,
-                //   transactionId: null,
-                //   cardId: bodyData.cardId,
-                //   paymentStatus: "booked",
-                // });
-                //  cancellation mail
-                // try {
-                //   const sendmail = requestHandler.sendEmail(
-                //     userData.email,
-                //     "hotelBooking",
-                //     `Your Reservation has been Confirmed - Booking ID: ${bookingGroup.currentReference}`,
-                //     {
-                //       name: `${userData.firstName} ${userData.lastName}`,
-                //       email: userData.email,
-                //       hotel_name: bodyData.hotelName,
-                //       full_address: bodyData.fullAddress,
-                //       image_url: bodyData.imageUrl,
-                //       check_in: bodyData.checkIn,
-                //       check_out: bodyData.checkOut,
-                //       room_type: bodyData.roomType,
-                //       total_members: bodyData.totalMember,
-                //       cancellation_date: cancelByDate,
-                //       total_price: bodyData.totalPrice,
-                //       booking_id: bookingGroup.currentReference,
-                //       booking_date: new Date(),
-                //       service_tax: revalidateResponse.serviceChages,
-                //       total_rooms: bodyData.totalRooms,
-                //       total_nights: bodyData.totalNight,
-                //       price_distribution:
-                //         revalidateResponse?.hotel?.rate?.price_details,
-                //       currency: revalidateResponse?.hotel?.rate?.currency,
-                //     }
-                //   );
-                // } catch (err) {}
+                let cardId = null;
+                const bookingLog = await HotelBookingLog.findAll({
+                  where: {
+                    groupId: element.groupId,
+                    id: element.bookingGroupData.bookingId,
+                  },
+                });
+
+                for (let i = 0; i < bookingLog.length; i++) {
+                  const element1 = bookingLog[i];
+                  cardId = element1.cardId;
+                }
+                await HotelBookingLog.create({
+                  userId: userData.id,
+                  groupId: element.groupId,
+                  bookingId: element.bookingGroupData.bookingId,
+                  transactionId:
+                    element.transactionId > 0 ? element.transactionId : null,
+                  cardId: cardId,
+                  paymentStatus: "cancelled",
+                });
+                await HotelBookingLog.create({
+                  userId: userData.id,
+                  groupId: element.groupId,
+                  bookingId: booking.id,
+                  transactionId:
+                    element.transactionId > 0 ? element.transactionId : null,
+                  cardId: cardId,
+                  paymentStatus: "booked",
+                });
+
                 // update bidding if the same room was bid but hight price from booking
                 // await
               }
