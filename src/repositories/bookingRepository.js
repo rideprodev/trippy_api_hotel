@@ -161,7 +161,7 @@ export default {
    * Get One Hotel Booking
    * @param {Object} req
    */
-  async getOneHotelBooking(req, where = {}) {
+  async getOneHotelBooking(where = {}) {
     try {
       const booking = await HotelBookingGroup.findOne({
         where: where,
