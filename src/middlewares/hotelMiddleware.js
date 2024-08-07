@@ -125,8 +125,10 @@ export default {
    */
   async isbookingExist(req, res, next) {
     try {
+      const userData = req.user;
       const bookingObject = await bookingRepository.getOneHotelBooking({
         id: req.params.bookingId,
+        userId: userData.id,
       });
       if (bookingObject) {
         req.bookingObject = bookingObject;
@@ -151,6 +153,33 @@ export default {
         next();
       } else {
         utility.getError(res, "Can not cacelled unconfirmed booking!");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check the booking is exist or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isCardExist(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const userData = req.user;
+      const cardInfo = await Cards.findOne({
+        where: { id: bodyData.cardId, userId: userData.id },
+      });
+      if (cardInfo) {
+        req.card = cardInfo;
+        next();
+      } else {
+        utility.getError(
+          res,
+          "Card Not availiable please check and select another!"
+        );
       }
     } catch (error) {
       next(error);

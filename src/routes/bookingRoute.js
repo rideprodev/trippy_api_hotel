@@ -1,8 +1,9 @@
 import { Router } from "express";
 import controllers from "../controllers";
 import middlewares from "../middlewares";
-import grnValidator from "../validations/grnValidator";
+import validations from "../validations";
 
+const { grnValidator } = validations;
 const { bookingController } = controllers;
 const {
   authMiddleware,
@@ -60,6 +61,18 @@ router.post(
   hotelMiddleware.isbookingExist,
   hotelMiddleware.isbookingCancelled,
   bookingController.payNow
+);
+
+router.put(
+  "/update-card/:bookingId",
+  authMiddleware,
+  validateMiddleware({
+    schema: grnValidator.updateCardOnBooking,
+  }),
+  hotelMiddleware.isbookingExist,
+  hotelMiddleware.isbookingCancelled,
+  hotelMiddleware.isCardExist,
+  bookingController.updateCardOnBooking
 );
 
 export default router;

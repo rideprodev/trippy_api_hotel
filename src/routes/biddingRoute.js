@@ -66,6 +66,18 @@ router.put(
   biddingController.updateBidding
 );
 
+router.delete(
+  "/cancel-bid/:id",
+  authMiddleware,
+  resourceAccessMiddleware(["user"]),
+  hotelMiddleware.isBiddingExist,
+  (req, res, next) => {
+    req.body.status = "cancelled";
+    next();
+  },
+  biddingController.updateBidding
+);
+
 router.post(
   "/running-biddings-booking",
   authMiddleware,

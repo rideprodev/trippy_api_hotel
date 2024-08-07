@@ -111,4 +111,19 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Update Card for Pay Now
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async updateCardOnBooking(req, res, next) {
+    try {
+      const response = await bookingRepository.updateCardOnBooking(req);
+      utility.getResponse(res, null, "Card Updated Successfully");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

@@ -282,7 +282,7 @@ export default {
    * @param {Object} where
    */
   async getAllBiddingForScduler(where = {}) {
-    where = { ...where, status: "active", id: 37 };
+    where = { ...where, status: "active" };
     return await HotelBidding.findAll({
       attributes: [
         "id",
