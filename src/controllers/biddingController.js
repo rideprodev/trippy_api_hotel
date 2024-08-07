@@ -1,8 +1,10 @@
+import models from "../models";
 import repositories from "../repositories";
 import utility from "../services/utility";
 import httpStatus from "http-status";
 
 const { biddingRepository, grnRepository } = repositories;
+const { Setting } = models;
 
 export default {
   /**
