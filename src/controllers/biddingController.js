@@ -120,6 +120,9 @@ export default {
             )}`;
           } else {
             revalidate.data.serviceChages = "0";
+            totalPrice = totalPrice = `${parseFloat(
+              reavalidateResponse.data?.hotel?.rate?.price
+            ).toFixed(2)}`;
             revalidate.data.finalAmount = `${parseFloat(
               revalidate.data?.hotel?.rate?.price
             ).toFixed(2)}`;
