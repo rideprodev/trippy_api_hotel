@@ -162,12 +162,17 @@ export default {
   },
 
   /**
-   * Auto payment scheduler
+   * Auto booking scheduler
    * @param {Object}
    */
   async autoBookingOnBidding() {
+    const AllBiddignData = await biddingRepository.getAllBiddingForScduler();
+    return await this.checkbiddingforbooking(AllBiddignData);
+  },
+
+  async checkbiddingforbooking(biddingData) {
     try {
-      const Bidding = await biddingRepository.getAllBiddingForScduler();
+      const Bidding = biddingData;
       // //     // update bidding if the same room was bid but hight price from booking
       // const same_bidding = await HotelBidding.findAll({
       //   where: {
@@ -259,6 +264,9 @@ export default {
               ).toFixed(2)}`;
             } else {
               reavalidateResponse.data.serviceChages = "0";
+              totalPrice = `${parseFloat(
+                reavalidateResponse.data?.hotel?.rate?.price
+              ).toFixed(2)}`;
               reavalidateResponse.data.finalAmount = `${parseFloat(
                 reavalidateResponse.data?.hotel?.rate?.price
               ).toFixed(2)}`;
