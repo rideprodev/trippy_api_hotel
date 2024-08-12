@@ -86,7 +86,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
           unique: false,
-          fields: ["country_code"],
+          fields: ["accommodation_type_sub_name"],
         },
       ],
       underscored: true,
