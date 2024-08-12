@@ -1,5 +1,7 @@
 import { Op } from "sequelize";
 import models from "../models";
+import biddingRepository from "./biddingRepository";
+import schedulerRepository from "./schedulerRepository";
 const {
   User,
   HotelBookingGroup,
@@ -418,6 +420,28 @@ export default {
       );
     } catch (error) {
       throw Error(error);
+    }
+  },
+
+  /**
+   * update card on pay now in booking
+   * @param {Object} req
+   */
+  async fetchLatestPrice(req) {
+    try {
+      const { bookingId } = req.params;
+      const userData = req.user;
+      const where = {
+        groupId: bookingId,
+        userId: userData.id,
+      };
+      const biddings = await biddingRepository.getAllBiddingForScduler(where);
+      const biddingPrices = await schedulerRepository.checkbiddingforbooking(
+        biddings
+      );
+      return biddingPrices;
+    } catch (err) {
+      console.log(err);
     }
   },
 };

@@ -27,6 +27,15 @@ export default {
       } else {
         const where = {
           cityCode: bodyData.cityCode,
+          [Op.or]: [
+            { accommodationTypeSubName: "Apartment" },
+            { accommodationTypeSubName: "Hotel" },
+            { accommodationTypeSubName: "Villa" },
+            { accommodationTypeSubName: "Resort" },
+            { accommodationTypeSubName: "All-inclus" },
+            { accommodationTypeSubName: "Inn" },
+            { accommodationTypeSubName: "Aparthotel" },
+          ],
         };
         const getAllHotelCodes = await hotelRepository.fetchAll(where);
 

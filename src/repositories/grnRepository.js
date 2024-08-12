@@ -10,6 +10,7 @@ const {
   HotelBookingDetail,
   Setting,
   HotelBookingLog,
+  HotelBidding,
 } = models;
 
 export default {
@@ -553,6 +554,16 @@ export default {
               },
             }
           );
+          await HotelBidding.update(
+            {
+              status: "cancelled",
+            },
+            {
+              where: {
+                groupId: bookingObject?.bookingId,
+              },
+            }
+          );
         }
       }
       return _response;
@@ -650,6 +661,16 @@ export default {
             transactionId: bookingLog.transactionId,
             paymentStatus: "cancelled",
           });
+          await HotelBidding.update(
+            {
+              status: "cancelled",
+            },
+            {
+              where: {
+                groupId: bookingObject?.bookingId,
+              },
+            }
+          );
           this.bookingStatus(req);
         }
       }

@@ -191,7 +191,9 @@ export default {
       const currentDate = new Date();
       const unExpiredBidding = [];
       for (let i = 0; i < Bidding.length; i++) {
-        const x = Bidding[i].dataValues;
+        const x = Bidding[i].dataValues?.expairationAt
+          ? Bidding[i].dataValues
+          : Bidding[i];
         if (x.expairationAt < currentDate) {
           await biddingRepository.updateBiddingStatus(null, "expired", x.id);
         } else {
@@ -212,6 +214,7 @@ export default {
           const rateData = search_respose?.data?.hotels[0]?.rates;
           filterRateData = rateData
             .map((x) => {
+              console.log(search_respose?.data?.hoel_code);
               return {
                 searchId: search_respose?.data?.search_id,
                 groupCode: x.group_code,
