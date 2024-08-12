@@ -1,31 +1,31 @@
 import repositories from "../repositories";
 import requestHandler from "../services/requestHandler";
 import models from "../models";
+import schedulerRepository from "../repositories/schedulerRepository";
 const { Setting } = models;
 const { biddingRepository, customRepository, hotelRepository } = repositories;
 
 export default {
-  async checkBiddingNotification(req, data) {
+  async checkBiddingforBookingOnDate(req, data) {
     delete req.user;
     const bodyData = req.body;
-    const where = {
-      status: "active",
-    };
 
-    const Bidding = await biddingRepository.getAllBidding(where);
+    const Bidding = await biddingRepository.getAllBiddingForScduler();
     if (Bidding.length > 0) {
-      // console.log("Bidding is=>", Bidding.length);
-      const currentDate = new Date();
-      const unExpiredBidding = [];
+      const finalBidding = [];
       for (let i = 0; i < Bidding.length; i++) {
         const x = Bidding[i].dataValues;
-        if (x.expairationAt < currentDate) {
-          await biddingRepository.updateBiddingStatus(null, "expired", x.id);
-        } else {
-          unExpiredBidding.push(x);
+        if (
+          x.checkIn === bodyData.checkIn &&
+          x.checkOut === bodyData.checkOut
+        ) {
+          finalBidding.push(x);
         }
       }
-      console.log("unExpiredBidding=>", unExpiredBidding.length);
+      console.log("Final Bidding=>", finalBidding.length);
+      if (finalBidding.length > 0) {
+        await schedulerRepository.checkbiddingforbooking(finalBidding);
+      }
     } else {
       console.log("Not any bidding find");
     }

@@ -75,4 +75,12 @@ router.put(
   bookingController.updateCardOnBooking
 );
 
+router.get(
+  "/check-bidding-latest-price/:bookingId",
+  authMiddleware,
+  resourceAccessMiddleware(["user"]),
+  hotelMiddleware.isbookingExist,
+  bookingController.fetchLatestPrice
+);
+
 export default router;

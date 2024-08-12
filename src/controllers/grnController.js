@@ -76,7 +76,7 @@ export default {
           "RETRIVED",
           200
         );
-        hotelHelper.checkBiddingNotification(req, finalResponseForSent);
+        hotelHelper.checkBiddingforBookingOnDate(req, finalResponseForSent);
       }
     } catch (error) {
       next(error);

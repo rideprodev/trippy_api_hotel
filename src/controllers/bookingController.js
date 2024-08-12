@@ -126,4 +126,19 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Fetch the  latest Price
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async fetchLatestPrice(req, res, next) {
+    try {
+      const response = await bookingRepository.fetchLatestPrice(req);
+      utility.getResponse(res, response, "Letest Price Updated!");
+    } catch (error) {
+      next(error);
+    }
+  },
 };
