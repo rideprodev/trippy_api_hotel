@@ -28,6 +28,12 @@ export default {
         const where = {
           cityCode: bodyData.cityCode,
           [Op.or]: [
+            {
+              [Op.and]: [
+                { StarCategory: { [Op.gte]: 3 } },
+                { StarCategory: { [Op.lte]: 5 } },
+              ],
+            },
             { accommodationTypeSubName: "Apartment" },
             { accommodationTypeSubName: "Hotel" },
             { accommodationTypeSubName: "Villa" },
@@ -363,14 +369,14 @@ export default {
             bookingData.underCancellation === "false"
           ) {
             if (bookingData.hotelCode === bodyData.hotelCode) {
-              if (bookingData.roomType === bodyData.roomType) {
-                utility.getError(
-                  res,
-                  "Can't bid on the same room you booked !"
-                );
-              } else {
-                next();
-              }
+              // if (bookingData.roomType === bodyData.roomType) {
+              //   utility.getError(
+              //     res,
+              //     "Can't bid on the same room you booked !"
+              //   );
+              // } else {
+              next();
+              // }
             } else {
               next();
             }
