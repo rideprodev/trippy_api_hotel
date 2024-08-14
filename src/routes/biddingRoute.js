@@ -50,7 +50,7 @@ router.post(
   validateMiddleware({
     schema: biddingValidator.placeBid,
   }),
-  hotelMiddleware.checkBiddingExist,
+  // hotelMiddleware.checkBiddingExist,
   hotelMiddleware.checkBiddingPossible,
   hotelMiddleware.checkbookingRefundable,
   biddingController.placeMyBid

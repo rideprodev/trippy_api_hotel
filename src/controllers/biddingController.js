@@ -73,13 +73,6 @@ export default {
       } else if (revalidate?.data?.hotel?.rate?.rate_type !== "bookable") {
         utility.getError(res, "Can't bid because this hotel is full !");
       } else {
-        //  Condition for same room booking on the
-        // const rooms = revalidate.data.hotel.rate.rooms;
-        // const checkRoomAvailiable = rooms.filter(
-        //   (x) => x.room_type === bodyData.roomType
-        // );
-        // console.log(rooms, bodyData.roomType);
-        // if (checkRoomAvailiable.length > 0) {
         let nonRefundable = null,
           underCancellation = null;
 
@@ -142,12 +135,6 @@ export default {
             "Can't bid, You can't bid on a non-refundable hotel !"
           );
         }
-        // } else {
-        //   utility.getError(
-        //     res,
-        //     "Oops! You missed it, All rooms of this type had been booked !"
-        //   );
-        // }
       }
     } catch (error) {
       next(error);
