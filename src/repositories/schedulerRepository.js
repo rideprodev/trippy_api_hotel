@@ -175,10 +175,13 @@ export default {
   async checkBookingForBiddingSchedule(bookingGroupData) {
     const groupObjectData = bookingGroupData;
     let result = [],
+      finalForRevalidate = [],
       commission = 0,
       commissionAmount = 0,
       totalPrice = 0;
-    const hotelData = [];
+    const hotelData = [],
+      sendForRevalidate = [],
+      cancellationBid = [];
     const searchPromise = groupObjectData.map(async (x) => {
       const request = {};
       request.body = JSON.parse(x.searchPayload);
@@ -197,8 +200,9 @@ export default {
       });
 
       hotelData.push({
-        id: x.id,
+        commission: x.userData.commission,
         rooms,
+        biddingData: x.biddingData,
       });
       request.body.hotelCode = hotelCode;
       return await grnRepository.search(request);
@@ -216,6 +220,7 @@ export default {
         where: { key: config.app.GRNPercentageKey },
       });
       commission = parseFloat(comissionPercent.value);
+
       for (let i = 0; i < hotelData.length; i++) {
         const elementi = hotelData[i];
         const newResponse = result[i]?.data?.hotels;
@@ -236,12 +241,123 @@ export default {
               }
             });
             if (newRates.length > 0) {
-              elementi.newRates.push(newRates[0]);
+              // add the commission on price
+              if (elementi.commission === "relevant") {
+                commissionAmount =
+                  (parseFloat(newRates[0].price) * commission) / 100;
+                totalPrice = parseFloat(newRates[0].price) + commissionAmount;
+              } else {
+                totalPrice = `${parseFloat(newRates[0].price).toFixed(2)}`;
+              }
+              elementi.newRates.push({
+                searchId: result[i]?.data?.search_id,
+                hotelCode: elementj.hotelCode,
+                totalPrice,
+                roomType: `${newRates[0].rooms[0].room_type}, ${newRates[0].boarding_details}`,
+                ...newRates[0],
+              });
             }
           }
         }
       }
-      return { hotelData, result, groupObjectData };
+
+      // compare the prices
+      for (let i = 0; i < hotelData.length; i++) {
+        const elementi = hotelData[i];
+        elementi.filterBiddingData = [];
+        for (let j = 0; j < elementi.newRates.length; j++) {
+          const elementj = elementi.newRates[j];
+          const filterBiddingData = elementi.biddingData.filter(
+            (x) =>
+              elementj.hotelCode === x.hotelCode &&
+              elementj.roomType === x.roomType
+          );
+          if (filterBiddingData.length > 0) {
+            for (let index = 0; index < filterBiddingData.length; index++) {
+              const elementf = filterBiddingData[index];
+              if (
+                elementj.totalPrice > elementf.minBid &&
+                elementj.totalPrice < elementf.maxBid
+              ) {
+                console.log(
+                  "if",
+                  elementj.totalPrice,
+                  elementf.minBid,
+                  elementf.maxBid,
+                  elementf.id
+                );
+                sendForRevalidate.push({
+                  newRates: elementj,
+                  bid: elementf,
+                  maxBidAmount: elementf.maxBid,
+                  // elementi,
+                });
+              } else {
+                console.log(
+                  "else",
+                  elementj.totalPrice,
+                  elementf.minBid,
+                  elementf.maxBid,
+                  elementf.id
+                );
+                // biddingRepository.updateLatestPrice({
+                //   biddingId: elementf.id,
+                //   userId: elementf.userId,
+                //   latestPrice: elementj.totalPrice,
+                // });
+              }
+            }
+          }
+        }
+      }
+      // Need to check the same room bid lowest price
+      for (let fr = 0; fr < sendForRevalidate.length; fr++) {
+        const elementfr = sendForRevalidate[fr];
+        if (finalForRevalidate.length === 0) {
+          finalForRevalidate.push(elementfr);
+        } else {
+          const filterRevalidate = finalForRevalidate.filter((x) => {
+            if (
+              x.newRates.hotelCode === elementfr.newRates.hotelCode &&
+              x.newRates.roomType === elementfr.newRates.roomType
+            ) {
+              return x;
+            }
+          });
+
+          if (filterRevalidate.length > 0) {
+            console.log(
+              filterRevalidate[0].maxBidAmount,
+              elementfr.maxBidAmount,
+              filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount
+            );
+            if (filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount) {
+              finalForRevalidate = finalForRevalidate.map((m) => {
+                if (filterRevalidate[0].bid.id === m.bid.id) {
+                  cancellationBid.push(filterRevalidate[0].bid);
+                  return elementfr;
+                } else {
+                  return m;
+                }
+              });
+            } else {
+              cancellationBid.push(elementfr.bid);
+            }
+          } else {
+            finalForRevalidate.push(elementfr);
+          }
+        }
+      }
+      //  revalidate the new Rates
+
+      return {
+        cancellationBid,
+        finalForRevalidate,
+        sendForRevalidate,
+        hotelData,
+        result,
+        groupObjectData,
+      };
     } else {
       return true;
     }

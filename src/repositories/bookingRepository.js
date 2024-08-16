@@ -467,6 +467,7 @@ export default {
     return await HotelBookingGroup.findAll({
       attributes: [
         "id",
+        "userId",
         "bookingId",
         "currentReference",
         "searchPayload",
