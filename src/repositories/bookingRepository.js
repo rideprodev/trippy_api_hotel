@@ -471,6 +471,9 @@ export default {
         "userId",
         "bookingId",
         "currentReference",
+        "checkIn",
+        "checkOut",
+        "isUserTravelled",
         "searchPayload",
         "totalRooms",
         "bookingName",
@@ -500,6 +503,11 @@ export default {
           model: HotelBidding,
           as: "biddingData",
           required: true,
+        },
+        {
+          attributes: ["roomNumber", "paxes", "ages"],
+          model: HotelBookingDetail,
+          as: "bookingDetils",
         },
         {
           attributes: [
