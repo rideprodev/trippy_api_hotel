@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import models from "../models";
 import biddingRepository from "./biddingRepository";
 import schedulerRepository from "./schedulerRepository";
@@ -14,6 +14,7 @@ const {
   HotelBidding,
   HotelBiddingPrices,
   HotelImage,
+  UserPersonalInformation,
 } = models;
 
 export default {
@@ -443,5 +444,89 @@ export default {
     } catch (err) {
       console.log(err);
     }
+  },
+
+  /**
+   * Get All Booking - Bidding for scheduler
+   *
+   * @param {Object} where
+   */
+  async getAllBookingForScdulerBidding(where = {}) {
+    const currentDate = new Date();
+    where = [
+      Sequelize.where(
+        Sequelize.fn(
+          "STR_TO_DATE",
+          Sequelize.col("HotelBookingGroup.check_in"),
+          "%Y-%m-%d"
+        ),
+        Op.gt,
+        currentDate
+      ),
+      { status: "confirmed" },
+    ];
+    return await HotelBookingGroup.findAll({
+      attributes: [
+        "id",
+        "userId",
+        "bookingId",
+        "currentReference",
+        "checkIn",
+        "checkOut",
+        "isUserTravelled",
+        "searchPayload",
+        "totalRooms",
+        "bookingName",
+        "totalMember",
+        "createdAt",
+        "bookingComments",
+      ],
+      order: [["id", "DESC"]],
+      where: where,
+      include: [
+        {
+          attributes: [
+            "id",
+            "userId",
+            "groupId",
+            "roomType",
+            "checkIn",
+            "checkOut",
+            "hotelCode",
+            "biddingPrice",
+            "minBid",
+            "maxBid",
+            "expairationAt",
+            "latestPrice",
+          ],
+          where: { status: "active" },
+          model: HotelBidding,
+          as: "biddingData",
+          required: true,
+        },
+        {
+          attributes: ["roomNumber", "paxes", "ages"],
+          model: HotelBookingDetail,
+          as: "bookingDetils",
+        },
+        {
+          attributes: [
+            "firstName",
+            "lastName",
+            "profilePicture",
+            "email",
+            "phoneNumberCountryCode",
+            "phoneNumber",
+            "commission",
+          ],
+          model: User,
+          as: "userData",
+          include: {
+            model: UserPersonalInformation,
+            as: "UserPersonalInformation",
+          },
+        },
+      ],
+    });
   },
 };

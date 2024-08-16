@@ -14,6 +14,7 @@ export default {
     swaggerHost: process.env.SWAGGER_HOST,
     MailerHost: process.env.MAILER_HOST,
     GRNBaseUrl: process.env.GRN_BASE_URL,
+    GRNPercentageKey: process.env.GRN_PERCENTAGE_KEY,
     currency: process.env.CURRENCY_ABBR,
     languages: ["en"],
     setBaseUrl(url) {
