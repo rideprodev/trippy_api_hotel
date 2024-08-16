@@ -14,6 +14,7 @@ const {
   HotelBidding,
   HotelBiddingPrices,
   HotelImage,
+  UserPersonalInformation,
 } = models;
 
 export default {
@@ -512,6 +513,10 @@ export default {
           ],
           model: User,
           as: "userData",
+          include: {
+            model: UserPersonalInformation,
+            as: "UserPersonalInformation",
+          },
         },
       ],
     });
