@@ -9,7 +9,7 @@ const {
   HotelCity,
   HotelImage,
 } = models;
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 export default {
   /**
@@ -157,6 +157,46 @@ export default {
   },
 
   /**
+   * update the price in place my bid and latest price throgh sceduler
+   * @param {Object} bodyData
+   */
+  async updatelatestPriceThroghScheduler(bodyData) {
+    try {
+      const currentDate = new Date();
+      const where = [
+        Sequelize.where(
+          Sequelize.fn("STR_TO_DATE", Sequelize.col("created_at"), "%Y-%m-%d"),
+          Op.eq,
+          Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d")
+        ),
+        { user_id: bodyData.userId },
+        { bidding_id: bodyData.biddingId },
+        { latest_price: bodyData.latestPrice },
+      ];
+      const priceLog = await HotelBiddingPrices.findOne({
+        where: where,
+      });
+      if (priceLog && +priceLog.latestPrice >= +bodyData.latestPrice) {
+        await priceLog.update({
+          latestPrice: bodyData.latestPrice,
+        });
+      } else {
+        await HotelBiddingPrices.create({
+          userId: bodyData.userId,
+          biddingId: bodyData.biddingId,
+          latestPrice: bodyData.latestPrice,
+        });
+      }
+      return await HotelBidding.update(
+        { latestPrice: bodyData.latestPrice },
+        { where: { id: bodyData.biddingId } }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  /**
    * Place my bid
    * @param {Object} req
    */
@@ -274,6 +314,22 @@ export default {
     } catch (error) {
       throw Error(error);
     }
+  },
+
+  async updateExpiredBidding() {
+    const currentDate = new Date();
+    const where = [
+      Sequelize.where(
+        Sequelize.fn(
+          "STR_TO_DATE",
+          Sequelize.col("expairation_at"),
+          "%Y-%m-%d"
+        ),
+        Op.lt,
+        Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d")
+      ),
+    ];
+    return await HotelBidding.update({ status: "expired" }, { where: where });
   },
 
   /**

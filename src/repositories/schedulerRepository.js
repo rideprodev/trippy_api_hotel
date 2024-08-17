@@ -167,12 +167,18 @@ export default {
    * @param {Object}
    */
   async autoBookingOnBidding() {
-    const AllBookingGroupData =
-      await bookingRepository.getAllBookingForScdulerBidding();
-    if (AllBookingGroupData.length > 0) {
-      return await this.checkBookingForBiddingSchedule(AllBookingGroupData);
-    } else {
-      return "No Bidding Found";
+    try {
+      const updateExpiredBidding =
+        await biddingRepository.updateExpiredBidding();
+      const AllBookingGroupData =
+        await bookingRepository.getAllBookingForScdulerBidding();
+      if (AllBookingGroupData.length > 0) {
+        return await this.checkBookingForBiddingSchedule(AllBookingGroupData);
+      } else {
+        return "No Bidding Found";
+      }
+    } catch (err) {
+      console.log(err);
     }
   },
 
@@ -183,12 +189,12 @@ export default {
       filterRevalidate = [],
       finalForRevalidate = [],
       bookingResult = [],
-      bookedResult = [],
       cancelledBooking = [],
       commission = 0,
       commissionAmount = 0,
       totalPrice = 0;
     const hotelData = [],
+      updateLatestPrice = [],
       sendForRevalidate = [],
       cancellationBid = [];
     const searchPromise = groupObjectData.map(async (x) => {
@@ -227,6 +233,7 @@ export default {
 
     if (result.length > 0) {
       // get the commission interest
+      const currentDatatime = new Date();
       const comissionPercent = await Setting.findOne({
         where: { key: config.app.GRNPercentageKey },
       });
@@ -307,7 +314,7 @@ export default {
                   groupObjectData: elementi.bookingGroupData,
                   id: elementi.bookingGroupData.id,
                 });
-                biddingRepository.updateLatestPrice({
+                updateLatestPrice.push({
                   biddingId: elementf.id,
                   userId: elementf.userId,
                   latestPrice: elementj.totalPrice,
@@ -320,24 +327,28 @@ export default {
                 //   elementf.maxBid,
                 //   elementf.id
                 // );
-                biddingRepository.updateLatestPrice({
+                updateLatestPrice.push({
                   biddingId: elementf.id,
                   userId: elementf.userId,
                   latestPrice: elementj.totalPrice,
                 });
-                HotelBidding.update(
-                  { latestPrice: elementj.totalPrice },
-                  { where: { id: elementf.id } }
-                );
               }
             }
           }
         }
       }
+
+      // Update Latest Prices Hotel
+      // console.log(updateLatestPrice);
+      const updateLatestPricesHotelPromise = updateLatestPrice.map((x) =>
+        biddingRepository.updatelatestPriceThroghScheduler(x)
+      );
+
       // Need to check the same room bid lowest price
       if (sendForRevalidate.length > 0) {
         for (let fr = 0; fr < sendForRevalidate.length; fr++) {
           const elementfr = sendForRevalidate[fr];
+
           if (finalForRevalidate.length === 0) {
             finalForRevalidate.push(elementfr);
           } else {
@@ -552,7 +563,6 @@ export default {
           console.log(err);
         }
 
-        const currentDatatime = await utility.getCurrentDateTime();
         const saveAndCancelBookingPromise = bookingResult.map(async (x, i) => {
           const _response = x;
           const revalidateData = filterRevalidate[i].data;
@@ -569,9 +579,9 @@ export default {
             let nonRefundable = null,
               underCancellation = null,
               cancelByDate = null,
-              cancellationPolicy = null;
-            // cardId = null,
-            // transactionId = null;
+              cancellationPolicy = null,
+              cardId = null,
+              transactionId = null;
             if (
               _response?.data?.hotel?.booking_items &&
               _response?.data?.hotel?.booking_items.length > 0 &&
@@ -599,8 +609,8 @@ export default {
               bookingGroupId: bookingGroupObject.id,
               hotelCode: revalidateHotelData.hotel_code,
               cityCode: revalidateHotelData.city_code,
-              checkout: bookingGroupObject.checkOut,
-              checkin: bookingGroupObject.checkIn,
+              checkOut: bookingGroupObject.checkOut,
+              checkIn: bookingGroupObject.checkIn,
               currency: userData.UserPersonalInformation.currencyCode,
               price: _response?.data?.price?.total
                 ? _response?.data?.price?.total
@@ -631,13 +641,14 @@ export default {
               searchId: _response?.data?.search_id,
               reavalidateResponse: JSON.stringify(revalidateData),
             };
-            console.log(bookingData);
+            // console.log(bookingData);
             // create the new booking
             const booking = await HotelBooking.create(bookingData);
             // console.log("================================");
             console.log("booking created", booking.id);
             // console.log("================================");
             if (booking) {
+              requestData.newBookingId = booking.id;
               HotelBookingGroup.update(
                 {
                   bookingId: booking.id,
@@ -740,16 +751,20 @@ export default {
                   }
                 );
               } catch (err) {}
+
               HotelBooking.update(
                 {
                   status: "cancelled",
-                  cancelledDate:
-                    _response_cancel?.data?.cancellation_details?.cancel_date,
-                  refundAmout:
-                    _response_cancel?.data?.cancellation_details?.refund_amount,
-                  cancellationCharge:
-                    _response_cancel.data?.cancellation_details
-                      ?.cancellation_charge,
+                  cancelledDate: _response_cancel?.data?.cancel_date,
+                  refundAmout: parseFloat(
+                    parseFloat(_response_cancel?.data?.booking_price?.amount) -
+                      parseFloat(
+                        _response_cancel.data?.cancellation_charges?.amount
+                      )
+                  ).toFixed(2),
+                  cancellationCharge: parseFloat(
+                    _response_cancel.data?.cancellation_charges?.amount
+                  ).toFixed(2),
                 },
                 { where: { id: bookingGroupObject.bookingId } }
               );
@@ -761,6 +776,7 @@ export default {
                   bookingId: bookingGroupObject.bookingId,
                 },
               });
+              // console.log(bookingLog);
               for (let i = 0; i < bookingLog.length; i++) {
                 const element1 = bookingLog[i];
                 cardId = element1.cardId;
@@ -768,39 +784,47 @@ export default {
                   transactionId = element1.transactionId;
                 }
               }
-              HotelBookingLog.bulkCreate(
+
+              const logRequest = {
+                userId: bookingGroupObject.userId,
+                groupId: bookingGroupObject.id,
+              };
+
+              if (cardId > 0) {
+                logRequest.cardId = cardId;
+              }
+              if (transactionId > 0) {
+                logRequest.transactionId = transactionId;
+              }
+              // console.log(logRequest
+              HotelBookingLog.bulkCreate([
                 {
-                  userId: bookingGroupObject.userId,
-                  groupId: bookingGroupObject.id,
+                  ...logRequest,
                   bookingId: bookingGroupObject.bookingId,
-                  transactionId: transactionId,
-                  cardId: cardId,
                   paymentStatus: "cancelled",
                 },
                 {
-                  userId: bookingGroupObject.userId,
-                  groupId: bookingGroupObject.id,
-                  bookingId: bookingGroupObject.bookingId,
-                  transactionId: transactionId,
-                  cardId: cardId,
+                  ...logRequest,
+                  bookingId: requestData.newBookingId,
                   paymentStatus: "booked",
-                }
-              );
+                },
+              ]);
             }
             return true;
           }
         });
-        // update the complete biddings
+        // // update the complete biddings
         const updateBiddingsConfimed = bookingResult.map((x, i) => {
           const _response = x;
           const requestData = finalForRevalidate[i];
           const biddingData = requestData.bid;
-          const newRateData = requestData.newRate;
+          const newRateData = requestData.newRates;
           if (
             _response !== undefined &&
             (_response?.data?.status == "pending" ||
               _response?.data?.status == "confirmed")
           ) {
+            // console.log(newRateData.totalPrice);
             HotelBidding.update(
               { status: "completed", latestPrice: newRateData.totalPrice },
               { where: { id: biddingData.id } }
@@ -826,7 +850,6 @@ export default {
       }
       return {
         cancelledBooking,
-        bookedResult,
         bookingResult,
         filterRevalidate,
         finalForRevalidate,

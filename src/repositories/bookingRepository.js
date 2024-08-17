@@ -464,7 +464,7 @@ export default {
         Op.gt,
         currentDate
       ),
-      where,
+      Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d"),
     ];
     const biddingWhere = [
       Sequelize.where(

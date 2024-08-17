@@ -9,26 +9,7 @@ export default {
   async checkBiddingforBookingOnDate(req, data) {
     delete req.user;
     const bodyData = req.body;
-
-    const Bidding = await biddingRepository.getAllBiddingForScduler();
-    if (Bidding.length > 0) {
-      const finalBidding = [];
-      for (let i = 0; i < Bidding.length; i++) {
-        const x = Bidding[i].dataValues;
-        if (
-          x.checkIn === bodyData.checkIn &&
-          x.checkOut === bodyData.checkOut
-        ) {
-          finalBidding.push(x);
-        }
-      }
-      console.log("Final Bidding=>", finalBidding.length);
-      if (finalBidding.length > 0) {
-        await schedulerRepository.checkbiddingforbooking(finalBidding);
-      }
-    } else {
-      console.log("Not any bidding find");
-    }
+    console.log("search hit");
   },
 
   async setCountryCityName(req, data) {
