@@ -451,9 +451,10 @@ export default {
    *
    * @param {Object} where
    */
-  async getAllBookingForScdulerBidding(where = {}) {
+  async getAllBookingForScdulerBidding(where = []) {
     const currentDate = new Date();
-    where = [
+    where = [...where, { status: "confirmed" }];
+    const bookingWhere = [
       Sequelize.where(
         Sequelize.fn(
           "STR_TO_DATE",
@@ -463,7 +464,19 @@ export default {
         Op.gt,
         currentDate
       ),
-      { status: "confirmed" },
+      where,
+    ];
+    const biddingWhere = [
+      Sequelize.where(
+        Sequelize.fn(
+          "STR_TO_DATE",
+          Sequelize.col("biddingData.expairation_at"),
+          "%Y-%m-%d"
+        ),
+        Op.gte,
+        Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d")
+      ),
+      { status: "active" },
     ];
     return await HotelBookingGroup.findAll({
       attributes: [
@@ -482,7 +495,7 @@ export default {
         "bookingComments",
       ],
       order: [["id", "DESC"]],
-      where: where,
+      where: bookingWhere,
       include: [
         {
           attributes: [
@@ -499,7 +512,7 @@ export default {
             "expairationAt",
             "latestPrice",
           ],
-          where: { status: "active" },
+          where: biddingWhere,
           model: HotelBidding,
           as: "biddingData",
           required: true,
