@@ -449,7 +449,7 @@ export default {
    */
   async getAllBookingForScdulerBidding(where = []) {
     const currentDate = new Date();
-    // where = [...where, { status: "confirmed" }];
+    where = [...where, { status: "confirmed" }];
     const bookingWhere = [
       Sequelize.where(
         Sequelize.fn(
