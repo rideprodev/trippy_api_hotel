@@ -172,16 +172,30 @@ export default {
       const AllBookingGroupData =
         await bookingRepository.getAllBookingForScdulerBidding();
       if (AllBookingGroupData.length > 0) {
-        let resultResponse = [];
-        const chunkBookingMap = AllBookingGroupData.map(
-          async (x) => await this.checkBookingForBiddingSchedule([x])
+        const chaunkArray = [],
+          counts = 10;
+        const arrayLenght = AllBookingGroupData.length;
+        const numberCount = arrayLenght / counts;
+        const floatCount = numberCount % 1 === 0;
+        const loopCount =
+          floatCount === false
+            ? parseInt(numberCount + 1)
+            : parseInt(numberCount);
+        let start = 0;
+        for (let index = 0; index < loopCount; index++) {
+          let end = start + counts;
+          chaunkArray.push(AllBookingGroupData.slice(start, end));
+          start = end;
+        }
+        const chunkBookingMap = chaunkArray.map(
+          async (x) => await this.checkBookingForBiddingSchedule(x)
         );
         try {
           resultResponse = await Promise.all(chunkBookingMap);
         } catch (err) {
           console.log(err);
         }
-        return resultResponse;
+        return chaunkArray;
       } else {
         return "No Bidding Found";
       }
@@ -574,9 +588,7 @@ export default {
                 let nonRefundable = null,
                   underCancellation = null,
                   cancelByDate = null,
-                  cancellationPolicy = null,
-                  cardId = null,
-                  transactionId = null;
+                  cancellationPolicy = null;
                 if (
                   _response?.data?.hotel?.booking_items &&
                   _response?.data?.hotel?.booking_items.length > 0 &&
@@ -847,6 +859,7 @@ export default {
           finalForRevalidate,
           cancellationBid,
           sendForRevalidate,
+          updateLatestPrice,
           hotelData,
           result,
           groupObjectData,

@@ -432,15 +432,11 @@ export default {
     try {
       const { bookingId } = req.params;
       const userData = req.user;
-      const where = {
-        groupId: bookingId,
-        userId: userData.id,
-      };
-      const biddings = await biddingRepository.getAllBiddingForScduler(where);
-      const biddingPrices = await schedulerRepository.checkbiddingforbooking(
-        biddings
-      );
-      return biddingPrices;
+      const where = [{ id: bookingId }, { user_id: userData.id }];
+      const biddings = await this.getAllBookingForScdulerBidding(where);
+      const biddingPrices =
+        await schedulerRepository.checkBookingForBiddingSchedule(biddings);
+      return biddingPrices?.updateLatestPrice;
     } catch (err) {
       console.log(err);
     }
@@ -453,7 +449,7 @@ export default {
    */
   async getAllBookingForScdulerBidding(where = []) {
     const currentDate = new Date();
-    where = [...where, { status: "confirmed" }];
+    // where = [...where, { status: "confirmed" }];
     const bookingWhere = [
       Sequelize.where(
         Sequelize.fn(
@@ -465,6 +461,7 @@ export default {
         currentDate
       ),
       Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d"),
+      ...where,
     ];
     const biddingWhere = [
       Sequelize.where(
