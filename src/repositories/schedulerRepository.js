@@ -172,6 +172,7 @@ export default {
       const AllBookingGroupData =
         await bookingRepository.getAllBookingForScdulerBidding();
       if (AllBookingGroupData.length > 0) {
+        let resultResponse = [];
         const chaunkArray = [],
           counts = 10;
         const arrayLenght = AllBookingGroupData.length;
@@ -195,7 +196,7 @@ export default {
         } catch (err) {
           console.log(err);
         }
-        return chaunkArray;
+        return resultResponse;
       } else {
         return "No Bidding Found";
       }
