@@ -47,11 +47,6 @@ export default {
       const response = result.filter((x) => x.status === 200);
       if (response.length === 0) {
         utility.getError(res, "No data Found!");
-        // } else if (response.data.errors && response.data.errors.length > 0) {
-        //   utility.getError(
-        //     res,
-        //     `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
-        //   );
       } else {
         let dataCustomise = response.map(async (element) => {
           return await hotelHelper.setCountryCityName(req, element.data);
@@ -76,7 +71,7 @@ export default {
           "RETRIVED",
           200
         );
-        hotelHelper.checkBiddingforBookingOnDate(req, finalResponseForSent);
+        // hotelHelper.checkBiddingforBookingOnDate(req, finalResponseForSent);
       }
     } catch (error) {
       next(error);
