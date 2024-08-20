@@ -198,7 +198,7 @@ export default {
         }
         return resultResponse;
       } else {
-        return "No Bidding Found";
+        return "No Booking-Bidding Found";
       }
     } catch (err) {
       console.log(err);
