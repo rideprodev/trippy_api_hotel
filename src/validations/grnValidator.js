@@ -17,6 +17,9 @@ const search = Joi.object({
   checkOut: Joi.string().required(),
   currency: Joi.string().empty().allow(""),
   clientNationality: Joi.string().required(),
+  totalMember: Joi.string().required(),
+  totalAdult: Joi.string().required(),
+  totalChildren: Joi.string().required(),
 });
 
 const refetch = Joi.object({
@@ -44,6 +47,8 @@ const booking = Joi.object({
   roomType: Joi.string().required(),
   bookingComments: Joi.string().required(),
   totalMember: Joi.string().required(),
+  totalAdult: Joi.string().required(),
+  totalChildren: Joi.string().required(),
   bookingName: Joi.string().required(),
   price: Joi.string().required(),
   currency: Joi.string().required(),
