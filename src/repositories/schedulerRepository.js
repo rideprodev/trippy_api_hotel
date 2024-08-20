@@ -653,10 +653,11 @@ export default {
                 // create the new booking
                 const booking = await HotelBooking.create(bookingData);
                 // console.log("================================");
-                console.log("booking created", booking.id);
+                console.log("booking created", booking?.id);
                 // console.log("================================");
-                if (booking) {
+                if (booking && booking?.id) {
                   requestData.newBookingId = booking.id;
+                  requestData.newExpairationDate = cancelByDate;
                   HotelBookingGroup.update(
                     {
                       bookingId: booking.id,
@@ -833,6 +834,15 @@ export default {
             ) {
               // console.log(newRateData.totalPrice);
               HotelBidding.update(
+                { expairationAt: requestData.newExpairationDate },
+                {
+                  where: {
+                    // id: { [Op.ne]: biddingData.id },
+                    groupId: requestData.id,
+                  },
+                }
+              );
+              HotelBidding.update(
                 { status: "completed", latestPrice: newRateData.totalPrice },
                 { where: { id: biddingData.id } }
               );
@@ -844,10 +854,12 @@ export default {
           try {
             await Promise.all(updateDataAndMailPromise);
             await Promise.all(updateBiddingsConfimed);
-            await HotelBidding.update(
-              { status: "cancelled" },
-              { where: { id: updateCancellationBiddings } }
-            );
+            if (updateCancellationBiddings.length > 0) {
+              await HotelBidding.update(
+                { status: "cancelled" },
+                { where: { id: updateCancellationBiddings } }
+              );
+            }
           } catch (err) {
             console.log(err);
           }
