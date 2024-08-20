@@ -83,7 +83,6 @@ export default {
             ],
             model: HotelBooking,
             as: "booking",
-            where: { status: "confirmed" },
             required: false,
           },
           {
