@@ -251,6 +251,7 @@ export default {
       } catch (err) {
         console.log(err);
       }
+      console.log(result);
       if (result.length > 0 && result[0]?.data?.hotels) {
         // get the commission interest
         const currentDatatime = new Date();

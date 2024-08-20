@@ -433,9 +433,15 @@ export default {
       const userData = req.user;
       const where = [{ id: bookingId }, { user_id: userData.id }];
       const biddings = await this.getAllBookingForScdulerBidding(where);
-      const biddingPrices =
-        await schedulerRepository.checkBookingForBiddingSchedule(biddings);
-      return biddingPrices?.updateLatestPrice;
+      if (biddings.length > 0) {
+        const biddingPrices =
+          await schedulerRepository.checkBookingForBiddingSchedule(biddings);
+        return biddingPrices?.updateLatestPrice
+          ? biddingPrices.updateLatestPrice
+          : [];
+      } else {
+        return [];
+      }
     } catch (err) {
       console.log(err);
     }
@@ -448,7 +454,7 @@ export default {
    */
   async getAllBookingForScdulerBidding(where = []) {
     const currentDate = new Date();
-    where = [...where, { id: 11 }, { status: "confirmed" }];
+    where = [...where, { status: "confirmed" }];
     const bookingWhere = [
       Sequelize.where(
         Sequelize.fn(
