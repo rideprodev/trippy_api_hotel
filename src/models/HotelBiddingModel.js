@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       },
       roomType: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING(255),
         allowNull: false,
       },
       checkIn: {
@@ -34,6 +34,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       maxBid: {
         type: DataTypes.STRING(50),
+      },
+      priority: {
+        type: DataTypes.INTEGER(10),
+        defaultValue: 0,
       },
       expairationAt: {
         type: DataTypes.DATE,

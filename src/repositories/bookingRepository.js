@@ -83,7 +83,6 @@ export default {
             ],
             model: HotelBooking,
             as: "booking",
-            where: { status: "confirmed" },
             required: false,
           },
           {
@@ -449,7 +448,7 @@ export default {
    */
   async getAllBookingForScdulerBidding(where = []) {
     const currentDate = new Date();
-    where = [...where, { status: "confirmed" }];
+    where = [...where, { id: 11 }, { status: "confirmed" }];
     const bookingWhere = [
       Sequelize.where(
         Sequelize.fn(
@@ -521,6 +520,7 @@ export default {
         },
         {
           attributes: [
+            "id",
             "firstName",
             "lastName",
             "profilePicture",
