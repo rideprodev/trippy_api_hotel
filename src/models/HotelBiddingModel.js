@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       priority: {
         type: DataTypes.INTEGER(10),
-        defaultValue: 0,
+        defaultValue: 1,
       },
       expairationAt: {
         type: DataTypes.DATE,
