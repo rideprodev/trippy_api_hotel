@@ -251,7 +251,7 @@ export default {
       } catch (err) {
         console.log(err);
       }
-      if (result.length > 0) {
+      if (result.length > 0 && result[0]?.data?.hotels) {
         // get the commission interest
         const currentDatatime = new Date();
         const comissionPercent = await Setting.findOne({
@@ -376,11 +376,11 @@ export default {
                 }
               });
               if (filterRevalidate.length > 0) {
-                console.log(
-                  filterRevalidate[0].maxBidAmount,
-                  elementfr.maxBidAmount,
-                  filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount
-                );
+                // console.log(
+                //   filterRevalidate[0].maxBidAmount,
+                //   elementfr.maxBidAmount,
+                //   filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount
+                // );
                 if (filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount) {
                   finalForRevalidate = finalForRevalidate.map((m) => {
                     if (filterRevalidate[0].bid.id === m.bid.id) {
@@ -466,6 +466,8 @@ export default {
               const userInformation = userData?.UserPersonalInformation;
               const userMember = {
                 id: userData.id,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
                 title: userInformation.title,
                 nationality: userInformation.nationality,
                 type: "AD",
@@ -477,8 +479,8 @@ export default {
               const roomInfo = bookingDetails.filter(
                 (x) => x.roomNumber == j + 1
               );
-              const paxes = roomInfo.map((x) => x.paxes);
-              const ages = roomInfo.map((x) => x.ages);
+              const paxes = `${roomInfo[0].paxes}`.split(",");
+              const ages = `${roomInfo[0].ages}`.split(",");
               roomsData.push({
                 room_reference:
                   revalidateHotelData?.rate?.rooms[0]?.room_reference,
@@ -503,8 +505,9 @@ export default {
                 membersId = [...membersId, ...element.paxes];
               }
             }
+            // console.log(membersId);
             if (membersId.length > 0) {
-              const onlyMember = membersId.filter((x) => x !== userData.id);
+              const onlyMember = membersId.filter((x) => x != userData.id);
               if (onlyMember.length > 0) {
                 const memberData = await UserMember.findAll({
                   where: { id: onlyMember },
@@ -516,7 +519,7 @@ export default {
               }
             }
             const membersData = members;
-            // console.log(membersData);
+            // console.log(membersData, membersData);
             //  set the paxes
             for (let index = 0; index < bookingItems.length; index++) {
               const e = bookingItems[index];
