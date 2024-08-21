@@ -202,11 +202,22 @@ export default {
    */
   async placeMyBid(req) {
     try {
+      let priority = 1;
       const bodyData = req.body;
       bodyData.userId = req.user.id;
       bodyData.reavalidateResponse = JSON.stringify(
         bodyData.reavalidateResponse
       );
+      const priorityData = await HotelBidding.findOne({
+        where: { groupId: 110 },
+        order: [["priority", "DESC"]],
+      });
+
+      if (priorityData) {
+        bodyData.priority = priorityData.priority + priority;
+      } else {
+        bodyData.priority = priority;
+      }
       //  need to get the expairation date backend
       const _response = await HotelBidding.create(bodyData);
       bodyData.biddingId = _response.id;

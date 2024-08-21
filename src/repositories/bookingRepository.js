@@ -437,7 +437,6 @@ export default {
       if (biddings.length > 0) {
         const biddingPrices =
           await schedulerRepository.checkBookingForBiddingSchedule(biddings);
-        return biddingPrices;
         return biddingPrices?.updateLatestPrice
           ? biddingPrices.updateLatestPrice
           : [];

@@ -290,6 +290,8 @@ export default {
           status: _response?.data?.status ? _response?.data?.status : "failed",
           totalRooms: bodyData.totalRooms,
           totalMember: bodyData.totalMember,
+          totalAdult: bodyData.totalAdult,
+          totalChildren: bodyData.totalChildren,
           isUserTravelled: bodyData.isUserTravelled,
           searchPayload: JSON.stringify(bodyData.searchPayload),
         };

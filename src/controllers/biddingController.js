@@ -1,3 +1,4 @@
+import config from "../config";
 import models from "../models";
 import repositories from "../repositories";
 import utility from "../services/utility";
@@ -98,7 +99,7 @@ export default {
           const userData = req.user;
           if (userData.commission === "relevant") {
             const comissionPercent = await Setting.findOne({
-              where: { key: "b05970e2431ae626c0f4a0f67c56848bdf22811d" },
+              where: { key: config.app.GRNPercentageKey },
             });
             commission = parseFloat(comissionPercent.value);
             commissionAmount =
