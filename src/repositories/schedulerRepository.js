@@ -214,12 +214,12 @@ export default {
         finalForRevalidate = [],
         bookingResult = [],
         cancelledBooking = [],
+        sendForRevalidate = [],
         commission = 0,
         commissionAmount = 0,
         totalPrice = 0;
       const hotelData = [],
         updateLatestPrice = [],
-        sendForRevalidate = [],
         cancellationBid = [];
       const searchPromise = groupObjectData.map(async (x) => {
         const request = {};
@@ -351,7 +351,7 @@ export default {
                     biddingId: elementf.id,
                     userId: elementf.userId,
                     latestPrice: elementj.totalPrice,
-                    status: "true",
+                    status: "false",
                   });
                 }
               }
@@ -359,11 +359,15 @@ export default {
           }
         }
         // Update Latest Prices Hotel
-        // console.log(updateLatestPrice);
-        const updateLatestPricesHotelPromise = updateLatestPrice.map((x) =>
-          biddingRepository.updatelatestPriceThroghScheduler(x)
+        console.log(updateLatestPrice);
+        // const updateLatestPricesHotelPromise = updateLatestPrice.map((x) =>
+        //   biddingRepository.updatelatestPriceThroghScheduler(x)
+        // );
+        // Need to check the same room bid lowest price with priority
+        sendForRevalidate = sendForRevalidate.sort(
+          (a, b) => a.bid.priority - b.bid.priority
         );
-        // Need to check the same room bid lowest price
+
         if (sendForRevalidate.length > 0) {
           for (let fr = 0; fr < sendForRevalidate.length; fr++) {
             const elementfr = sendForRevalidate[fr];
@@ -379,11 +383,11 @@ export default {
                 }
               });
               if (filterRevalidate.length > 0) {
-                // console.log(
-                //   filterRevalidate[0].maxBidAmount,
-                //   elementfr.maxBidAmount,
-                //   filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount
-                // );
+                console.log(
+                  filterRevalidate[0].maxBidAmount,
+                  elementfr.maxBidAmount,
+                  filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount
+                );
                 if (filterRevalidate[0].maxBidAmount > elementfr.maxBidAmount) {
                   finalForRevalidate = finalForRevalidate.map((m) => {
                     if (filterRevalidate[0].bid.id === m.bid.id) {

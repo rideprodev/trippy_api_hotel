@@ -93,6 +93,7 @@ export default {
               "biddingPrice",
               "minBid",
               "maxBid",
+              "priority",
               "expairationAt",
               "status",
               "roomType",
@@ -140,7 +141,7 @@ export default {
             index++
           ) {
             const ele = element?.dataValues?.biddingData[index];
-            ele.dataValues.hotelInfo = await Hotel.findOne({
+            ele.dataValues.hotelData = await Hotel.findOne({
               attributes: ["hotelCode", "hotelName", "countryCode"],
               where: { hotelCode: ele.hotelCode },
             });
@@ -496,7 +497,10 @@ export default {
         "createdAt",
         "bookingComments",
       ],
-      order: [["id", "DESC"]],
+      order: [
+        ["id", "DESC"],
+        [Sequelize.col("biddingData.priority"), "ASC"],
+      ],
       where: bookingWhere,
       include: [
         {
@@ -511,6 +515,7 @@ export default {
             "biddingPrice",
             "minBid",
             "maxBid",
+            "priority",
             "expairationAt",
             "latestPrice",
           ],
