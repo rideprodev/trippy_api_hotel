@@ -337,6 +337,7 @@ export default {
                     biddingId: elementf.id,
                     userId: elementf.userId,
                     latestPrice: elementj.totalPrice,
+                    status: "true",
                   });
                 } else {
                   // console.log(
@@ -350,6 +351,7 @@ export default {
                     biddingId: elementf.id,
                     userId: elementf.userId,
                     latestPrice: elementj.totalPrice,
+                    status: "true",
                   });
                 }
               }

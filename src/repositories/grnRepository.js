@@ -667,7 +667,7 @@ export default {
             },
             {
               where: {
-                groupId: bookingObject?.bookingId,
+                groupId: bookingObject.id,
               },
             }
           );
