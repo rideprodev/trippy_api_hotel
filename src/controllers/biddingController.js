@@ -205,4 +205,69 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Get Change Priority of any bidding
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async changePriority(req, res, next) {
+    try {
+      let newUpdatedPriority = [];
+      const bodyData = req.body;
+      const biddingData = await biddingRepository.getAllBidding(
+        {
+          status: "active",
+          groupId: bodyData.groupId,
+        },
+        ["priority", "ASC"]
+      );
+      if (biddingData.length > 1) {
+        const updatedPriorities = biddingData.map((x) => {
+          const returnData = (id, priority) => {
+            return { id, priority };
+          };
+          if (
+            +x.priority < +bodyData.newPosition ||
+            +x.priority > +bodyData.currentPosition
+          ) {
+            return returnData(x.id, x.priority);
+          } else if (+x.priority == +bodyData.currentPosition) {
+            x.priority = +bodyData.newPosition;
+            return returnData(x.id, x.priority);
+          } else if (
+            +x.priority >= +bodyData.newPosition &&
+            +x.priority != +bodyData.currentPosition
+          ) {
+            x.priority = +x.priority + 1;
+
+            return returnData(x.id, x.priority);
+          }
+        });
+
+        const updateBiddingData = updatedPriorities.map(
+          async (x) =>
+            await biddingRepository.updateBiddingWhere(
+              { priority: x.priority },
+              { id: x.id }
+            )
+        );
+
+        try {
+          await Promise.all(updateBiddingData);
+        } catch (err) {
+          console.log(err);
+        }
+
+        newUpdatedPriority = updatedPriorities.sort(
+          (a, b) => a.priority - b.priority
+        );
+      }
+
+      utility.getResponse(res, newUpdatedPriority, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

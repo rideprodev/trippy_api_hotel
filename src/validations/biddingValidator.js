@@ -30,8 +30,15 @@ const checkBookingForBidding = Joi.object({
   totalMember: Joi.string().required(),
 });
 
+const changePriority = Joi.object({
+  groupId: Joi.string().required(),
+  newPosition: Joi.string().required(),
+  currentPosition: Joi.string().required(),
+});
+
 export default {
   placeBid,
   updateBid,
   checkBookingForBidding,
+  changePriority,
 };

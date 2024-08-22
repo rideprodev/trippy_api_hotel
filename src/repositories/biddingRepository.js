@@ -202,22 +202,11 @@ export default {
    */
   async placeMyBid(req) {
     try {
-      let priority = 1;
       const bodyData = req.body;
       bodyData.userId = req.user.id;
       bodyData.reavalidateResponse = JSON.stringify(
         bodyData.reavalidateResponse
       );
-      const priorityData = await HotelBidding.findOne({
-        where: { groupId: 110 },
-        order: [["priority", "DESC"]],
-      });
-
-      if (priorityData) {
-        bodyData.priority = priorityData.priority + priority;
-      } else {
-        bodyData.priority = priority;
-      }
       //  need to get the expairation date backend
       const _response = await HotelBidding.create(bodyData);
       bodyData.biddingId = _response.id;
@@ -281,14 +270,29 @@ export default {
   },
 
   /**
+   * Update Biddings Where
+   * @param {Object} req
+   */
+  async updateBiddingWhere(data, where) {
+    try {
+      const update = await HotelBidding.update(data, { where: where });
+      // console.log(update, data, where);
+      return update;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
    * Get All Bidding
    *
    * @param {Object} where
    */
-  async getAllBidding(where) {
+  async getAllBidding(where, order = ["id", "DESC"]) {
     return await HotelBidding.findAll({
       where,
       include: { model: User, as: "userData" },
+      order: [order],
     });
   },
 
