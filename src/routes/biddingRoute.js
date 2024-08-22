@@ -53,6 +53,7 @@ router.post(
   // hotelMiddleware.checkBiddingExist,
   hotelMiddleware.checkBiddingPossible,
   hotelMiddleware.checkbookingRefundable,
+  hotelMiddleware.checkBiddingCounting,
   biddingController.placeMyBid
 );
 
@@ -86,8 +87,18 @@ router.post(
   }),
   resourceAccessMiddleware(["user"]),
   hotelMiddleware.checkBiddingForSearch,
-  hotelMiddleware.checkBookingForSearch,
   biddingController.bookingAvaliablity
+);
+
+router.post(
+  "/change-priority/:id",
+  authMiddleware,
+  validateMiddleware({
+    schema: biddingValidator.changePriority,
+  }),
+  resourceAccessMiddleware(["user"]),
+  hotelMiddleware.checkPriorityPosition,
+  biddingController.changePriority
 );
 
 export default router;

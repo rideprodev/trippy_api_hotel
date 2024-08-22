@@ -102,7 +102,10 @@ export default {
             as: "biddingData",
           },
         ],
-        order: [["id", "DESC"]],
+        order: [
+          ["id", "DESC"],
+          [Sequelize.col("biddingData.priority"), "ASC"],
+        ],
         offset: offset,
         limit: limit,
       });
@@ -232,6 +235,7 @@ export default {
             as: "bookingLogs",
           },
         ],
+        order: [[Sequelize.col("biddingData.priority"), "ASC"]],
       });
       for (let i = 0; i < _hotel.bookings.length; i++) {
         const element = _hotel.bookings[i];

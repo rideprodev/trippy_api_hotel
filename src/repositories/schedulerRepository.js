@@ -866,7 +866,7 @@ export default {
             await Promise.all(updateBiddingsConfimed);
             if (updateCancellationBiddings.length > 0) {
               await HotelBidding.update(
-                { status: "cancelled" },
+                { status: "cancelled", priority: 999999 },
                 { where: { id: updateCancellationBiddings } }
               );
             }

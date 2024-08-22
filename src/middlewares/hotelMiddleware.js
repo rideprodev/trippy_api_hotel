@@ -9,6 +9,7 @@ const {
 } = repositories;
 import models from "../models";
 import { Op } from "sequelize";
+import config from "../config";
 const { UserMember, UserPersonalInformation, Setting, Cards } = models;
 
 export default {
@@ -403,6 +404,33 @@ export default {
    * @param {Object} res
    * @param {Function} next
    */
+  async checkBiddingCounting(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const count = await biddingRepository.getAllBidding(
+        {
+          groupId: bodyData.groupId,
+          status: "active",
+        },
+        ["priority", "DESC"]
+      );
+      if (count.length < config.app.biddingLimitOnBooking) {
+        bodyData.priority = count.length === 0 ? 1 : count[0].priority + 1;
+        next();
+      } else {
+        utility.getError(res, "Maximum of 10 bid can be serve in a booking!");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check bidding is for search
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
   async checkBiddingForSearch(req, res, next) {
     try {
       const biddingData =
@@ -415,16 +443,30 @@ export default {
   },
 
   /**
-   * Check Booking is for search
+   * Check Bidding Priority
    * @param {Object} req
    * @param {Object} res
    * @param {Function} next
    */
-  async checkBookingForSearch(req, res, next) {
+  async checkPriorityPosition(req, res, next) {
     try {
-      const biddingData = await bookingRepository.getAllActiveBooking(req);
-      req.bookings = biddingData;
-      next();
+      const bodyData = req.body;
+      const bookingData = await bookingRepository.getOneActiveBooking({
+        bookingGroupId: bodyData.groupId,
+        status: "confirmed",
+      });
+      if (bookingData) {
+        if (bodyData.newPosition == 999999) {
+          utility.getError(res, "not permitted for this position!");
+        } else {
+          next();
+        }
+      } else {
+        utility.getError(
+          res,
+          "Please check the booking either cancelled or not biddable."
+        );
+      }
     } catch (error) {
       next(error);
     }
