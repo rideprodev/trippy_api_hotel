@@ -62,7 +62,6 @@ export default {
       }
 
       const _hotels = await HotelBookingGroup.findAndCountAll({
-        where: where,
         include: [
           {
             attributes: ["roomNumber", "paxes", "ages"],
@@ -102,10 +101,8 @@ export default {
             as: "biddingData",
           },
         ],
-        order: [
-          ["id", "DESC"],
-          [Sequelize.col("biddingData.priority"), "ASC"],
-        ],
+        order: [["id", "DESC"]],
+        where: where,
         offset: offset,
         limit: limit,
       });
@@ -138,6 +135,9 @@ export default {
           });
         }
         if (element?.dataValues?.biddingData.length > 0) {
+          element.dataValues.biddingData = element.dataValues.biddingData.sort(
+            (a, b) => a.priority - b.priority
+          );
           for (
             let index = 0;
             index < element?.dataValues?.biddingData.length;
