@@ -448,8 +448,15 @@ export default {
                   service_tax: revalidateResponse.serviceChages,
                   total_rooms: bodyData.totalRooms,
                   total_nights: bodyData.totalNight,
-                  price_distribution:
-                    revalidateResponse?.hotel?.rate?.price_details,
+                  supplier_price: revalidateResponse?.hotel?.rate?.price_details
+                    ?.net[1]
+                    ? revalidateResponse?.hotel?.rate?.price_details?.net[1]
+                        .amount
+                    : 0,
+                  vat: revalidateResponse?.hotel?.rate?.price_details?.net[0]
+                    ? revalidateResponse?.hotel?.rate?.price_details?.net[0]
+                        .amount
+                    : 0,
                   currency: revalidateResponse?.hotel?.rate?.currency,
                 }
               );

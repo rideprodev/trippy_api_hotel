@@ -686,7 +686,7 @@ export default {
                     const sendmail_confirm = requestHandler.sendEmail(
                       userData.email,
                       "hotelBooking",
-                      `Your Reservation has been Confirmed - Booking ID: ${bookingGroup.currentReference}`,
+                      `Your Reservation has been Confirmed - Booking ID: ${_response?.data?.booking_reference}`,
                       {
                         name: `${userData.firstName} ${userData.lastName}`,
                         email: userData.email,
@@ -704,7 +704,13 @@ export default {
                         service_tax: newRateData.commissionAmount,
                         total_rooms: bookingGroupObject.totalRooms,
                         total_nights: "",
-                        price_distribution: newRateData.totalPrice,
+                        supplier_price: _response?.data?.price?.breakdown
+                          ?.net[1]
+                          ? _response?.data?.price?.breakdown?.net[1]?.amount
+                          : 0,
+                        vat: _response?.data?.price?.breakdown?.net[0]
+                          ? _response?.data?.price?.breakdown?.net[0]?.amount
+                          : 0,
                         currency: userData.UserPersonalInformation.currencyCode,
                       }
                     );
@@ -753,7 +759,7 @@ export default {
                     const sendmail_cancel = requestHandler.sendEmail(
                       userData.email,
                       "hotelBookingCancelled",
-                      `Reservation with ID: ${element.currentReference} has been Cancelled`,
+                      `Reservation with ID: ${bookingGroupObject.currentReference} has been Cancelled`,
                       {
                         name: `${userData.firstName} ${userData.lastName}`,
                         email: userData.email,
