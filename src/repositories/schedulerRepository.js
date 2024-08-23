@@ -853,7 +853,11 @@ export default {
                 }
               );
               HotelBidding.update(
-                { status: "completed", latestPrice: newRateData.totalPrice },
+                {
+                  status: "completed",
+                  priority: 999998,
+                  latestPrice: newRateData.totalPrice,
+                },
                 { where: { id: biddingData.id } }
               );
             }
