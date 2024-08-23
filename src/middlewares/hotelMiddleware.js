@@ -456,7 +456,7 @@ export default {
         status: "confirmed",
       });
       if (bookingData) {
-        if (bodyData.newPosition == 999999) {
+        if (bodyData.newPosition > 999990) {
           utility.getError(res, "not permitted for this position!");
         } else {
           next();
