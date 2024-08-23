@@ -214,7 +214,8 @@ export default {
    */
   async changePriority(req, res, next) {
     try {
-      let newUpdatedPriority = [];
+      let newUpdatedPriority = [],
+        updatedPriorities = [];
       const bodyData = req.body;
       const biddingData = await biddingRepository.getAllBidding(
         {
@@ -224,27 +225,47 @@ export default {
         ["priority", "ASC"]
       );
       if (biddingData.length > 1) {
-        const updatedPriorities = biddingData.map((x) => {
-          const returnData = (id, priority) => {
-            return { id, priority };
-          };
-          if (
-            +x.priority < +bodyData.newPosition ||
-            +x.priority > +bodyData.currentPosition
-          ) {
-            return returnData(x.id, x.priority);
-          } else if (+x.priority == +bodyData.currentPosition) {
-            x.priority = +bodyData.newPosition;
-            return returnData(x.id, x.priority);
-          } else if (
-            +x.priority >= +bodyData.newPosition &&
-            +x.priority != +bodyData.currentPosition
-          ) {
-            x.priority = +x.priority + 1;
+        const returnData = (id, priority) => {
+          return { id, priority };
+        };
+        if (+bodyData.currentPosition > +bodyData.newPosition) {
+          updatedPriorities = biddingData.map((x) => {
+            if (
+              +x.priority < +bodyData.newPosition ||
+              +x.priority > +bodyData.currentPosition
+            ) {
+              return returnData(x.id, x.priority);
+            } else if (+x.priority == +bodyData.currentPosition) {
+              x.priority = +bodyData.newPosition;
+              return returnData(x.id, x.priority);
+            } else if (
+              +x.priority >= +bodyData.newPosition &&
+              +x.priority != +bodyData.currentPosition
+            ) {
+              x.priority = +x.priority + 1;
 
-            return returnData(x.id, x.priority);
-          }
-        });
+              return returnData(x.id, x.priority);
+            }
+          });
+        } else {
+          updatedPriorities = biddingData.map((x) => {
+            if (
+              +x.priority > +bodyData.newPosition ||
+              +x.priority < +bodyData.currentPosition
+            ) {
+              return returnData(x.id, x.priority);
+            } else if (+x.priority == +bodyData.currentPosition) {
+              x.priority = +bodyData.newPosition;
+              return returnData(x.id, x.priority);
+            } else if (
+              +x.priority != +bodyData.currentPosition &&
+              +x.priority <= +bodyData.newPosition
+            ) {
+              x.priority = +x.priority - 1;
+              return returnData(x.id, x.priority);
+            }
+          });
+        }
 
         const updateBiddingData = updatedPriorities.map(
           async (x) =>
