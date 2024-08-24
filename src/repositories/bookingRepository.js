@@ -440,7 +440,9 @@ export default {
       const biddings = await this.getAllBookingForScdulerBidding(where);
       if (biddings.length > 0) {
         const biddingPrices =
-          await schedulerRepository.checkBookingForBiddingSchedule(biddings);
+          await schedulerRepository.fetchLatestPriceFromSearchToSchedulet(
+            biddings
+          );
         return biddingPrices?.updateLatestPrice
           ? biddingPrices.updateLatestPrice
           : [];
