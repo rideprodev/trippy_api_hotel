@@ -459,101 +459,136 @@ export default {
    *
    * @param {Object} where
    */
-  async getAllBookingForScdulerBidding(where = []) {
-    const currentDate = new Date();
-    where = [...where, { status: "confirmed" }];
-    const bookingWhere = [
-      Sequelize.where(
-        Sequelize.fn(
-          "STR_TO_DATE",
-          Sequelize.col("HotelBookingGroup.check_in"),
-          "%Y-%m-%d"
-        ),
-        Op.gt,
-        currentDate
-      ),
-      Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d"),
-      ...where,
-    ];
-    const biddingWhere = [
-      Sequelize.where(
-        Sequelize.fn(
-          "STR_TO_DATE",
-          Sequelize.col("biddingData.expairation_at"),
-          "%Y-%m-%d"
-        ),
-        Op.gte,
-        Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d")
-      ),
-      { status: "active" },
-    ];
-    return await HotelBookingGroup.findAll({
-      attributes: [
-        "id",
-        "userId",
-        "bookingId",
-        "currentReference",
-        "checkIn",
-        "checkOut",
-        "isUserTravelled",
-        "searchPayload",
-        "totalRooms",
-        "bookingName",
-        "totalMember",
-        "createdAt",
-        "bookingComments",
-      ],
-      order: [
-        ["id", "DESC"],
-        [Sequelize.col("biddingData.priority"), "ASC"],
-      ],
-      where: bookingWhere,
-      include: [
-        {
-          attributes: [
-            "id",
-            "userId",
-            "groupId",
-            "roomType",
-            "checkIn",
-            "checkOut",
-            "hotelCode",
-            "biddingPrice",
-            "minBid",
-            "maxBid",
-            "priority",
-            "expairationAt",
-            "latestPrice",
-          ],
-          where: biddingWhere,
-          model: HotelBidding,
-          as: "biddingData",
-          required: true,
-        },
-        {
-          attributes: ["roomNumber", "paxes", "ages"],
-          model: HotelBookingDetail,
-          as: "bookingDetils",
-        },
-        {
-          attributes: [
-            "id",
-            "firstName",
-            "lastName",
-            "profilePicture",
-            "email",
-            "phoneNumberCountryCode",
-            "phoneNumber",
-            "commission",
-          ],
-          model: User,
-          as: "userData",
-          include: {
-            model: UserPersonalInformation,
-            as: "UserPersonalInformation",
+  async getAllBookingForScdulerBidding(where = [], FilterDate = "") {
+    try {
+      let bookingWhere = [],
+        biddingWhere = [];
+
+      if (FilterDate != "" && FilterDate.checkIn != "" && where.length === 0) {
+        bookingWhere = [
+          Sequelize.where(
+            Sequelize.fn(
+              "STR_TO_DATE",
+              Sequelize.col("HotelBookingGroup.check_in"),
+              "%Y-%m-%d"
+            ),
+            Op.eq,
+            Sequelize.fn("STR_TO_DATE", FilterDate.checkIn, "%Y-%m-%d")
+          ),
+          Sequelize.where(
+            Sequelize.fn(
+              "STR_TO_DATE",
+              Sequelize.col("HotelBookingGroup.check_out"),
+              "%Y-%m-%d"
+            ),
+            Op.eq,
+            Sequelize.fn("STR_TO_DATE", FilterDate.checkOut, "%Y-%m-%d")
+          ),
+          { total_member: FilterDate.totalMember },
+          { total_adult: FilterDate.totalAdult },
+          { total_children: FilterDate.totalChildren },
+          ...where,
+        ];
+        biddingWhere = { status: "active" };
+      } else {
+        where = [...where, { status: "confirmed" }];
+        FilterDate = new Date();
+        bookingWhere = [
+          Sequelize.where(
+            Sequelize.fn(
+              "STR_TO_DATE",
+              Sequelize.col("HotelBookingGroup.check_in"),
+              "%Y-%m-%d"
+            ),
+            Op.gt,
+            Sequelize.fn("STR_TO_DATE", FilterDate, "%Y-%m-%d")
+          ),
+          ...where,
+        ];
+        biddingWhere = [
+          Sequelize.where(
+            Sequelize.fn(
+              "STR_TO_DATE",
+              Sequelize.col("biddingData.expairation_at"),
+              "%Y-%m-%d"
+            ),
+            Op.gte,
+            Sequelize.fn("STR_TO_DATE", FilterDate, "%Y-%m-%d")
+          ),
+          { status: "active" },
+        ];
+      }
+
+      return await HotelBookingGroup.findAll({
+        attributes: [
+          "id",
+          "userId",
+          "bookingId",
+          "currentReference",
+          "checkIn",
+          "checkOut",
+          "isUserTravelled",
+          "searchPayload",
+          "totalRooms",
+          "bookingName",
+          "totalMember",
+          "createdAt",
+          "bookingComments",
+        ],
+        order: [
+          ["id", "DESC"],
+          [Sequelize.col("biddingData.priority"), "ASC"],
+        ],
+        where: bookingWhere,
+        include: [
+          {
+            attributes: [
+              "id",
+              "userId",
+              "groupId",
+              "roomType",
+              "checkIn",
+              "checkOut",
+              "hotelCode",
+              "biddingPrice",
+              "minBid",
+              "maxBid",
+              "priority",
+              "expairationAt",
+              "latestPrice",
+            ],
+            where: biddingWhere,
+            model: HotelBidding,
+            as: "biddingData",
+            required: true,
           },
-        },
-      ],
-    });
+          {
+            attributes: ["roomNumber", "paxes", "ages"],
+            model: HotelBookingDetail,
+            as: "bookingDetils",
+          },
+          {
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "profilePicture",
+              "email",
+              "phoneNumberCountryCode",
+              "phoneNumber",
+              "commission",
+            ],
+            model: User,
+            as: "userData",
+            include: {
+              model: UserPersonalInformation,
+              as: "UserPersonalInformation",
+            },
+          },
+        ],
+      });
+    } catch (err) {
+      console.log(err);
+    }
   },
 };

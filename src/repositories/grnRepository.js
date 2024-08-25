@@ -292,6 +292,9 @@ export default {
           totalMember: bodyData.totalMember,
           totalAdult: bodyData.totalAdult,
           totalChildren: bodyData.totalChildren,
+          currency: _response?.data.currency
+            ? _response.data.currency
+            : bodyData.transactionCurrency,
           isUserTravelled: bodyData.isUserTravelled,
           searchPayload: JSON.stringify(bodyData.searchPayload),
         };

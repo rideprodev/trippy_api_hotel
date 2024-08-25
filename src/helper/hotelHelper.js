@@ -3,13 +3,21 @@ import requestHandler from "../services/requestHandler";
 import models from "../models";
 import schedulerRepository from "../repositories/schedulerRepository";
 const { Setting } = models;
-const { biddingRepository, customRepository, hotelRepository } = repositories;
+const { bookingRepository, customRepository, hotelRepository } = repositories;
 
 export default {
   async checkBiddingforBookingOnDate(req, data) {
     delete req.user;
     const bodyData = req.body;
-    console.log("search hit");
+    const searchFilter = {
+      checkIn: bodyData.checkIn,
+      checkOut: bodyData.checkOut,
+      totalMember: bodyData.totalMember,
+      totalAdult: bodyData.totalAdult,
+      totalChildren: bodyData.totalChildren,
+    };
+    const schdulerRequestData =
+      await bookingRepository.getAllBookingForScdulerBidding([], searchFilter);
   },
 
   async setCountryCityName(req, data) {

@@ -29,6 +29,9 @@ module.exports = (sequelize, DataTypes) => {
       bookingDate: {
         type: DataTypes.STRING(50),
       },
+      currency: {
+        type: DataTypes.STRING(50),
+      },
       price: {
         type: DataTypes.STRING(50),
         allowNull: false,
