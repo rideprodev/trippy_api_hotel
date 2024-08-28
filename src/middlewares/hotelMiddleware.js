@@ -48,6 +48,7 @@ export default {
 
         if (getAllHotelCodes.length > 0) {
           req.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
+          // console.log(req.hotelCode);
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
@@ -84,14 +85,11 @@ export default {
             { accommodationTypeSubName: "Aparthotel" },
           ],
         };
-        const getAllHotelCodes = await hotelRepository.fetchAll(
-          where,
-          +bodyData.limit
-        );
-
+        const getAllHotelCodes = await hotelRepository.fetchAll(where, 10);
         if (getAllHotelCodes.length > 0) {
           req.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
           bodyData.cutOffTime = 10000;
+          // console.log(req.hotelCode);
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
