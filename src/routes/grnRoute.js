@@ -20,6 +20,15 @@ router.post(
 );
 
 router.post(
+  "/search/v1",
+  validateMiddleware({
+    schema: grnValidator.searchV1,
+  }),
+  hotelMiddleware.checkApiProcessable,
+  grnController.search
+);
+
+router.post(
   "/refetch",
   validateMiddleware({
     schema: grnValidator.refetch,

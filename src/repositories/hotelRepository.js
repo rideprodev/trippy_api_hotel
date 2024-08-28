@@ -24,7 +24,7 @@ export default {
    * Get Hotel Token
    * @param {Object} where
    */
-  async fetchAll(where, limit = null, offset = 0) {
+  async fetchAll(where, limit = 400, offset = 0) {
     try {
       return await Hotel.findAll({
         attributes: ["hotelCode"],
