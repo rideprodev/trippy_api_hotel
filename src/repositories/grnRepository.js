@@ -81,6 +81,7 @@ export default {
   async search(req) {
     try {
       const bodyData = req.body;
+      const cutOffTime = bodyData?.cutOffTime ? bodyData.cutOffTime : 60000;
       const _request_data = {
         rooms: bodyData.rooms,
         hotel_codes: bodyData.hotelCode.splice(0, 100),
@@ -89,7 +90,7 @@ export default {
         client_nationality: bodyData.clientNationality,
         checkin: bodyData.checkIn,
         checkout: bodyData.checkOut,
-        cutoff_time: 60000,
+        cutoff_time: cutOffTime,
         purpose_of_travel: 1,
         options: { rate_comments: true },
       };

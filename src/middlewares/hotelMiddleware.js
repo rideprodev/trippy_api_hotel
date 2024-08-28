@@ -57,6 +57,50 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * checking the requet is processable or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async checkApiProcessable(req, res, next) {
+    try {
+      const bodyData = req.body;
+      if (bodyData.hotelCode && bodyData.hotelCode !== "") {
+        utility.getResponse(res, [], "RETRIVED");
+      } else {
+        const where = {
+          cityCode: bodyData.cityCode,
+          [Op.or]: [
+            {
+              [Op.and]: [
+                { StarCategory: { [Op.gte]: 3 } },
+                { StarCategory: { [Op.lte]: 5 } },
+              ],
+            },
+            { accommodationTypeSubName: "Hotel" },
+            { accommodationTypeSubName: "All-inclus" },
+            { accommodationTypeSubName: "Aparthotel" },
+          ],
+        };
+        const getAllHotelCodes = await hotelRepository.fetchAll(
+          where,
+          +bodyData.limit
+        );
+
+        if (getAllHotelCodes.length > 0) {
+          req.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
+          bodyData.cutOffTime = 10000;
+          next();
+        } else {
+          utility.getError(res, "No Hotel Find In this location");
+        }
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
   /**
    * Check the members is exist or not
    * @param {Object} req

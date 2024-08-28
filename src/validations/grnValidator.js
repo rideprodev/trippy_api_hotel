@@ -22,6 +22,26 @@ const search = Joi.object({
   totalChildren: Joi.string().required(),
 });
 
+const searchV1 = Joi.object({
+  rooms: Joi.array()
+    .items(
+      Joi.object({
+        adults: Joi.string().required(),
+        children_ages: Joi.array().items(
+          Joi.number().positive().greater(0).less(18)
+        ),
+      })
+    )
+    .required(),
+  hotelCode: Joi.string().empty().allow(""),
+  cityCode: Joi.string().required(),
+  checkIn: Joi.string().required(),
+  checkOut: Joi.string().required(),
+  currency: Joi.string().empty().allow(""),
+  clientNationality: Joi.string().required(),
+  limit: Joi.number().min(10).max(100).required(),
+});
+
 const refetch = Joi.object({
   searchId: Joi.string().required(),
   hotelCode: Joi.string().required(),
@@ -94,6 +114,7 @@ const updateCardOnBooking = Joi.object({
 
 export default {
   search,
+  searchV1,
   revalidate,
   booking,
   refetch,
