@@ -22,7 +22,7 @@ router.post(
 router.post(
   "/search/v1",
   validateMiddleware({
-    schema: grnValidator.searchV1,
+    schema: grnValidator.search,
   }),
   hotelMiddleware.checkApiProcessable,
   grnController.search

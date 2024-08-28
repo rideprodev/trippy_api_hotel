@@ -71,7 +71,13 @@ export default {
           "RETRIVED",
           200
         );
-        // hotelHelper.checkBiddingforBookingOnDate(req, finalResponseForSent);
+        if (
+          bodyData.cutOffTime &&
+          bodyData.cutOffTime > 0 &&
+          bodyData.cutOffTime < 60000
+        ) {
+          // hotelHelper.checkBiddingforBookingOnDate(req, finalResponseForSent);
+        }
       }
     } catch (error) {
       next(error);
