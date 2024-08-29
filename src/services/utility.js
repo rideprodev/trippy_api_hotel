@@ -114,7 +114,7 @@ export default {
    * Get current date time
    * @param {Object} req
    */
-  async getCurrentDateTime() {
+  async getCurrentDateTime(dateFormat = "YYYY-MM-DD HH:mm:ss") {
     try {
       let currentDate = null;
       currentDate = moment.utc().format(dateFormat);
@@ -145,5 +145,17 @@ export default {
       diffrence = duration.asHours();
     }
     return diffrence;
+  },
+
+  /**
+   * Get date before or after a date
+   * @param {Date} date
+   * @param {String} interval
+   * @param {Number} units
+   */
+  getDateAfterBeforeFromDate(date, interval = 1, dateformate = "YYYY-MM-DD") {
+    const currentDate = moment(`${date}`);
+    const newDate = currentDate.subtract(interval, "day").format(dateformate);
+    return newDate;
   },
 };

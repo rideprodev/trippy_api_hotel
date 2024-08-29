@@ -75,13 +75,15 @@ export default {
       );
       const roomTypes = [];
       const arrayFilter = arraySorted.filter((x) => {
-        if (roomTypes.indexOf(x.rooms[0].room_type)) {
+        const checkAvailibility = roomTypes.filter(
+          (m) => m == x.rooms[0].room_type
+        );
+        if (checkAvailibility.length === 0) {
           roomTypes.push(x.rooms[0].room_type);
           return x;
         }
       });
       data.hotel.rates = arrayFilter;
-
       data.images = images;
       return data;
     } catch (error) {

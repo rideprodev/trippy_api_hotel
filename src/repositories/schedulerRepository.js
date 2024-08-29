@@ -269,6 +269,7 @@ export default {
         commissionAmount = 0,
         totalPrice = 0;
       const updateLatestPrice = [],
+        matchedBid = [],
         cancellationBid = [];
       if (result.length > 0 && result[0]?.data?.hotels) {
         // get the commission interest
@@ -621,9 +622,11 @@ export default {
                   ) {
                     underCancellation = `${_response?.data?.hotel?.booking_items[0]?.cancellation_policy?.under_cancellation}`;
                     if (underCancellation === "false") {
-                      cancelByDate =
+                      const cancelDate =
                         _response.data.hotel.booking_items[0]
                           ?.cancellation_policy?.cancel_by_date;
+                      cancelByDate =
+                        utility.getDateAfterBeforeFromDate(cancelDate);
                     }
                   }
                 }
@@ -848,6 +851,7 @@ export default {
             const requestData = finalForRevalidate[i];
             const biddingData = requestData.bid;
             const newRateData = requestData.newRates;
+            const bookingGroupObject = requestData.groupObjectData;
             if (
               _response !== undefined &&
               (_response?.data?.status == "pending" ||
@@ -871,11 +875,24 @@ export default {
                 },
                 { where: { id: biddingData.id } }
               );
+            } else {
+              // if Booking is not done than remove all bidding for cancellation
+              try {
+                newUpdateCancellation = cancellationBid.filter((c) => {
+                  if (c.groupId != bookingGroupObject.id) {
+                    return c;
+                  } else {
+                    matchedBid.push(c);
+                  }
+                });
+                cancellationBid = newUpdateCancellation;
+              } catch (err) {}
             }
             return true;
           });
           // cancelled all same or hiteed bit not pror bids
           const updateCancellationBiddings = cancellationBid.map((x) => x.id);
+          const updateMatchedBiddings = matchedBid.map((x) => x.id);
           try {
             await Promise.all(updateDataAndMailPromise);
             await Promise.all(updateBiddingsConfimed);
@@ -883,6 +900,12 @@ export default {
               await HotelBidding.update(
                 { status: "cancelled", priority: 999999 },
                 { where: { id: updateCancellationBiddings } }
+              );
+            }
+            if (updateMatchedBiddings.length > 0) {
+              await HotelBidding.update(
+                { status: "matched", priority: 999997 },
+                { where: { id: updateMatchedBiddings } }
               );
             }
           } catch (err) {

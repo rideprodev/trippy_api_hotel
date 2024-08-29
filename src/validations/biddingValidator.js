@@ -23,6 +23,10 @@ const updateBid = Joi.object({
   expairationAt: Joi.string().optional(),
 });
 
+const updateStatus = Joi.object({
+  status: Joi.string().valid("active", "inactive").required(),
+});
+
 const checkBookingForBidding = Joi.object({
   checkIn: Joi.string().required(),
   checkOut: Joi.string().required(),
@@ -39,6 +43,7 @@ const changePriority = Joi.object({
 export default {
   placeBid,
   updateBid,
+  updateStatus,
   checkBookingForBidding,
   changePriority,
 };

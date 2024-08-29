@@ -67,6 +67,16 @@ router.put(
   biddingController.updateBidding
 );
 
+router.put(
+  "/update-status/:id",
+  authMiddleware,
+  validateMiddleware({
+    schema: biddingValidator.updateStatus,
+  }),
+  hotelMiddleware.isBiddingExist,
+  biddingController.updateBidding
+);
+
 router.delete(
   "/cancel-bid/:id",
   authMiddleware,
@@ -100,5 +110,13 @@ router.post(
   hotelMiddleware.checkPriorityPosition,
   biddingController.changePriority
 );
+
+// router.post(
+//   "/buy-current-price/:id",
+//   authMiddleware,
+//   resourceAccessMiddleware(["user"]),
+//   hotelMiddleware.isBiddingExist,
+//   biddingController.buyNowCurentPrice
+// );
 
 export default router;
