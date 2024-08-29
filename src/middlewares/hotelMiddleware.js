@@ -161,9 +161,17 @@ export default {
    */
   async isBiddingExist(req, res, next) {
     try {
+      let status = { status: "active" };
+      const bodyData = req.body;
+      if (
+        bodyData.status &&
+        (bodyData.status == "active" || bodyData.status == "inactive")
+      ) {
+        status = { [Op.or]: ["active", "inactive", "matched"] };
+      }
       const biddingObject = await biddingRepository.getOneBidding({
         id: req.params.id,
-        status: "active",
+        status: status,
       });
       if (biddingObject) {
         req.biddingObject = biddingObject;

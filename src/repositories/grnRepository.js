@@ -331,9 +331,10 @@ export default {
             ) {
               underCancellation = `${_response?.data?.hotel?.booking_items[0]?.cancellation_policy?.under_cancellation}`;
               if (underCancellation === "false") {
-                cancelByDate =
+                const cancelDate =
                   _response.data.hotel.booking_items[0]?.cancellation_policy
                     ?.cancel_by_date;
+                cancelByDate = utility.getDateAfterBeforeFromDate(cancelDate);
               }
             }
           }

@@ -162,6 +162,31 @@ export default {
   },
 
   /**
+   * update the bidding
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async updateBidding(req, res, next) {
+    try {
+      const bodyData = req.body;
+      const biddingObject = req.biddingObject;
+      if (biddingObject.status === bodyData.status) {
+        utility.getError(res, "Already in same status");
+      } else {
+        const response = await biddingRepository.updateMyBidding(req);
+        utility.getResponse(
+          res,
+          { id: response.id, status: response.status },
+          "UPDATED"
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Get All my Bidding
    * @param {Object} req
    * @param {Object} res

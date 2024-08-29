@@ -47,6 +47,7 @@ module.exports = (sequelize, DataTypes) => {
           "active",
           "inactive",
           "cancelled",
+          "matched",
           "completed",
           "Not Availiable",
           "expired"

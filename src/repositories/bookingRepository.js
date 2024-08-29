@@ -24,7 +24,6 @@ export default {
    */
   async getAllHotelBooking(req, where = {}) {
     try {
-      const userData = req.user;
       const queryData = req.query;
       let limit = null,
         offset = null;
@@ -102,6 +101,7 @@ export default {
           },
         ],
         order: [["id", "DESC"]],
+        distinct: true,
         where: where,
         offset: offset,
         limit: limit,

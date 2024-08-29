@@ -128,17 +128,17 @@ export default {
 
       _response.hotels = await Hotel.findAll({
         where: whereHotel,
-        attributes: ["id", "hotelCode", "hotelName", "cityCode"],
+        attributes: ["id", "hotelCode", "hotelName", "cityCode", "countryCode"],
         limit: 15,
       });
       _response.location = await HotelLocation.findAll({
         where: whereLocation,
-        attributes: ["locationCode", "locationName"],
+        attributes: ["locationCode", "locationName", "countryCode"],
         limit: 15,
       });
       _response.city = await HotelCity.findAll({
         where: whereCity,
-        attributes: ["cityCode", "cityName"],
+        attributes: ["cityCode", "cityName", "countryCode"],
         limit: 15,
       });
       return _response;
