@@ -153,6 +153,7 @@ export default {
       next(error);
     }
   },
+
   /**
    * Check the bidding is exist or not
    * @param {Object} req
@@ -161,17 +162,9 @@ export default {
    */
   async isBiddingExist(req, res, next) {
     try {
-      let status = { status: "active" };
-      const bodyData = req.body;
-      if (
-        bodyData.status &&
-        (bodyData.status == "active" || bodyData.status == "inactive")
-      ) {
-        status = { [Op.or]: ["active", "inactive", "matched"] };
-      }
       const biddingObject = await biddingRepository.getOneBidding({
         id: req.params.id,
-        status: status,
+        status: "active",
       });
       if (biddingObject) {
         req.biddingObject = biddingObject;
@@ -183,6 +176,30 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Check the bidding is exist or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isBiddingExistactMatched(req, res, next) {
+    try {
+      const biddingObject = await biddingRepository.getOneBidding({
+        id: req.params.id,
+        status: { [Op.or]: ["active", "inactive", "matched"] },
+      });
+      if (biddingObject) {
+        req.biddingObject = biddingObject;
+        next();
+      } else {
+        utility.getError(res, "ID_NOT_FOUND");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
   /**
    * Check the booking is exist or not
    * @param {Object} req

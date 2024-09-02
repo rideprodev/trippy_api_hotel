@@ -1,6 +1,7 @@
 import config from "../config";
 import models from "../models";
 import repositories from "../repositories";
+import schedulerRepository from "../repositories/schedulerRepository";
 import utility from "../services/utility";
 import httpStatus from "http-status";
 
@@ -312,6 +313,34 @@ export default {
       }
 
       utility.getResponse(res, newUpdatedPriority, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Get Book at current price
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async bookAtCurrentPrice(req, res, next) {
+    try {
+      const bidData = req.biddingObject;
+      const biddingData =
+        await biddingRepository.getAllBiddingForCurentPriceBook([
+          { id: bidData.id },
+        ]);
+      if (biddingData.length > 0) {
+        const booking_respose =
+          await schedulerRepository.checkbiddingforbooking(biddingData[0]);
+        utility.getResponse(res, booking_respose, "RETRIVED");
+      } else {
+        utility.getError(
+          res,
+          "This Bidding is not active, or matched in state"
+        );
+      }
     } catch (error) {
       next(error);
     }
