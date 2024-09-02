@@ -73,7 +73,7 @@ router.put(
   validateMiddleware({
     schema: biddingValidator.updateStatus,
   }),
-  hotelMiddleware.isBiddingExist,
+  hotelMiddleware.isBiddingExistactMatched,
   biddingController.updateBidding
 );
 
@@ -111,12 +111,12 @@ router.post(
   biddingController.changePriority
 );
 
-// router.post(
-//   "/buy-current-price/:id",
-//   authMiddleware,
-//   resourceAccessMiddleware(["user"]),
-//   hotelMiddleware.isBiddingExist,
-//   biddingController.buyNowCurentPrice
-// );
+router.post(
+  "/buy-current-price/:id",
+  authMiddleware,
+  resourceAccessMiddleware(["user"]),
+  hotelMiddleware.isBiddingExistactMatched,
+  biddingController.bookAtCurrentPrice
+);
 
 export default router;

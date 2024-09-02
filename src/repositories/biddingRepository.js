@@ -3,6 +3,7 @@ const {
   HotelBidding,
   HotelBiddingPrices,
   User,
+  UserPersonalInformation,
   HotelBookingGroup,
   Hotel,
   HotelCountry,
@@ -352,8 +353,34 @@ export default {
    *
    * @param {Object} where
    */
-  async getAllBiddingForScduler(where = {}) {
-    where = { ...where, status: "active" };
+  async getAllBiddingForCurentPriceBook(where = []) {
+    const FilterDate = new Date();
+
+    const biddingWhere = [
+      Sequelize.where(
+        Sequelize.fn(
+          "STR_TO_DATE",
+          Sequelize.col("HotelBidding.expairation_at"),
+          "%Y-%m-%d"
+        ),
+        Op.gte,
+        Sequelize.fn("STR_TO_DATE", FilterDate, "%Y-%m-%d")
+      ),
+      ...where,
+    ];
+
+    const bookingWhere = [
+      Sequelize.where(
+        Sequelize.fn(
+          "STR_TO_DATE",
+          Sequelize.col("bookingGroupData.check_in"),
+          "%Y-%m-%d"
+        ),
+        Op.gt,
+        Sequelize.fn("STR_TO_DATE", FilterDate, "%Y-%m-%d")
+      ),
+    ];
+
     return await HotelBidding.findAll({
       attributes: [
         "id",
@@ -368,22 +395,45 @@ export default {
         "maxBid",
         "expairationAt",
         "latestPrice",
+        "createdAt",
       ],
-      where: where,
-      include: {
-        attributes: [
-          "bookingId",
-          "currentReference",
-          "searchPayload",
-          "totalRooms",
-          "bookingName",
-          "totalMember",
-          "createdAt",
-          "bookingComments",
-        ],
-        model: HotelBookingGroup,
-        as: "bookingGroupData",
-      },
+      where: biddingWhere,
+      include: [
+        {
+          attributes: [
+            "bookingId",
+            "currentReference",
+            "searchPayload",
+            "totalRooms",
+            "isUserTravelled",
+            "bookingName",
+            "totalMember",
+            "createdAt",
+            "bookingComments",
+          ],
+          model: HotelBookingGroup,
+          as: "bookingGroupData",
+          where: bookingWhere,
+        },
+        {
+          attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "profilePicture",
+            "email",
+            "phoneNumberCountryCode",
+            "phoneNumber",
+            "commission",
+          ],
+          model: User,
+          as: "userData",
+          include: {
+            model: UserPersonalInformation,
+            as: "UserPersonalInformation",
+          },
+        },
+      ],
     });
   },
 };
