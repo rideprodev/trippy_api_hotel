@@ -11,7 +11,7 @@ const router = Router();
 // ------------ Backend Apis Start -----------------------
 
 router.post(
-  "/search",
+  "/search/v2",
   validateMiddleware({
     schema: grnValidator.search,
   }),
