@@ -1024,6 +1024,8 @@ export default {
             const userMember = {
               id: userData.id,
               title: userInformation.title,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
               nationality: userInformation.nationality,
               type: "AD",
             };
@@ -1402,7 +1404,7 @@ export default {
       }
 
       return {
-        ..._response?.data,
+        ..._response,
         // BookingResponse: _response,
         // reavalidateResponse,
         // filteredRate,
