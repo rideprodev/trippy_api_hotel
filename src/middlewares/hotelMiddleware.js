@@ -509,6 +509,17 @@ export default {
     }
   },
 
+  async checkBookingForSearch(req, res, next) {
+    try {
+      const bookingData =
+        await bookingRepository.checkBookingAvailiblityForSearch(req);
+      req.bookings = bookingData;
+      next();
+    } catch (err) {
+      next(err);
+    }
+  },
+
   /**
    * Check Bidding Priority
    * @param {Object} req
