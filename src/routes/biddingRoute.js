@@ -97,6 +97,7 @@ router.post(
   }),
   resourceAccessMiddleware(["user"]),
   hotelMiddleware.checkBiddingForSearch,
+  hotelMiddleware.checkBookingForSearch,
   biddingController.bookingAvaliablity
 );
 

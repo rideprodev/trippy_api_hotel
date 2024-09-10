@@ -591,4 +591,30 @@ export default {
       console.log(err);
     }
   },
+
+  /**
+   * Find Hotel list where the date for bidding
+   * @param {Object} req
+   */
+  async checkBookingAvailiblityForSearch(req) {
+    try {
+      const bodyData = req.body;
+      const userData = req.user;
+      const where = {
+        checkIn: bodyData.checkIn,
+        checkOut: bodyData.checkOut,
+        userId: userData.id,
+        [Op.or]: [{ status: "pending" }, { status: "confirmed" }],
+      };
+
+      const _bookingData = await HotelBooking.findAll({
+        where: where,
+        attributes: ["hotelCode", "roomType"],
+        order: [["id", "DESC"]],
+      });
+      return _bookingData;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
 };
