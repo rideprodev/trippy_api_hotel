@@ -332,9 +332,30 @@ export default {
           { id: bidData.id },
         ]);
       if (biddingData.length > 0) {
-        const booking_respose =
-          await schedulerRepository.checkbiddingforbooking(biddingData[0]);
-        utility.getResponse(res, booking_respose, "RETRIVED");
+        const response = await schedulerRepository.checkbiddingforbooking(
+          biddingData[0]
+        );
+        if (response.status !== 200) {
+          utility.getError(res, `${response.message}`);
+        } else if (
+          response.data &&
+          response.data.errors &&
+          response.data.errors.length > 0
+        ) {
+          utility.getError(
+            res,
+            `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
+          );
+        } else {
+          if (
+            response.data.status === "pending" ||
+            response.data.status === "confirmed"
+          ) {
+            utility.getResponse(res, response.data, response.data.status);
+          } else {
+            utility.getError(res, null, response.data.status);
+          }
+        }
       } else {
         utility.getError(
           res,
