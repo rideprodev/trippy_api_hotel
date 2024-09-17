@@ -27,6 +27,7 @@ export default {
       const queryData = req.query;
       let limit = null,
         offset = null;
+      const date = new Date();
       where = { ...where, status: { [Op.ne]: "bidding" } };
       if (queryData.name) {
         where = {
@@ -46,12 +47,41 @@ export default {
       if (queryData.status && queryData.status === "current") {
         where = {
           ...where,
-          checkIn: { [Op.gte]: new Date() },
+          [Op.or]: [
+            {
+              [Op.and]: [{ checkIn: { [Op.gt]: date } }, { status: "pending" }],
+              [Op.and]: [
+                { checkIn: { [Op.gt]: date } },
+                { status: "confirmed" },
+              ],
+            },
+            { checkIn: { [Op.eq]: date } },
+          ],
         };
-      } else if (queryData.status && queryData.status === "past") {
+      } else if (queryData.status && queryData.status === "completed") {
         where = {
           ...where,
-          checkIn: { [Op.lt]: new Date() },
+          [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "confirmed" }],
+        };
+      } else if (queryData.status && queryData.status === "cancelled") {
+        where = {
+          ...where,
+          [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "cancelled" }],
+        };
+      } else if (queryData.status && queryData.status === "failed") {
+        where = {
+          ...where,
+          [Op.or]: [
+            {
+              [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "failed" }],
+            },
+            {
+              [Op.and]: [
+                { checkIn: { [Op.lt]: date } },
+                { status: "rejected" },
+              ],
+            },
+          ],
         };
       }
 
