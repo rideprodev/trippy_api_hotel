@@ -1,6 +1,5 @@
 import { Op, Sequelize } from "sequelize";
 import models from "../models";
-import biddingRepository from "./biddingRepository";
 import schedulerRepository from "./schedulerRepository";
 const {
   User,
@@ -28,7 +27,6 @@ export default {
       let limit = null,
         offset = null;
       const date = new Date();
-      where = { ...where, status: { [Op.ne]: "bidding" } };
       if (queryData.name) {
         where = {
           ...where,
@@ -50,6 +48,8 @@ export default {
           [Op.or]: [
             {
               [Op.and]: [{ checkIn: { [Op.gt]: date } }, { status: "pending" }],
+            },
+            {
               [Op.and]: [
                 { checkIn: { [Op.gt]: date } },
                 { status: "confirmed" },

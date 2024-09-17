@@ -20,7 +20,7 @@ export default {
         result.push(await grnRepository.search(req));
       } else {
         const chaunkArray = [],
-          counts = 50;
+          counts = 70;
         const arrayLenght = hotelCodes.length;
         const numberCount = arrayLenght / counts;
         const floatCount = numberCount % 1 === 0;
