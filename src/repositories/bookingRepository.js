@@ -42,6 +42,30 @@ export default {
         };
       }
 
+      const includes = [
+        {
+          attributes: ["roomNumber", "paxes", "ages"],
+          model: HotelBookingDetail,
+          as: "bookingDetils",
+        },
+        {
+          attributes: ["firstName", "lastName"],
+          model: User,
+          as: "userData",
+        },
+        {
+          attributes: [
+            "hotelCode",
+            "cityCode",
+            "cancelByDate",
+            "reavalidateResponse",
+          ],
+          model: HotelBooking,
+          as: "booking",
+          required: false,
+        },
+      ];
+
       if (queryData.status && queryData.status === "current") {
         where = {
           ...where,
@@ -55,9 +79,25 @@ export default {
                 { status: "confirmed" },
               ],
             },
-            { checkIn: { [Op.eq]: date } },
+            { createdAt: { [Op.eq]: date } },
           ],
         };
+        includes.push({
+          attributes: [
+            "id",
+            "hotelCode",
+            "latestPrice",
+            "biddingPrice",
+            "minBid",
+            "maxBid",
+            "priority",
+            "expairationAt",
+            "status",
+            "roomType",
+          ],
+          model: HotelBidding,
+          as: "biddingData",
+        });
       } else if (queryData.status && queryData.status === "completed") {
         where = {
           ...where,
@@ -66,18 +106,21 @@ export default {
       } else if (queryData.status && queryData.status === "cancelled") {
         where = {
           ...where,
-          [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "cancelled" }],
+          [Op.and]: [{ createdAt: { [Op.ne]: date } }, { status: "cancelled" }],
         };
       } else if (queryData.status && queryData.status === "failed") {
         where = {
           ...where,
           [Op.or]: [
             {
-              [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "failed" }],
+              [Op.and]: [
+                { createdAt: { [Op.ne]: date } },
+                { status: "failed" },
+              ],
             },
             {
               [Op.and]: [
-                { checkIn: { [Op.lt]: date } },
+                { createdAt: { [Op.ne]: date } },
                 { status: "rejected" },
               ],
             },
@@ -91,45 +134,7 @@ export default {
       }
 
       const _hotels = await HotelBookingGroup.findAndCountAll({
-        include: [
-          {
-            attributes: ["roomNumber", "paxes", "ages"],
-            model: HotelBookingDetail,
-            as: "bookingDetils",
-          },
-          {
-            attributes: ["firstName", "lastName"],
-            model: User,
-            as: "userData",
-          },
-          {
-            attributes: [
-              "hotelCode",
-              "cityCode",
-              "cancelByDate",
-              "reavalidateResponse",
-            ],
-            model: HotelBooking,
-            as: "booking",
-            required: false,
-          },
-          {
-            attributes: [
-              "id",
-              "hotelCode",
-              "latestPrice",
-              "biddingPrice",
-              "minBid",
-              "maxBid",
-              "priority",
-              "expairationAt",
-              "status",
-              "roomType",
-            ],
-            model: HotelBidding,
-            as: "biddingData",
-          },
-        ],
+        include: includes,
         order: [["id", "DESC"]],
         distinct: true,
         where: where,
@@ -164,28 +169,34 @@ export default {
             where: { countryCode: element.dataValues.hotelData.countryCode },
           });
         }
-        if (element?.dataValues?.biddingData.length > 0) {
-          element.dataValues.biddingData = element.dataValues.biddingData.sort(
-            (a, b) => a.priority - b.priority
-          );
-          for (
-            let index = 0;
-            index < element?.dataValues?.biddingData.length;
-            index++
-          ) {
-            const ele = element?.dataValues?.biddingData[index];
-            ele.dataValues.hotelData = await Hotel.findOne({
-              attributes: ["hotelCode", "hotelName", "countryCode"],
-              where: { hotelCode: ele.hotelCode },
-            });
-            ele.dataValues.image = await HotelImage.findOne({
-              attributes: ["imageUrl"],
-              where: {
-                mainImage: "Y",
-                hotelCode: ele.hotelCode,
-              },
-            });
+
+        if (queryData.status === "current") {
+          if (element?.dataValues?.biddingData.length > 0) {
+            element.dataValues.biddingData =
+              element.dataValues.biddingData.sort(
+                (a, b) => a.priority - b.priority
+              );
+            for (
+              let index = 0;
+              index < element?.dataValues?.biddingData.length;
+              index++
+            ) {
+              const ele = element?.dataValues?.biddingData[index];
+              ele.dataValues.hotelData = await Hotel.findOne({
+                attributes: ["hotelCode", "hotelName", "countryCode"],
+                where: { hotelCode: ele.hotelCode },
+              });
+              ele.dataValues.image = await HotelImage.findOne({
+                attributes: ["imageUrl"],
+                where: {
+                  mainImage: "Y",
+                  hotelCode: ele.hotelCode,
+                },
+              });
+            }
           }
+        } else {
+          element.dataValues.biddingData = [];
         }
       }
       return _hotels;
