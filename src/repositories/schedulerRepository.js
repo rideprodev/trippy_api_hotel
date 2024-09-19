@@ -269,7 +269,6 @@ export default {
         commissionAmount = 0,
         totalPrice = 0,
         updateLatestPrice = [],
-        matchedBid = [],
         cancellationBid = [];
       if (result.length > 0 && result[0]?.data?.hotels) {
         // get the commission interest
@@ -873,22 +872,23 @@ export default {
                 },
                 { where: { id: biddingData.id } }
               );
-              // get all matched bid
-              if (cancellationBid.length > 0) {
-                const all_cancelled = cancellationBid.filter((c) => {
-                  if (c.hotelCode === biddingData.hotelCode) {
-                    return c;
-                  } else {
-                    matchedBid.push(c);
-                  }
-                });
-                cancellationBid = all_cancelled;
-              }
+              HotelBidding.update(
+                { status: "cancelled", priority: 999999 },
+                {
+                  where: {
+                    id: { [Op.ne]: biddingData.id },
+                    groupId: bookingGroupObject.id,
+                    [Op.and]: [
+                      { priority: { [Op.gt]: biddingData.priority } },
+                      { priority: { [Op.lt]: 999990 } },
+                    ],
+                  },
+                }
+              );
             } else {
               // if Booking is not done than remove all bidding for cancellation
-              const all_cancelled = cancellationBid;
-              matchedBid = all_cancelled;
-              cancellationBid = [];
+              // const all_cancelled = cancellationBid;
+              // cancellationBid = [];
             }
             return true;
           });
@@ -897,23 +897,15 @@ export default {
             await Promise.all(updateDataAndMailPromise);
             await Promise.all(updateBiddingsConfimed);
             // cancelled all same hotel bid
-            if (cancellationBid.length > 0) {
-              const updateCancellationBiddings = cancellationBid.map(
-                (x) => x.id
-              );
-              await HotelBidding.update(
-                { status: "cancelled", priority: 999999 },
-                { where: { id: updateCancellationBiddings } }
-              );
-            }
-            // Matched all hited bids
-            if (matchedBid.length > 0) {
-              const updateMatchedBiddings = matchedBid.map((x) => x.id);
-              await HotelBidding.update(
-                { status: "matched" },
-                { where: { id: updateMatchedBiddings } }
-              );
-            }
+            // if (cancellationBid.length > 0) {
+            //   const updateCancellationBiddings = cancellationBid.map(
+            //     (x) => x.id
+            //   );
+            //   await HotelBidding.update(
+            //     { status: "cancelled", priority: 999999 },
+            //     { where: { id: updateCancellationBiddings } }
+            //   );
+            // }
           } catch (err) {
             console.log(err);
           }
@@ -925,7 +917,6 @@ export default {
           filterRevalidate,
           finalForRevalidate,
           cancellationBid,
-          matchedBid,
           sendForRevalidate,
           updateLatestPrice,
           hotelData,
