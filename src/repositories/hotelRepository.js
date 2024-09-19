@@ -38,23 +38,23 @@ export default {
     }
   },
 
-  /**
-   * Get Hotel Token
-   * @param {Object} where
-   */
-  async fetchOneWithoutCount(where, limit = null, offset = 0) {
-    try {
-      return await Hotel.findOne({
-        attributes: ["accommodationTypeSubName", "ChainName"],
-        where,
-        offset,
-        limit,
-        order: [["StarCategory", "DESC"]],
-      });
-    } catch (error) {
-      throw Error(error);
-    }
-  },
+  // /**
+  //  * Get Hotel Token
+  //  * @param {Object} where
+  //  */
+  // async fetchOneWithoutCount(where, limit = null, offset = 0) {
+  //   try {
+  //     return await Hotel.findOne({
+  //       attributes: ["accommodationTypeSubName", "ChainName"],
+  //       where,
+  //       offset,
+  //       limit,
+  //       order: [["StarCategory", "DESC"]],
+  //     });
+  //   } catch (error) {
+  //     throw Error(error);
+  //   }
+  // },
   /**
    * Get airport pages
    * @param {object} req

@@ -35,23 +35,43 @@ export default {
       data.hotels = data?.hotels?.filter((x) => x.rates.length > 0);
 
       const bodyData = req.body;
-      const response = [];
+      const response = [],
+        orignalResponse = [];
       const cityData = await customRepository.fetchCityData(bodyData.cityCode);
       for (let i = 0; i < data.hotels.length; i++) {
         const x = data.hotels[i];
-        const hotelData = await hotelRepository.fetchOneWithoutCount({
-          hotelCode: x.hotel_code,
+        orignalResponse.push({
+          search_id: data.search_id,
+          ...cityData[0],
+          ...x,
         });
         response.push({
           search_id: data.search_id,
           ...cityData[0],
-          propery_type: hotelData.accommodationTypeSubName,
-          chain_name: hotelData.ChainName,
-          ...x,
+          propery_type: x.propery_type,
+          address: x.address,
+          category: x.category,
+          country: x.country,
+          facilities: x.facilities,
+          hotel_code: x.hotel_code,
+          images: x.images,
+          name: x.name,
+          rates: x.rates.map((x) => {
+            const resultData = {
+              boarding_details: x.boarding_details || [],
+              currency: x.currency,
+              price: x.price,
+            };
+            if (x.other_inclusions && x.other_inclusions.length > 0) {
+              resultData.other_inclusions = x.other_inclusions;
+            }
+            return resultData;
+          }),
         });
       }
       await delete data.search_id;
       data.hotels = response;
+      req.orignalResponse = orignalResponse;
       return data;
     } catch (error) {
       console.log(error);
