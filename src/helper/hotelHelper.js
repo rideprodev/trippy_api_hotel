@@ -38,7 +38,7 @@ export default {
       const response = [],
         orignalResponse = [];
       const cityData = await customRepository.fetchCityData(bodyData.cityCode);
-      for (let i = 0; i < data.hotels.length; i++) {
+      for (let i = 0; i < data?.hotels?.length; i++) {
         const x = data.hotels[i];
         orignalResponse.push({
           search_id: data.search_id,
