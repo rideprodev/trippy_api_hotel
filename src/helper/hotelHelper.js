@@ -112,7 +112,7 @@ export default {
         facilities: data.hotel.facilities,
         images: data.hotel.images,
         name: data.hotel.name,
-        reates: data.hotel?.rates?.map((y) => {
+        rates: data.hotel?.rates?.map((y) => {
           const reatesData = {
             boarding_details: y.boarding_details,
             cancellation_policy:
