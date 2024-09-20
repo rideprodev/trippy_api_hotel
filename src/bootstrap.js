@@ -172,11 +172,11 @@ export default class Bootstrap {
    */
   scheduleJob() {
     // if (config.app.environment !== "development") {
-    schedule.scheduleJob("0 0 0 * * *", (fireDate) => {
+    schedule.scheduleJob("0 0 20 * * *", (fireDate) => {
       scheduleJob.AutoPayment();
     });
 
-    schedule.scheduleJob("0 0 0 * * *", (fireDate) => {
+    schedule.scheduleJob("0 0 20 * * *", (fireDate) => {
       scheduleJob.AutoBookingOnBidding();
     });
     // }

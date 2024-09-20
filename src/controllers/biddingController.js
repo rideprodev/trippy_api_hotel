@@ -351,7 +351,20 @@ export default {
             response.data.status === "pending" ||
             response.data.status === "confirmed"
           ) {
-            utility.getResponse(res, response.data, response.data.status);
+            const BookingResponse = {
+              status: response.data.status,
+              checkin: response.data.checkin,
+              checkout: response.data.checkout,
+              booking_date: response.data.booking_date,
+              booking_reference: response.data.booking_reference,
+              hotel: {
+                paxes: response.data.hotel.paxes,
+                booking_items: response.data.hotel.booking_items,
+                city_name: response.data.hotel.city_name,
+              },
+              bookingGroupData: response.data.bookingGroupData,
+            };
+            utility.getResponse(res, BookingResponse, BookingResponse.status);
           } else {
             utility.getError(res, null, response.data.status);
           }

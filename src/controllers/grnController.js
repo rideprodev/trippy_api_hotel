@@ -156,7 +156,20 @@ export default {
           response.data.status === "pending" ||
           response.data.status === "confirmed"
         ) {
-          utility.getResponse(res, response.data, response.data.status);
+          const BookingResponse = {
+            status: response.data.status,
+            checkin: response.data.checkin,
+            checkout: response.data.checkout,
+            booking_date: response.data.booking_date,
+            booking_reference: response.data.booking_reference,
+            hotel: {
+              paxes: response.data.hotel.paxes,
+              booking_items: response.data.hotel.booking_items,
+              city_name: response.data.hotel.city_name,
+            },
+            bookingGroupData: response.data.bookingGroupData,
+          };
+          utility.getResponse(res, BookingResponse, BookingResponse.status);
         } else {
           utility.getError(res, null, response.data.status);
         }
@@ -187,7 +200,15 @@ export default {
           `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
         );
       } else {
-        utility.getResponse(res, response.data, "RETRIVED");
+        utility.getResponse(
+          res,
+          {
+            status: response.data.status,
+            cancel_date: response.data.cancel_date,
+            cancellation_charges: response.data.cancellation_charges,
+          },
+          "RETRIVED"
+        );
       }
     } catch (error) {
       next(error);
