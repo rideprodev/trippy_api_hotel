@@ -361,6 +361,7 @@ export default {
                 paxes: response.data.hotel.paxes,
                 booking_items: response.data.hotel.booking_items,
                 city_name: response.data.hotel.city_name,
+                hotel_code: response.data.hotel.hotel_code,
               },
               bookingGroupData: response.data.bookingGroupData,
             };
