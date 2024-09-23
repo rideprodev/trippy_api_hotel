@@ -63,12 +63,10 @@ export default {
           rates: x.rates.map((x) => {
             const resultData = {
               boarding_details: x.boarding_details || [],
+              other_inclusions: x.other_inclusions || [],
               currency: x.currency,
               price: x.price,
             };
-            if (x.other_inclusions && x.other_inclusions.length > 0) {
-              resultData.other_inclusions = x.other_inclusions;
-            }
             return resultData;
           }),
         });
