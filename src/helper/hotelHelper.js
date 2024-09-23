@@ -40,6 +40,9 @@ export default {
       const cityData = await customRepository.fetchCityData(bodyData.cityCode);
       for (let i = 0; i < data?.hotels?.length; i++) {
         const x = data.hotels[i];
+        const hotelData = await hotelRepository.fetchOneWithoutCount({
+          hotelCode: x.hotel_code,
+        });
         orignalResponse.push({
           search_id: data.search_id,
           ...cityData[0],
@@ -48,7 +51,8 @@ export default {
         response.push({
           search_id: data.search_id,
           ...cityData[0],
-          propery_type: x.propery_type,
+          propery_type: hotelData.accommodationTypeSubName,
+          chain_name: hotelData.ChainName,
           address: x.address,
           category: x.category,
           country: x.country,
