@@ -51,6 +51,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("relevant", "irrelevant"),
         defaultValue: "relevant",
       },
+      commissionValue: {
+        type: DataTypes.INTEGER(10),
+        allowNull: true,
+      },
       last_login: {
         type: DataTypes.DATE,
         allowNull: true,
