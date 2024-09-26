@@ -276,7 +276,7 @@ export default {
         const comissionPercent = await Setting.findOne({
           where: { key: config.app.GRNPercentageKey },
         });
-        commission = parseFloat(comissionPercent.value);
+
         for (let i = 0; i < hotelData.length; i++) {
           const elementi = hotelData[i];
           const newResponse = result[i]?.data?.hotels;
@@ -299,6 +299,12 @@ export default {
               if (newRates.length > 0) {
                 // add the commission on price
                 if (elementi.commission === "relevant") {
+                  commission = parseFloat(comissionPercent.value);
+                  commissionAmount =
+                    (parseFloat(newRates[0].price) * commission) / 100;
+                  totalPrice = parseFloat(newRates[0].price) + commissionAmount;
+                } else if (elementi.commission === "irrelevant") {
+                  commission = parseFloat(elementi.commissionValue);
                   commissionAmount =
                     (parseFloat(newRates[0].price) * commission) / 100;
                   totalPrice = parseFloat(newRates[0].price) + commissionAmount;
@@ -990,6 +996,10 @@ export default {
             commission = parseFloat(comissionPercent.value);
             commissionAmount = (totalPrice * commission) / 100;
             totalPrice = totalPrice + commissionAmount;
+          } else if (userData.commission === "irrelevant") {
+            commission = parseFloat(userData.commissionValue);
+            commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
+            totalPrice = parseFloat(bodyData.price) + commissionAmount;
           }
           console.log(commission, commissionAmount, totalPrice);
           // //  create booking for this bidding holer

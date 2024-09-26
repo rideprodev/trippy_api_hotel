@@ -315,6 +315,10 @@ export default {
         commission = parseFloat(comissionPercent.value);
         commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
         totalPrice = parseFloat(bodyData.price) + commissionAmount;
+      } else if (userData.commission === "irrelevant") {
+        commission = parseFloat(userData.commissionValue);
+        commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
+        totalPrice = parseFloat(bodyData.price) + commissionAmount;
       }
       // req.transaction = result;
       bodyData.commission = commission;

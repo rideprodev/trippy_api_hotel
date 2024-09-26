@@ -618,6 +618,7 @@ export default {
               "phoneNumberCountryCode",
               "phoneNumber",
               "commission",
+              "commissionValue",
             ],
             model: User,
             as: "userData",
