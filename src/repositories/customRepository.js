@@ -103,9 +103,7 @@ export default {
       const whereCity = {
           $col: Sequelize.where(
             Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
-            {
-              [Op.like]: `%${name.replace(/\./g, "")}%`,
-            }
+            { [Op.like]: `%${name.replace(/\./g, "")}%` }
           ),
         },
         whereHotel = {
@@ -135,11 +133,13 @@ export default {
         where: whereLocation,
         attributes: ["locationCode", "locationName", "countryCode"],
         limit: 15,
+        order: [[sequelize.fn("length", sequelize.col("locationName")), "ASC"]],
       });
       _response.city = await HotelCity.findAll({
         where: whereCity,
         attributes: ["cityCode", "cityName", "countryCode"],
         limit: 15,
+        order: [[sequelize.fn("length", sequelize.col("cityName")), "ASC"]],
       });
       return _response;
     } catch (error) {
