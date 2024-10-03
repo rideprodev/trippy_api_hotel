@@ -228,6 +228,7 @@ export default {
       hotelData.push({
         id: x.id,
         commission: x.userData.commission,
+        commissionValue: x.userData.commissionValue,
         rooms,
         biddingData: x.biddingData,
         bookingGroupData: x,
@@ -998,8 +999,8 @@ export default {
             totalPrice = totalPrice + commissionAmount;
           } else if (userData.commission === "irrelevant") {
             commission = parseFloat(userData.commissionValue);
-            commissionAmount = (parseFloat(bodyData.price) * commission) / 100;
-            totalPrice = parseFloat(bodyData.price) + commissionAmount;
+            commissionAmount = (totalPrice * commission) / 100;
+            totalPrice = totalPrice + commissionAmount;
           }
           console.log(commission, commissionAmount, totalPrice);
           // //  create booking for this bidding holer
