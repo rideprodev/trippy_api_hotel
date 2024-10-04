@@ -52,7 +52,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: "relevant",
       },
       commissionValue: {
-        type: DataTypes.INTEGER(10),
+        type: DataTypes.STRING(10),
         allowNull: true,
       },
       last_login: {
