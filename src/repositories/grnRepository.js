@@ -186,22 +186,13 @@ export default {
     try {
       let bookingGroup = {};
       const bodyData = req.body;
-      const membersData = req.members;
       const userData = req.user;
-      bodyData.roomsData = bodyData.bookingItems;
       // const transactionData = req.transaction;
       const revalidateResponse = bodyData.reavalidateResponse;
 
       //  Set Holder Data
       const holder = {
-        title:
-          userData.UserPersonalInformation.title === "Mr"
-            ? "Mr."
-            : userData.UserPersonalInformation.title === "Mstr"
-            ? "Mstr."
-            : userData.UserPersonalInformation.title === "Mrs"
-            ? "Mrs."
-            : "Ms.",
+        title: "Mr.",
         name: userData.firstName,
         surname: userData.lastName,
         email: userData.email,
@@ -214,36 +205,6 @@ export default {
       // ) {
       //   holder["pan_number"] = userData.UserPersonalInformation.panNumber;
       // }
-      // Need to check the indian user pan card mandatary
-
-      //  Set Booking Items
-      for (let index = 0; index < bodyData.bookingItems.length; index++) {
-        const e = bodyData.bookingItems[index];
-        for (let i = 0; i < e.rooms.length; i++) {
-          e.rooms[i].paxes = e.rooms[i].paxes.map((x, k) => {
-            const paxesData = membersData.filter((item) => item.id === x)[0];
-            return {
-              id: paxesData.id,
-              title:
-                paxesData.title === "Mr"
-                  ? "Mr."
-                  : paxesData.title === "Mstr"
-                  ? "Mstr."
-                  : paxesData.title === "Mrs"
-                  ? "Mrs."
-                  : "Ms.",
-              name: paxesData.firstName,
-              surname: paxesData.lastName,
-              type: e.rooms[i].ages[k] >= 12 ? "AD" : "CH",
-              age: e.rooms[i].ages[k],
-            };
-          });
-          delete e.rooms[i].ages;
-          // console.log(e.rooms[i]);
-        }
-      }
-
-      // console.log(bodyData.bookingItems[0].rooms[0].paxes);
 
       // Request Data
       const _request_data = {
@@ -261,7 +222,7 @@ export default {
         cutoff_time: 120000,
         holder: holder,
       };
-      // return _request_data;
+      // console.log(_request_data);
       const _response = await requestHandler.fetchResponseFromHotel(
         GRN_Apis.booking,
         await this.getSessionToken(),
@@ -296,7 +257,6 @@ export default {
           currency: _response?.data.currency
             ? _response.data.currency
             : bodyData.transactionCurrency,
-          isUserTravelled: bodyData.isUserTravelled,
           searchPayload: JSON.stringify(bodyData.searchPayload),
         };
         bookingGroup = await HotelBookingGroup.create(bookingGroupData);
@@ -382,26 +342,11 @@ export default {
           console.log("================================");
           if (booking) {
             await bookingGroup.update({ bookingId: booking.id });
-            for (let i = 1; i <= bodyData.bookingItems.length; i++) {
-              const elementI = bodyData.bookingItems[i - 1];
-              for (let j = 0; j < elementI.rooms.length; j++) {
-                const elementJ = elementI.rooms[j];
-                const paxesIds = [];
-                const ages = [];
-                for (let k = 0; k < elementJ.paxes.length; k++) {
-                  const elementK = elementJ.paxes[k];
-                  paxesIds.push(elementK.id);
-                  ages.push(elementK.age);
-                }
-                const hotelDetail = {
-                  bookingGroupId: bookingGroup.id,
-                  roomNumber: i,
-                  paxes: paxesIds.toString(","),
-                  ages: ages.toString(","),
-                };
-                await HotelBookingDetail.create(hotelDetail);
-              }
-            }
+            const hotelDetail = {
+              bookingGroupId: bookingGroup.id,
+              paxes: JSON.stringify(bodyData.bookingItems),
+            };
+            await HotelBookingDetail.create(hotelDetail);
             console.log("================================");
             console.log("Paxes created");
             console.log("================================");

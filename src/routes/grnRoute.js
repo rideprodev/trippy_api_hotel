@@ -53,7 +53,6 @@ router.post(
   }),
   hotelMiddleware.checkUserRelevance,
   hotelMiddleware.checkCardExist,
-  hotelMiddleware.checkMemberExist,
   grnController.booking
 );
 
