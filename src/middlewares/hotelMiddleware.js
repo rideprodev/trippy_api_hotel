@@ -100,61 +100,6 @@ export default {
     }
   },
   /**
-   * Check the members is exist or not
-   * @param {Object} req
-   * @param {Object} res
-   * @param {Function} next
-   */
-  async checkMemberExist(req, res, next) {
-    try {
-      const bodyData = req.body;
-      const userData = req.user;
-      let members = [];
-      if (bodyData.isUserTravelled === "true") {
-        const userInformation = await UserPersonalInformation.findOne({
-          attributes: ["title", "nationality"],
-          where: { userId: userData.id },
-        });
-        userData.dataValues.id = userData.id;
-        userData.dataValues.title = userInformation.title;
-        userData.dataValues.nationality = userInformation.nationality;
-        userData.dataValues.type = "AD";
-        members = [...members, userData.dataValues];
-      }
-      let membersId = [];
-      for (let index = 0; index < bodyData.bookingItems.length; index++) {
-        const e = bodyData.bookingItems[index];
-        for (let i = 0; i < e.rooms.length; i++) {
-          const element = e.rooms[i];
-          membersId = [...membersId, ...element.paxes];
-        }
-      }
-
-      if (membersId.length > 0) {
-        const onlyMember = membersId.filter((x) => x !== userData.id);
-        if (onlyMember.length > 0) {
-          const memberData = await UserMember.findAll({
-            where: { id: onlyMember },
-          });
-          for (let j = 0; j < memberData.length; j++) {
-            const jelement = memberData[j].dataValues;
-            members = [...members, jelement];
-          }
-        }
-      }
-
-      if (members.length === +bodyData.totalMember) {
-        req.members = members;
-        next();
-      } else {
-        utility.getError(res, "MEMBER_NOT_FOUND");
-      }
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  /**
    * Check the bidding is exist or not
    * @param {Object} req
    * @param {Object} res

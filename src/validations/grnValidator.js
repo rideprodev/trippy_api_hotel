@@ -65,8 +65,15 @@ const booking = Joi.object({
               .optional()
               .allow(null),
             room_reference: Joi.string().required(),
-            paxes: Joi.array().required(),
-            ages: Joi.array().required(),
+            paxes: Joi.array().items(
+              Joi.object({
+                title: Joi.string().valid("mr.").required(),
+                name: Joi.string().required(),
+                surname: Joi.string().optional().allow(""),
+                type: Joi.string().valid("AD").optional(),
+                age: Joi.string().required(),
+              })
+            ),
           })
         ),
       })
