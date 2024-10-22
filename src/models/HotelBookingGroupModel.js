@@ -62,10 +62,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER(3),
         defaultValue: 0,
       },
-      isUserTravelled: {
-        type: DataTypes.ENUM("true", "false"),
-        defaultValue: "false",
-      },
       searchPayload: {
         type: DataTypes.TEXT,
       },

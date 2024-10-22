@@ -10,11 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       paxes: {
-        type: DataTypes.STRING(10),
-        allowNull: false,
-      },
-      ages: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.TEXT,
         allowNull: false,
       },
     },
