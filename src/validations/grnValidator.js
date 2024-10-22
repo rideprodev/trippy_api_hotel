@@ -38,7 +38,6 @@ const booking = Joi.object({
   cardId: Joi.number().greater(0).required(),
   searchPayload: Joi.object().required(),
   totalRooms: Joi.string().required(),
-  isUserTravelled: Joi.string().valid("true", "false").required(),
   hotelCode: Joi.string().required(),
   cityCode: Joi.string().required(),
   groupCode: Joi.string().required(),

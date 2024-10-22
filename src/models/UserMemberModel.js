@@ -23,11 +23,9 @@ module.exports = (sequelize, DataTypes) => {
       },
       dob: {
         type: DataTypes.DATE,
-        allowNull: false,
       },
       nationality: {
         type: DataTypes.STRING(255),
-        allowNull: false,
       },
       panNumber: {
         type: DataTypes.STRING(255),
