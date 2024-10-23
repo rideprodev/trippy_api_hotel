@@ -5,10 +5,6 @@ module.exports = (sequelize, DataTypes) => {
       bookingGroupId: {
         type: DataTypes.INTEGER,
       },
-      roomNumber: {
-        type: DataTypes.STRING(10),
-        allowNull: false,
-      },
       paxes: {
         type: DataTypes.TEXT,
         allowNull: false,
