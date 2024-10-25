@@ -229,7 +229,7 @@ export default {
         _request_data
       );
 
-      // console.log(_response, "_response");
+      console.log(_response, "_response");
 
       if (_response !== undefined) {
         console.log("================================");

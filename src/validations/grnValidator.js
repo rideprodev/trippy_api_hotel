@@ -67,7 +67,7 @@ const booking = Joi.object({
             room_reference: Joi.string().required(),
             paxes: Joi.array().items(
               Joi.object({
-                title: Joi.string().valid("mr.").required(),
+                title: Joi.string().valid("Mr.").required(),
                 name: Joi.string().required(),
                 surname: Joi.string().optional().allow(""),
                 type: Joi.string().valid("AD").optional(),
