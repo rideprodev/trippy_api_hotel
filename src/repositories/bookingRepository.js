@@ -44,7 +44,7 @@ export default {
 
       const includes = [
         {
-          attributes: ["roomNumber", "paxes", "ages"],
+          attributes: ["paxes"],
           model: HotelBookingDetail,
           as: "bookingDetils",
         },
@@ -260,7 +260,7 @@ export default {
             },
           },
           {
-            attributes: ["roomNumber", "paxes", "ages"],
+            attributes: ["paxes"],
             model: HotelBookingDetail,
             as: "bookingDetils",
           },
