@@ -23,7 +23,8 @@ module.exports = (sequelize, DataTypes) => {
           "cancelled",
           "paid",
           "refund-Intiated",
-          "refunded"
+          "refunded",
+          "payment-failed"
         ),
         defaultValue: null,
       },
