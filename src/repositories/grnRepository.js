@@ -480,7 +480,7 @@ export default {
           false
         );
         if (
-          _response.data.booking_status === "confirmed" &&
+          _response.data?.booking_status === "confirmed" &&
           _response.data.booking_type === "B"
         ) {
           await bookingObject.update({
@@ -495,7 +495,7 @@ export default {
             }
           );
         } else if (
-          _response.data.booking_status === "confirmed" &&
+          _response.data?.booking_status === "confirmed" &&
           _response.data.booking_type === "C"
         ) {
           await bookingObject.update({ status: "cancelled" });

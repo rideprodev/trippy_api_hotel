@@ -30,7 +30,8 @@ export default {
       const expairedBooking = [],
         finalBookings = [],
         payemntForBooking = [];
-      let amount = 10;
+      let amount = 10,
+        platformPaymentStatus = "";
       const fetchbookings = await HotelBooking.findAll({
         where: {
           status: "confirmed",
@@ -42,9 +43,14 @@ export default {
       for (let index = 0; index < fetchbookings.length; index++) {
         const element = fetchbookings[index];
         const daysDifference = utility.dateDifference(
-          element.checkIn,
+          element.cancelByDate,
           await utility.getCurrentDateTime(),
           "days"
+        );
+        console.log(
+          element.cancelByDate,
+          await utility.getCurrentDateTime(),
+          daysDifference
         );
         if (daysDifference > 0) {
           expairedBooking.push(element.id);
@@ -54,10 +60,36 @@ export default {
       }
 
       if (expairedBooking.length > 0) {
-        await HotelBooking.update(
-          { status: "cancelled" },
-          { where: { id: expairedBooking } }
-        );
+        console.log("expairedBooking", expairedBooking);
+        // await HotelBooking.update(
+        //   { status: "cancelled" },
+        //   { where: { id: expairedBooking } }
+        // );
+        // for (let e = 0; e < expairedBooking.length; e++) {
+        //   const elementExpaired = expairedBooking[e];
+        //   const bookingObject = await HotelBookingGroup.findOne({
+        //     where: { id: elementExpaired.groupId },
+        //   });
+        //   if (bookingObject) {
+        //     const req = {};
+        //     req.bookingObject = bookingObject;
+        //     await grnRepository.bookingCancel(req);
+        //   }
+        // }
+        // try {
+        //   await requestHandler.sendEmail(
+        //     userData.email,
+        //     "hotelPayment",
+        //     `Booking Expaired for booking reference - ${element.bookingReference}`,
+        //     {
+        //       transaction_id: null,
+        //       payment_id: null,
+        //       booking_id: element.id,
+        //       total_price: element.total_price,
+        //       currency: element.currency,
+        //     }
+        //   );
+        // } catch (err) {}
       }
       // check the latest date on the booking
       for (let index = 0; index < finalBookings.length; index++) {
@@ -67,14 +99,28 @@ export default {
           await utility.getCurrentDateTime(),
           "days"
         );
-        if (daysDifference < -1 && daysDifference > -2) {
+        if (
+          (parseInt(daysDifference) === -2 &&
+            element.platformPaymentStatus == "pending") ||
+          (parseInt(daysDifference) === -1 &&
+            element.platformPaymentStatus == "not-done")
+        ) {
+          platformPaymentStatus =
+            parseInt(daysDifference) == -2 ? "not-done" : "unpaid";
           payemntForBooking.push(element);
+        } else if (
+          parseInt(daysDifference) === -0 &&
+          element.platformPaymentStatus != "failed"
+        ) {
+          payemntForBooking.push(element);
+          platformPaymentStatus = "failed";
         }
       }
 
       if (payemntForBooking.length > 0) {
         for (let j = 0; j < payemntForBooking.length; j++) {
           const element = payemntForBooking[j];
+          console.log("payemntForBooking", element.id, platformPaymentStatus);
           const cardId = await HotelBookingLog.findOne({
             where: { groupId: element.bookingGroupId },
           });
@@ -93,9 +139,13 @@ export default {
             isAdded: false,
           };
 
+          console.log(_requestTransaction);
+
           const transactionData = await requestHandler.sendForPay(
             _requestTransaction
           );
+
+          console.log(transactionData);
 
           if (
             transactionData &&
@@ -112,12 +162,16 @@ export default {
               paymentStatus: "paid",
             });
             await HotelBooking.update(
-              { platformPaymentStatus: "paid" },
+              { platformPaymentStatus: "paid", status: "complete" },
               { where: { id: element.id } }
             );
             await HotelBidding.update(
               { status: "cancelled" },
-              { where: { groupId: element.bookingGroupId } }
+              {
+                where: {
+                  groupId: element.bookingGroupId,
+                },
+              }
             );
             const userData = await User.findOne({
               where: { id: element.userId },
@@ -137,11 +191,22 @@ export default {
               );
             } catch (err) {}
           } else {
+            await HotelBookingLog.create({
+              userId: element.userId,
+              groupId: element.bookingGroupId,
+              bookingId: element.id,
+              cardId: cardId.cardId,
+              paymentStatus: "payment-failed",
+            });
+            await HotelBooking.update(
+              { platformPaymentStatus: platformPaymentStatus },
+              { where: { id: element.id } }
+            );
             try {
               await requestHandler.sendEmail(
                 userData.email,
                 "hotelPayment",
-                `Payment Failed for booking reference - ${element.bookingReference}`,
+                `Payment ${platformPaymentStatus} for booking reference - ${element.bookingReference}`,
                 {
                   transaction_id: null,
                   payment_id: null,
