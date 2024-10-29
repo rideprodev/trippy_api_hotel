@@ -435,6 +435,21 @@ export default {
           { status: "cancelled" },
           { where: { groupId: bookingObject.id } }
         );
+        try {
+          let fullName = `${userData.firstName} ${userData.lastName}`;
+          await requestHandler.sendEmail(
+            userData.email,
+            "hotelPaymentSuccuess",
+            `Payment Successfully for booking Number - ${bookingObject?.currentReference}`,
+            {
+              name: fullName,
+              booking_id: bookingObject?.currentReference,
+              total_price: bodyData.price,
+              currency: bodyData.currency,
+              hotel_name: bodyData.hotelName,
+            }
+          );
+        } catch (err) {}
         return "Paid";
       } else {
         return "Already Paid";

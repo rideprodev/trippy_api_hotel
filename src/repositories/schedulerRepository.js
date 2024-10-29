@@ -6,7 +6,7 @@ import grnRepository from "./grnRepository";
 import biddingRepository from "./biddingRepository";
 import userRepository from "./userRepository";
 import GRN_Apis from "../config/GRN_Apis";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import bookingRepository from "./bookingRepository";
 const {
   User,
@@ -17,7 +17,7 @@ const {
   HotelBookingDetail,
   UserMember,
   HotelBookingGroup,
-  HotelBiddingPrices,
+  Hotel,
 } = models;
 
 export default {
@@ -65,6 +65,14 @@ export default {
         //   { status: "cancelled" },
         //   { where: { id: expairedBooking } }
         // );
+        // const userData = await User.findOne({
+        //   where: { id: element.userId },
+        // });
+        // const fullName = `${userData.firstName} ${userData.lastName}`;
+        // const hotelData = await Hotel.findOne({
+        //   attributes: ["hotelName"],
+        //   where: { hotelCode: element.hotelCode },
+        // });
         // for (let e = 0; e < expairedBooking.length; e++) {
         //   const elementExpaired = expairedBooking[e];
         //   const bookingObject = await HotelBookingGroup.findOne({
@@ -124,6 +132,14 @@ export default {
           const cardId = await HotelBookingLog.findOne({
             where: { groupId: element.bookingGroupId },
           });
+          const userData = await User.findOne({
+            where: { id: element.userId },
+          });
+          const fullName = `${userData.firstName} ${userData.lastName}`;
+          const hotelData = await Hotel.findOne({
+            attributes: ["hotelName"],
+            where: { hotelCode: element.hotelCode },
+          });
           if (config.app.environment !== "development") {
             amount = element.totalPrice;
           }
@@ -173,20 +189,18 @@ export default {
                 },
               }
             );
-            const userData = await User.findOne({
-              where: { id: element.userId },
-            });
+
             try {
               await requestHandler.sendEmail(
                 userData.email,
-                "hotelPayment",
-                `Payment Done for booking reference - ${element.bookingReference}`,
+                "hotelPaymentSuccuess",
+                `Payment Successfully for booking Number - ${element.bookingReference}`,
                 {
-                  transaction_id: transactionData.data.id,
-                  payment_id: transactionData.data.paymentId,
+                  name: fullName,
                   booking_id: element.id,
                   total_price: element.total_price,
                   currency: element.currency,
+                  hotel_name: hotelData.hotelName,
                 }
               );
             } catch (err) {}
@@ -205,14 +219,14 @@ export default {
             try {
               await requestHandler.sendEmail(
                 userData.email,
-                "hotelPayment",
-                `Payment ${platformPaymentStatus} for booking reference - ${element.bookingReference}`,
+                "hotelPaymentFailed",
+                `Payment ${platformPaymentStatus} for booking Number - ${element.bookingReference}`,
                 {
-                  transaction_id: null,
-                  payment_id: null,
+                  name: fullName,
                   booking_id: element.id,
-                  total_price: element.total_price,
-                  currency: element.currency,
+                  hotel_name: hotelData.hotelName,
+                  cancellation_date: element.cancelByDate,
+                  group_id: element.bookingGroupId,
                 }
               );
             } catch (err) {}
