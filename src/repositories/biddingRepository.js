@@ -11,6 +11,7 @@ const {
   HotelImage,
 } = models;
 import { Op, Sequelize } from "sequelize";
+import requestHandler from "../services/requestHandler";
 
 export default {
   /**
@@ -204,7 +205,9 @@ export default {
   async placeMyBid(req) {
     try {
       const bodyData = req.body;
-      bodyData.userId = req.user.id;
+      const userData = req.user;
+      bodyData.userId = userData.id;
+      const hotelName = bodyData.reavalidateResponse.hotel.name;
       bodyData.reavalidateResponse = JSON.stringify(
         bodyData.reavalidateResponse
       );
@@ -212,6 +215,17 @@ export default {
       const _response = await HotelBidding.create(bodyData);
       bodyData.biddingId = _response.id;
       await this.updateLatestPrice(bodyData);
+      try {
+        const sendmail = requestHandler.sendEmail(
+          userData.email,
+          "bidRegister",
+          `Bid has been register successfully!`,
+          {
+            name: `${userData.firstName} ${userData.lastName}`,
+            hotel_name: hotelName,
+          }
+        );
+      } catch (err) {}
       return _response;
     } catch (error) {
       throw Error(error);
