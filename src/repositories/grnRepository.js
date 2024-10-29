@@ -11,6 +11,7 @@ const {
   Setting,
   HotelBookingLog,
   HotelBidding,
+  Hotel,
 } = models;
 
 export default {
@@ -587,14 +588,13 @@ export default {
                 email: userData.email,
                 total_price: _response?.data?.booking_price?.amount,
                 currency: _response?.data?.booking_price?.currency,
-                cancellation_date:
-                  _response?.data?.cancellation_details?.cancel_date,
+                cancellation_date: _response?.data?.cancel_date,
                 booking_date: bookingObject.createdAt,
                 check_in: bookingObject.checkIn,
                 check_out: bookingObject.checkOut,
                 total_members: bookingObject.totalMember,
                 total_rooms: bookingObject.totalRooms,
-                room_type: bookingObject.roomType,
+                room_type: updatebooking.roomType,
               }
             );
           } catch (err) {}
