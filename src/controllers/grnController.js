@@ -204,9 +204,10 @@ export default {
         utility.getResponse(
           res,
           {
-            status: response.data.status,
-            cancel_date: response.data.cancel_date,
-            cancellation_charges: response.data.cancellation_charges,
+            status: response.data.booking_status,
+            cancel_date: response.data?.cancellation_details?.cancel_date,
+            cancellation_charges:
+              response.data?.cancellation_details?.cancellation_charge,
           },
           "RETRIVED"
         );

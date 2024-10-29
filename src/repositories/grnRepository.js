@@ -229,7 +229,7 @@ export default {
         _request_data
       );
 
-      console.log(_response, "_response");
+      // console.log(_response, "_response");
 
       if (_response !== undefined) {
         console.log("================================");
@@ -564,15 +564,12 @@ export default {
           });
 
           await bookingObject.update({ status: "pending" });
-          const updatebooking = await HotelBooking.update(
-            { status: "pending" },
-            {
-              where: {
-                id: bookingObject?.bookingId,
-              },
-            }
-          );
-
+          const updatebooking = await HotelBooking.findOne({
+            where: {
+              id: bookingObject?.bookingId,
+            },
+          });
+          await updatebooking.update({ status: "pending" });
           try {
             const hotelData = await Hotel.findOne({
               attributes: ["hotelName", "address"],
@@ -606,7 +603,7 @@ export default {
             userId: userData.id,
             groupId: bookingObject.id,
             bookingId: bookingObject?.bookingId,
-            transactionId: bookingLog.transactionId,
+            transactionId: bookingLog?.transactionId,
             paymentStatus: "cancelled",
           });
           await HotelBidding.update(
