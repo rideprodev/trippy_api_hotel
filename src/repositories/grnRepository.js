@@ -422,24 +422,8 @@ export default {
                 `Your Reservation has been failed`,
                 {
                   name: `${userData.firstName} ${userData.lastName}`,
-                  email: userData.email,
                   hotel_name: bodyData.hotelName,
                   full_address: bodyData.fullAddress,
-                  image_url: bodyData.imageUrl,
-                  check_in: bodyData.checkIn,
-                  check_out: bodyData.checkOut,
-                  room_type: bodyData.roomType,
-                  total_members: bodyData.totalMember,
-                  cancellation_date: cancelByDate,
-                  total_price: bodyData.totalPrice,
-                  booking_id: bookingGroup.currentReference,
-                  booking_date: new Date(),
-                  service_tax: revalidateResponse.serviceChages,
-                  total_rooms: bodyData.totalRooms,
-                  total_nights: bodyData.totalNight,
-                  price_distribution:
-                    revalidateResponse?.hotel?.rate?.price_details,
-                  currency: revalidateResponse?.hotel?.rate?.currency,
                 }
               );
             } catch (err) {}
@@ -579,33 +563,8 @@ export default {
             },
           });
 
-          // const refundIntialization = await requestHandler.sendForRefund(
-          //   bookingLog.transactionId,
-          //   userData.id
-          // );
-          try {
-            const sendmail = requestHandler.sendEmail(
-              userData.email,
-              "hotelBookingCancelled",
-              `Reservation with ID: ${bookingObject.currentReference} has been Cancelled`,
-              {
-                name: `${userData.firstName} ${userData.lastName}`,
-                email: userData.email,
-                check_in: bookingObject.checkIn,
-                check_out: bookingObject.checkOut,
-                room_type: bookingObject.roomType,
-                total_members: bookingObject.totalMember,
-                total_rooms: bookingObject.totalRooms,
-                cancellation_date:
-                  _response?.data?.cancellation_details?.cancel_date,
-                booking_id: bookingObject.currentReference,
-                booking_date: bookingObject.createdAt,
-              }
-            );
-          } catch (err) {}
-
           await bookingObject.update({ status: "pending" });
-          await HotelBooking.update(
+          const updatebooking = await HotelBooking.update(
             { status: "pending" },
             {
               where: {
@@ -613,6 +572,36 @@ export default {
               },
             }
           );
+
+          try {
+            const hotelData = await Hotel.findOne({
+              attributes: ["hotelName", "address"],
+              where: { hotelCode: updatebooking.hotelCode },
+            });
+            const sendmail = requestHandler.sendEmail(
+              userData.email,
+              "hotelBookingCancelled",
+              `Reservation with ID: ${bookingObject.currentReference} has been Cancelled`,
+              {
+                name: `${userData.firstName} ${userData.lastName}`,
+                hotel_name: hotelData.hotelName,
+                full_address: hotelData.address,
+                booking_id: bookingObject.currentReference,
+                email: userData.email,
+                total_price: _response?.data?.booking_price?.amount,
+                currency: _response?.data?.booking_price?.currency,
+                cancellation_date:
+                  _response?.data?.cancellation_details?.cancel_date,
+                booking_date: bookingObject.createdAt,
+                check_in: bookingObject.checkIn,
+                check_out: bookingObject.checkOut,
+                total_members: bookingObject.totalMember,
+                total_rooms: bookingObject.totalRooms,
+                room_type: bookingObject.roomType,
+              }
+            );
+          } catch (err) {}
+
           await HotelBookingLog.create({
             userId: userData.id,
             groupId: bookingObject.id,

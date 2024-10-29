@@ -92,6 +92,9 @@ const bookingStatus = Joi.object({
 
 const payment = Joi.object({
   transactionId: Joi.number().greater(0).required(),
+  hotelName: Joi.string().required(),
+  currency: Joi.string().required(),
+  price: Joi.string().required(),
 });
 
 const updateCardOnBooking = Joi.object({
