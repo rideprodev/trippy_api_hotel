@@ -4,9 +4,8 @@ import requestHandler from "../services/requestHandler";
 import config from "../config";
 import grnRepository from "./grnRepository";
 import biddingRepository from "./biddingRepository";
-import userRepository from "./userRepository";
 import GRN_Apis from "../config/GRN_Apis";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import bookingRepository from "./bookingRepository";
 const {
   User,
@@ -80,7 +79,8 @@ export default {
             const req = {};
             req.user = userData;
             req.bookingObject = bookingObject;
-            await grnRepository.bookingCancel(req);
+            const respose = await grnRepository.bookingCancel(req);
+            // console.log(elementExpaired.id, respose);
           }
         }
       }
@@ -152,8 +152,6 @@ export default {
           const transactionData = await requestHandler.sendForPay(
             _requestTransaction
           );
-
-          console.log(transactionData);
 
           if (
             transactionData &&
