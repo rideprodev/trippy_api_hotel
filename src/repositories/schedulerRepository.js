@@ -451,9 +451,9 @@ export default {
         }
         // Update Latest Prices Hotel
         console.log(updateLatestPrice);
-        // const updateLatestPricesHotelPromise = updateLatestPrice.map((x) =>
-        //   biddingRepository.updatelatestPriceThroghScheduler(x)
-        // );
+        const updateLatestPricesHotelPromise = updateLatestPrice.map((x) =>
+          biddingRepository.updatelatestPriceThroghScheduler(x)
+        );
         // Need to check the same room bid lowest price with priority
         sendForRevalidate = sendForRevalidate.sort(
           (a, b) => a.bid.priority - b.bid.priority
