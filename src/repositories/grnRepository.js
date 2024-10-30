@@ -471,7 +471,10 @@ export default {
             status: _response?.data?.booking_status,
           });
           await HotelBooking.update(
-            { status: _response?.data?.booking_status },
+            {
+              status: _response?.data?.booking_status,
+              paymentStatus: _response?.data?.payment_status,
+            },
             {
               where: {
                 id: bookingObject?.bookingId,
@@ -486,6 +489,7 @@ export default {
           await HotelBooking.update(
             {
               status: "cancelled",
+              paymentStatus: _response?.data?.payment_status,
               cancelledDate: _response?.data?.cancellation_details?.cancel_date,
               refundAmout: _response?.data?.cancellation_details?.refund_amount,
               cancellationCharge:
