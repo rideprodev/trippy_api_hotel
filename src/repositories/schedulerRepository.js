@@ -147,7 +147,7 @@ export default {
             isAdded: false,
           };
 
-          // console.log(_requestTransaction);
+          console.log(_requestTransaction);
 
           const transactionData = await requestHandler.sendForPay(
             _requestTransaction
@@ -168,7 +168,7 @@ export default {
               paymentStatus: "paid",
             });
             await HotelBooking.update(
-              { platformPaymentStatus: "paid", status: "complete" },
+              { platformPaymentStatus: "paid" },
               { where: { id: element.id } }
             );
             await HotelBidding.update(
@@ -188,7 +188,7 @@ export default {
                 {
                   name: fullName,
                   booking_id: element.id,
-                  total_price: element.total_price,
+                  total_price: amount,
                   currency: element.currency,
                   hotel_name: hotelData.hotelName,
                 }
