@@ -583,7 +583,6 @@ export default {
           "currentReference",
           "checkIn",
           "checkOut",
-          "isUserTravelled",
           "searchPayload",
           "totalRooms",
           "bookingName",
@@ -619,7 +618,7 @@ export default {
             required: true,
           },
           {
-            attributes: ["roomNumber", "paxes", "ages"],
+            attributes: ["paxes"],
             model: HotelBookingDetail,
             as: "bookingDetils",
           },

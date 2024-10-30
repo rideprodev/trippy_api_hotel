@@ -398,7 +398,6 @@ export default {
                   booking_date: new Date(),
                   service_tax: revalidateResponse.serviceChages,
                   total_rooms: bodyData.totalRooms,
-                  total_nights: bodyData.totalNight,
                   supplier_price: revalidateResponse?.hotel?.rate?.price_details
                     ?.net[1]
                     ? revalidateResponse?.hotel?.rate?.price_details?.net[1]
