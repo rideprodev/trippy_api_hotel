@@ -147,7 +147,7 @@ export default {
             isAdded: false,
           };
 
-          console.log(_requestTransaction);
+          // console.log(_requestTransaction);
 
           const transactionData = await requestHandler.sendForPay(
             _requestTransaction
