@@ -33,11 +33,7 @@ export default {
       const fetchbookings = await HotelBooking.findAll({
         where: {
           status: "confirmed",
-          [Op.or]: [
-            { platformPaymentStatus: "pending" },
-            { platformPaymentStatus: "not-done" },
-            { platformPaymentStatus: "unpaid" },
-          ],
+          platformPaymentStatus: { [Op.ne]: "paid" },
         },
       });
 
@@ -52,35 +48,32 @@ export default {
         console.log(
           element.cancelByDate,
           await utility.getCurrentDateTime(),
-          daysDifference
+          daysDifference,
+          element.platformPaymentStatus
         );
         if (daysDifference > 0) {
-          expairedBooking.push(element.id);
+          expairedBooking.push(element);
         } else {
           finalBookings.push(element);
         }
       }
 
       if (expairedBooking.length > 0) {
-        console.log("expairedBooking", expairedBooking);
-        await HotelBooking.update(
-          { status: "cancelled" },
-          { where: { id: expairedBooking } }
-        );
-        const userData = await User.findOne({
-          where: { id: element.userId },
-        });
         for (let e = 0; e < expairedBooking.length; e++) {
           const elementExpaired = expairedBooking[e];
+          // console.log("expairedBooking", elementExpaired.id);
           const bookingObject = await HotelBookingGroup.findOne({
-            where: { id: elementExpaired.groupId },
+            where: { id: elementExpaired.bookingGroupId },
           });
-          if (bookingObject) {
+          const userData = await User.findOne({
+            where: { id: elementExpaired.userId },
+          });
+          if (bookingObject && userData) {
             const req = {};
             req.user = userData;
             req.bookingObject = bookingObject;
             const respose = await grnRepository.bookingCancel(req);
-            // console.log(elementExpaired.id, respose);
+            console.log(elementExpaired.id, respose);
           }
         }
       }
@@ -92,13 +85,13 @@ export default {
           await utility.getCurrentDateTime(),
           "days"
         );
-        console.log(
-          element.id,
-          parseInt(daysDifference),
-          element.platformPaymentStatus,
-          parseInt(daysDifference) === -1 &&
-            element.platformPaymentStatus == "not-done"
-        );
+        // console.log(
+        //   element.id,
+        //   parseInt(daysDifference),
+        //   element.platformPaymentStatus,
+        //   parseInt(daysDifference) === -1 &&
+        //     element.platformPaymentStatus == "not-done"
+        // );
         if (
           (parseInt(daysDifference) === -2 &&
             element.platformPaymentStatus == "pending") ||
