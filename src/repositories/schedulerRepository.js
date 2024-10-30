@@ -15,7 +15,6 @@ const {
   HotelBidding,
   Setting,
   HotelBookingDetail,
-  UserMember,
   HotelBookingGroup,
   Hotel,
 } = models;
@@ -35,7 +34,11 @@ export default {
       const fetchbookings = await HotelBooking.findAll({
         where: {
           status: "confirmed",
-          platformPaymentStatus: "pending",
+          [Op.or]: [
+            { platformPaymentStatus: "pending" },
+            { platformPaymentStatus: "not-done" },
+            { platformPaymentStatus: "unpaid" },
+          ],
         },
       });
 
@@ -61,43 +64,25 @@ export default {
 
       if (expairedBooking.length > 0) {
         console.log("expairedBooking", expairedBooking);
-        // await HotelBooking.update(
-        //   { status: "cancelled" },
-        //   { where: { id: expairedBooking } }
-        // );
-        // const userData = await User.findOne({
-        //   where: { id: element.userId },
-        // });
-        // const fullName = `${userData.firstName} ${userData.lastName}`;
-        // const hotelData = await Hotel.findOne({
-        //   attributes: ["hotelName"],
-        //   where: { hotelCode: element.hotelCode },
-        // });
-        // for (let e = 0; e < expairedBooking.length; e++) {
-        //   const elementExpaired = expairedBooking[e];
-        //   const bookingObject = await HotelBookingGroup.findOne({
-        //     where: { id: elementExpaired.groupId },
-        //   });
-        //   if (bookingObject) {
-        //     const req = {};
-        //     req.bookingObject = bookingObject;
-        //     await grnRepository.bookingCancel(req);
-        //   }
-        // }
-        // try {
-        //   await requestHandler.sendEmail(
-        //     userData.email,
-        //     "hotelPayment",
-        //     `Booking Expaired for booking reference - ${element.bookingReference}`,
-        //     {
-        //       transaction_id: null,
-        //       payment_id: null,
-        //       booking_id: element.id,
-        //       total_price: element.total_price,
-        //       currency: element.currency,
-        //     }
-        //   );
-        // } catch (err) {}
+        await HotelBooking.update(
+          { status: "cancelled" },
+          { where: { id: expairedBooking } }
+        );
+        const userData = await User.findOne({
+          where: { id: element.userId },
+        });
+        for (let e = 0; e < expairedBooking.length; e++) {
+          const elementExpaired = expairedBooking[e];
+          const bookingObject = await HotelBookingGroup.findOne({
+            where: { id: elementExpaired.groupId },
+          });
+          if (bookingObject) {
+            const req = {};
+            req.user = userData;
+            req.bookingObject = bookingObject;
+            await grnRepository.bookingCancel(req);
+          }
+        }
       }
       // check the latest date on the booking
       for (let index = 0; index < finalBookings.length; index++) {
@@ -106,6 +91,13 @@ export default {
           element.cancelByDate,
           await utility.getCurrentDateTime(),
           "days"
+        );
+        console.log(
+          element.id,
+          parseInt(daysDifference),
+          element.platformPaymentStatus,
+          parseInt(daysDifference) === -1 &&
+            element.platformPaymentStatus == "not-done"
         );
         if (
           (parseInt(daysDifference) === -2 &&
