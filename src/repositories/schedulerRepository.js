@@ -1045,7 +1045,7 @@ export default {
               cutoff_time: 120000,
               holder: holder,
             };
-            console.log(booking_request_data);
+            // console.log(booking_request_data);
             _response = await requestHandler.fetchResponseFromHotel(
               GRN_Apis.booking,
               await grnRepository.getSessionToken(),
