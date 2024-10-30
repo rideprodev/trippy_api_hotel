@@ -419,7 +419,6 @@ export default {
             "currentReference",
             "searchPayload",
             "totalRooms",
-            "isUserTravelled",
             "bookingName",
             "totalMember",
             "createdAt",
