@@ -45,12 +45,12 @@ export default {
           await utility.getCurrentDateTime(),
           "days"
         );
-        console.log(
-          element.cancelByDate,
-          await utility.getCurrentDateTime(),
-          daysDifference,
-          element.platformPaymentStatus
-        );
+        // console.log(
+        //   element.cancelByDate,
+        //   await utility.getCurrentDateTime(),
+        //   daysDifference,
+        //   element.platformPaymentStatus
+        // );
         if (daysDifference > 0) {
           expairedBooking.push(element);
         } else {
@@ -73,7 +73,7 @@ export default {
             req.user = userData;
             req.bookingObject = bookingObject;
             const respose = await grnRepository.bookingCancel(req);
-            console.log(elementExpaired.id, respose);
+            // console.log(elementExpaired.id, respose);
           }
         }
       }
@@ -113,7 +113,7 @@ export default {
       if (payemntForBooking.length > 0) {
         for (let j = 0; j < payemntForBooking.length; j++) {
           const element = payemntForBooking[j];
-          console.log("payemntForBooking", element.id, platformPaymentStatus);
+          // console.log("payemntForBooking", element.id, platformPaymentStatus);
           const cardId = await HotelBookingLog.findOne({
             where: { groupId: element.bookingGroupId },
           });
