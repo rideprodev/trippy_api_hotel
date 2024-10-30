@@ -451,9 +451,9 @@ export default {
         }
         // Update Latest Prices Hotel
         console.log(updateLatestPrice);
-        const updateLatestPricesHotelPromise = updateLatestPrice.map((x) =>
-          biddingRepository.updatelatestPriceThroghScheduler(x)
-        );
+        // const updateLatestPricesHotelPromise = updateLatestPrice.map((x) =>
+        //   biddingRepository.updatelatestPriceThroghScheduler(x)
+        // );
         // Need to check the same room bid lowest price with priority
         sendForRevalidate = sendForRevalidate.sort(
           (a, b) => a.bid.priority - b.bid.priority
@@ -541,14 +541,7 @@ export default {
             const bookingDetails = bookingGroupObject.bookingDetils;
             //  create holder booking for this bidding
             const holder = {
-              title:
-                userData.UserPersonalInformation.title === "Mr"
-                  ? "Mr."
-                  : userData.UserPersonalInformation.title === "Mstr"
-                  ? "Mstr."
-                  : userData.UserPersonalInformation.title === "Mrs"
-                  ? "Mrs."
-                  : "Ms.",
+              title: "Mr.",
               name: userData.firstName,
               surname: userData.lastName,
               email: userData.email,
@@ -558,115 +551,39 @@ export default {
             /*
              * if the booking can be able to for the current rate
              */
-            //  set the members for the new booking
-            let members = [];
-            if (bookingGroupObject.isUserTravelled === "true") {
-              const userInformation = userData?.UserPersonalInformation;
-              const userMember = {
-                id: userData.id,
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                title: userInformation.title,
-                nationality: userInformation.nationality,
-                type: "AD",
-              };
-              members = [...members, userMember];
-            }
-            const roomsData = [];
-            for (let j = 0; j < bookingGroupObject.totalRooms; j++) {
-              const roomInfo = bookingDetails.filter(
-                (x) => x.roomNumber == j + 1
-              );
-              const paxes = `${roomInfo[0].paxes}`.split(",");
-              const ages = `${roomInfo[0].ages}`.split(",");
-              roomsData.push({
-                room_reference:
-                  revalidateHotelData?.rate?.rooms[0]?.room_reference,
-                paxes: paxes,
-                ages: ages,
-              });
-            }
-            let membersId = [];
             //  setting up the booking data
-            const bookingItems = [
-              {
-                room_code: revalidateHotelData?.rate?.room_code,
-                rate_key: revalidateHotelData?.rate?.rate_key,
-                rooms: roomsData,
-              },
-            ];
-            // console.log(bookingItems[0]);
-            for (let index = 0; index < bookingItems.length; index++) {
-              const e = bookingItems[index];
-              for (let i = 0; i < e.rooms.length; i++) {
-                const element = e.rooms[i];
-                membersId = [...membersId, ...element.paxes];
+            if (JSON.parse(bookingDetails.paxes)) {
+              const bookingItems = JSON.parse(bookingDetails.paxes);
+              for (let pax = 0; pax < bookingItems.length; pax++) {
+                const elementPax = bookingItems[pax];
+                elementPax.room_code = revalidateHotelData?.rate?.room_code;
+                elementPax.rate_key = revalidateHotelData?.rate?.rate_key;
+                elementPax.rooms[0].room_reference =
+                  revalidateHotelData?.rate?.rooms[0]?.room_reference;
               }
+
+              const bookingRequest = {
+                search_id: x.data.search_id,
+                hotel_code: revalidateHotelData.hotel_code,
+                city_code: revalidateHotelData.city_code,
+                group_code: revalidateHotelData.rate.group_code,
+                checkout: bookingGroupObject.checkOut,
+                checkin: bookingGroupObject.checkIn,
+                booking_name: `${bookingGroupObject.bookingName}-Bid-${biddingObject.id}`,
+                booking_comments: bookingGroupObject.bookingComments,
+                booking_items: bookingItems,
+                payment_type: "AT_WEB",
+                agent_reference: "",
+                cutoff_time: 120000,
+                holder: holder,
+              };
+              // console.log(bookingRequest);
+              return await requestHandler.fetchResponseFromHotel(
+                GRN_Apis.booking,
+                GRNtoken,
+                bookingRequest
+              );
             }
-            // console.log(membersId);
-            if (membersId.length > 0) {
-              const onlyMember = membersId.filter((x) => x != userData.id);
-              if (onlyMember.length > 0) {
-                const memberData = await UserMember.findAll({
-                  where: { id: onlyMember },
-                });
-                for (let j = 0; j < memberData.length; j++) {
-                  const jelement = memberData[j].dataValues;
-                  members = [...members, jelement];
-                }
-              }
-            }
-            const membersData = members;
-            // console.log(membersData, membersData);
-            //  set the paxes
-            for (let index = 0; index < bookingItems.length; index++) {
-              const e = bookingItems[index];
-              for (let i = 0; i < e.rooms.length; i++) {
-                e.rooms[i].paxes = e.rooms[i].paxes.map((x, k) => {
-                  const paxesData = membersData.filter(
-                    (item) => item.id == x
-                  )[0];
-                  return {
-                    id: paxesData.id,
-                    title:
-                      paxesData.title === "Mr"
-                        ? "Mr."
-                        : paxesData.title === "Mstr"
-                        ? "Mstr."
-                        : paxesData.title === "Mrs"
-                        ? "Mrs."
-                        : "Ms.",
-                    name: paxesData.firstName,
-                    surname: paxesData.lastName,
-                    type: e.rooms[i].ages[k] >= 12 ? "AD" : "CH",
-                    age: e.rooms[i].ages[k],
-                  };
-                });
-                delete e.rooms[i].ages;
-                // console.log(e.rooms[i]);
-              }
-            }
-            const bookingRequest = {
-              search_id: x.data.search_id,
-              hotel_code: revalidateHotelData.hotel_code,
-              city_code: revalidateHotelData.city_code,
-              group_code: revalidateHotelData.rate.group_code,
-              checkout: bookingGroupObject.checkOut,
-              checkin: bookingGroupObject.checkIn,
-              booking_name: `${bookingGroupObject.bookingName}-Bid-${biddingObject.id}`,
-              booking_comments: bookingGroupObject.bookingComments,
-              booking_items: bookingItems,
-              payment_type: "AT_WEB",
-              agent_reference: "",
-              cutoff_time: 120000,
-              holder: holder,
-            };
-            // console.log(bookingRequest);
-            return await requestHandler.fetchResponseFromHotel(
-              GRN_Apis.booking,
-              GRNtoken,
-              bookingRequest
-            );
           });
           try {
             bookingResult = await Promise.all(bookingPromise);
@@ -778,8 +695,8 @@ export default {
                   try {
                     const sendmail_confirm = requestHandler.sendEmail(
                       userData.email,
-                      "hotelBooking",
-                      `Your Reservation has been Confirmed - Booking ID: ${_response?.data?.booking_reference}`,
+                      "bidSuccess",
+                      `Your Bid Is hit successfully & Reservation has been Confirmed - Booking ID: ${_response?.data?.booking_reference}`,
                       {
                         name: `${userData.firstName} ${userData.lastName}`,
                         email: userData.email,
@@ -796,7 +713,6 @@ export default {
                         booking_date: currentDatatime,
                         service_tax: newRateData.commissionAmount,
                         total_rooms: bookingGroupObject.totalRooms,
-                        total_nights: "",
                         supplier_price: _response?.data?.price?.breakdown
                           ?.net[1]
                           ? _response?.data?.price?.breakdown?.net[1]?.amount
