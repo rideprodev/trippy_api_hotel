@@ -299,6 +299,18 @@ export default {
               }
             }
           }
+          // ---------- platform payment status -----------
+          let platformPaymentStatus = "pending";
+          const daysDifference = utility.dateDifference(
+            bodyData.checkIn,
+            currentDatatime,
+            "days"
+          );
+          if (parseInt(daysDifference) === -1) {
+            platformPaymentStatus = "not-done";
+          } else if (parseInt(daysDifference) === -0) {
+            platformPaymentStatus = "unpaid";
+          }
           let bookingData = {
             userId: userData.id,
             bookingGroupId: bookingGroup.id,
@@ -329,6 +341,7 @@ export default {
             paymentStatus: _response?.data?.payment_status
               ? _response?.data?.payment_status
               : "pending",
+            platformPaymentStatus,
             nonRefundable: nonRefundable,
             underCancellation: underCancellation,
             cancelByDate: cancelByDate,
