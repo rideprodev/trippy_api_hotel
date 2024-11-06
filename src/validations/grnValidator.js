@@ -70,7 +70,7 @@ const booking = Joi.object({
                 title: Joi.string().valid("Mr.").required(),
                 name: Joi.string().required(),
                 surname: Joi.string().optional().allow(""),
-                type: Joi.string().valid("AD", "CHD").optional(),
+                type: Joi.string().valid("AD", "CH").optional(),
                 age: Joi.string().required(),
               })
             ),
