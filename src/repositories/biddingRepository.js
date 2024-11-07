@@ -223,6 +223,7 @@ export default {
           {
             name: `${userData.firstName} ${userData.lastName}`,
             hotel_name: hotelName,
+            priority: bodyData.priority,
           }
         );
       } catch (err) {}
