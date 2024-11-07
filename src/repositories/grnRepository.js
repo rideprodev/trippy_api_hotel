@@ -3,7 +3,7 @@ import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
 import utility from "../services/utility";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 const {
   HotelBookingGroup,
   HotelBooking,
@@ -428,18 +428,19 @@ export default {
             console.log("Booking Confirm");
             console.log("================================");
           } else {
-            try {
-              const sendmail = requestHandler.sendEmail(
-                userData.email,
-                "hotelBookingFailed",
-                `Your Reservation has been failed`,
-                {
-                  name: `${userData.firstName} ${userData.lastName}`,
-                  hotel_name: bodyData.hotelName,
-                  full_address: bodyData.fullAddress,
-                }
-              );
-            } catch (err) {}
+            //  client remove this mail
+            // try {
+            //   const sendmail = requestHandler.sendEmail(
+            //     userData.email,
+            //     "hotelBookingFailed",
+            //     `Your Reservation has been failed`,
+            //     {
+            //       name: `${userData.firstName} ${userData.lastName}`,
+            //       hotel_name: bodyData.hotelName,
+            //       full_address: bodyData.fullAddress,
+            //     }
+            //   );
+            // } catch (err) {}
           }
         }
         if (_response?.data) {
@@ -521,6 +522,23 @@ export default {
             {
               where: {
                 groupId: bookingObject?.bookingId,
+              },
+            }
+          );
+        } else if (
+          _response.data?.booking_status === "failed" ||
+          _response.data?.booking_status === "rejected"
+        ) {
+          await bookingObject.update({
+            status: _response.data?.booking_status,
+          });
+          await HotelBooking.update(
+            {
+              status: _response.data?.booking_status,
+            },
+            {
+              where: {
+                id: bookingObject?.bookingId,
               },
             }
           );

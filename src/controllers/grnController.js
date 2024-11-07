@@ -160,13 +160,13 @@ export default {
             status: response.data.status,
             checkin: response.data.checkin,
             checkout: response.data.checkout,
-            booking_date: response.data.booking_date,
+            booking_date: response.data?.booking_date,
             booking_reference: response.data.booking_reference,
             hotel: {
-              paxes: response.data.hotel.paxes,
-              booking_items: response.data.hotel.booking_items,
-              city_name: response.data.hotel.city_name,
-              hotel_code: response.data.hotel.hotel_code,
+              paxes: response.data?.hotel?.paxes,
+              booking_items: response?.data?.hotel?.booking_items,
+              city_name: response?.data?.hotel.city_name,
+              hotel_code: response?.data?.hotel?.hotel_code,
             },
             bookingGroupData: response.data.bookingGroupData,
           };

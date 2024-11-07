@@ -138,6 +138,7 @@ export default {
             cardId: cardId.cardId,
             card: {},
             isAdded: false,
+            reason: "",
           };
 
           console.log(_requestTransaction);
@@ -210,6 +211,7 @@ export default {
                   hotel_name: hotelData.hotelName,
                   cancellation_date: element.cancelByDate,
                   group_id: element.bookingGroupId,
+                  reason: `Failed reason:- ${transactionData}`,
                 }
               );
             } catch (err) {}
