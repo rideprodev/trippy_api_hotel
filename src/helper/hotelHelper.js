@@ -2,6 +2,7 @@ import repositories from "../repositories";
 import requestHandler from "../services/requestHandler";
 import models from "../models";
 import schedulerRepository from "../repositories/schedulerRepository";
+import config from "../config";
 const { Setting } = models;
 const { bookingRepository, customRepository, hotelRepository } = repositories;
 
@@ -156,12 +157,12 @@ export default {
   async getCommission(req, data) {
     try {
       const userData = req.user;
+      let commission = 0,
+        commissionAmount = 0,
+        totalPrice = 0;
       if (userData.commission === "relevant") {
-        let commission = 0,
-          commissionAmount = 0,
-          totalPrice = 0;
         const comissionPercent = await Setting.findOne({
-          where: { key: "b05970e2431ae626c0f4a0f67c56848bdf22811d" },
+          where: { key: config.app.GRNPercentageKey },
         });
         commission = parseFloat(comissionPercent.value);
         commissionAmount =
@@ -170,8 +171,14 @@ export default {
         data.serviceChages = `${commissionAmount}`;
         data.finalAmount = `${parseFloat(totalPrice).toFixed(2)}`;
       } else {
-        data.serviceChages = "0";
-        data.finalAmount = `${parseFloat(data?.hotel?.rate?.price).toFixed(2)}`;
+        commission = userData?.commissionValue
+          ? parseFloat(userData.commissionValue)
+          : 0;
+        commissionAmount =
+          (parseFloat(data?.hotel?.rate?.price) * commission) / 100;
+        totalPrice = parseFloat(data?.hotel?.rate?.price) + commissionAmount;
+        data.serviceChages = `${commissionAmount}`;
+        data.finalAmount = `${parseFloat(totalPrice).toFixed(2)}`;
       }
 
       return data;
