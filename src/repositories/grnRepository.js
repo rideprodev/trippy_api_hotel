@@ -3,7 +3,7 @@ import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
 import utility from "../services/utility";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 const {
   HotelBookingGroup,
   HotelBooking,

@@ -194,7 +194,7 @@ export default {
               groupId: element.bookingGroupId,
               bookingId: element.id,
               cardId: cardId.cardId,
-              paymentStatus: "payment-failed",
+              paymentStatus: `payment-failed ${transactionData?.message}`,
             });
             await HotelBooking.update(
               { platformPaymentStatus: platformPaymentStatus },
@@ -211,7 +211,7 @@ export default {
                   hotel_name: hotelData.hotelName,
                   cancellation_date: element.cancelByDate,
                   group_id: element.bookingGroupId,
-                  reason: `Failed reason:- ${transactionData}`,
+                  reason: `Failed reason:- ${transactionData?.message}`,
                 }
               );
             } catch (err) {}
