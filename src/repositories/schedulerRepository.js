@@ -341,6 +341,9 @@ export default {
         const comissionPercent = await Setting.findOne({
           where: { key: config.app.GRNPercentageKey },
         });
+        const BiddingCharges = await Setting.findOne({
+          where: { key: config.app.BidCharges },
+        });
 
         for (let i = 0; i < hotelData.length; i++) {
           const elementi = hotelData[i];
@@ -364,12 +367,17 @@ export default {
               if (newRates.length > 0) {
                 // add the commission on price
                 if (elementi.commission === "relevant") {
-                  commission = parseFloat(comissionPercent.value);
+                  commission =
+                    parseFloat(comissionPercent.value) +
+                    parseFloat(BiddingCharges.value);
                   commissionAmount =
                     (parseFloat(newRates[0].price) * commission) / 100;
                   totalPrice = parseFloat(newRates[0].price) + commissionAmount;
                 } else if (elementi.commission === "irrelevant") {
-                  commission = parseFloat(elementi.commissionValue);
+                  commission = elementi?.commissionValue
+                    ? parseFloat(elementi.commissionValue)
+                    : 0;
+                  commission = commission + parseFloat(BiddingCharges.value);
                   commissionAmount =
                     (parseFloat(newRates[0].price) * commission) / 100;
                   totalPrice = parseFloat(newRates[0].price) + commissionAmount;
@@ -976,11 +984,19 @@ export default {
             const comissionPercent = await Setting.findOne({
               where: { key: config.app.GRNPercentageKey },
             });
-            commission = parseFloat(comissionPercent.value);
+            const BiddingCharges = await Setting.findOne({
+              where: { key: config.app.BidCharges },
+            });
+            commission =
+              parseFloat(comissionPercent.value) +
+              parseFloat(BiddingCharges.value);
             commissionAmount = (totalPrice * commission) / 100;
             totalPrice = totalPrice + commissionAmount;
           } else if (userData.commission === "irrelevant") {
-            commission = parseFloat(userData.commissionValue);
+            commission = userData?.commissionValue
+              ? parseFloat(userData.commissionValue)
+              : 0;
+            commission = commission + parseFloat(BiddingCharges.value);
             commissionAmount = (totalPrice * commission) / 100;
             totalPrice = totalPrice + commissionAmount;
           }

@@ -17,6 +17,7 @@ export default {
     GRNPercentageKey: process.env.GRN_PERCENTAGE_KEY,
     biddingLimitOnBooking: process.env.BIDDING_LIMIT_ON_BOOKING,
     currency: process.env.CURRENCY_ABBR,
+    BidCharges: process.env.BIDDNG_CHARGES,
     languages: ["en"],
     setBaseUrl(url) {
       this.baseUrl = url;

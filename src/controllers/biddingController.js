@@ -114,23 +114,29 @@ export default {
               2
             )}`;
           } else {
-            revalidate.data.serviceChages = "0";
-            totalPrice = totalPrice = `${parseFloat(
-              revalidate.data?.hotel?.rate?.price
-            ).toFixed(2)}`;
-            revalidate.data.finalAmount = `${parseFloat(
-              revalidate.data?.hotel?.rate?.price
-            ).toFixed(2)}`;
+            commission = userData?.commissionValue
+              ? parseFloat(userData.commissionValue)
+              : 0;
+            commissionAmount =
+              (parseFloat(revalidate.data?.hotel?.rate?.price) * commission) /
+              100;
+            totalPrice =
+              parseFloat(revalidate.data?.hotel?.rate?.price) +
+              commissionAmount;
+            revalidate.data.serviceChages = `${commissionAmount}`;
+            revalidate.data.finalAmount = `${parseFloat(totalPrice).toFixed(
+              2
+            )}`;
           }
 
-          req.body.latestPrice = totalPrice;
-          // req.body.roomType = `${revalidate.data?.hotel?.rate?.rooms[0].room_type}, ${revalidate.data?.hotel?.rate?.boarding_details}`;
-          const result = await biddingRepository.placeMyBid(req);
-          if (result) {
-            utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
-          } else {
-            utility.getError(res, "WENT_WRONG");
-          }
+          // req.body.latestPrice = totalPrice;
+          // // req.body.roomType = `${revalidate.data?.hotel?.rate?.rooms[0].room_type}, ${revalidate.data?.hotel?.rate?.boarding_details}`;
+          // const result = await biddingRepository.placeMyBid(req);
+          // if (result) {
+          //   utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
+          // } else {
+          //   utility.getError(res, "WENT_WRONG");
+          // }
         } else {
           utility.getError(
             res,
