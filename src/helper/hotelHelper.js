@@ -17,8 +17,84 @@ export default {
       totalAdult: bodyData.totalAdult,
       totalChildren: bodyData.totalChildren,
     };
-    const schdulerRequestData =
+    // fetch all booking and its bidding from the database on where
+    const AllBookingGroupData =
       await bookingRepository.getAllBookingForScdulerBidding([], searchFilter);
+    try {
+      if (AllBookingGroupData.length > 0) {
+        let resultResponse = [];
+        const chaunkArray = [],
+          counts = 10;
+        const arrayLenght = AllBookingGroupData.length;
+        const numberCount = arrayLenght / counts;
+        const floatCount = numberCount % 1 === 0;
+        const loopCount =
+          floatCount === false
+            ? parseInt(numberCount + 1)
+            : parseInt(numberCount);
+        let start = 0;
+        for (let index = 0; index < loopCount; index++) {
+          let end = start + counts;
+          chaunkArray.push(AllBookingGroupData.slice(start, end));
+          start = end;
+        }
+        const chunkBookingMap = chaunkArray.map(
+          async (x) => await this.fetchLatestPriceFromSearchData(x, data)
+        );
+        try {
+          resultResponse = await Promise.all(chunkBookingMap);
+        } catch (err) {
+          console.log(err);
+        }
+        return resultResponse;
+      } else {
+        return "No Booking-Bidding Found";
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  async fetchLatestPriceFromSearchData(bookingGroupData, searchResult) {
+    const groupObjectData = bookingGroupData;
+    const result = searchResult;
+    const hotelData = [];
+
+    const searchPromiseFilter = groupObjectData.map(async (x) => {
+      // filter unique codes
+      const hotelCode = x.biddingData
+        .map((y) => y.hotelCode)
+        .filter((item, i, ar) => ar.indexOf(item) === i);
+      // filter unique hotel codes with its roomType
+      const rooms = hotelCode.map((y) => {
+        const roomTypes = x.biddingData.filter((z) => z.hotelCode === y);
+        const roomType = roomTypes
+          .map((m) => m.roomType)
+          .filter((item, i, ar) => ar.indexOf(item) === i);
+        return { hotelCode: y, roomType };
+      });
+      hotelData.push({
+        id: x.id,
+        commission: x.userData.commission,
+        commissionValue: x.userData.commissionValue,
+        rooms,
+        biddingData: x.biddingData,
+        bookingGroupData: x,
+      });
+      return true;
+    });
+
+    try {
+      await Promise.all(searchPromiseFilter);
+    } catch (err) {
+      console.log(err);
+    }
+
+    return await schedulerRepository.checkBookingForBiddingSchedule(
+      bookingGroupData,
+      [{ data: result }],
+      hotelData
+    );
   },
 
   async setCountryCityName(req, data) {
@@ -61,13 +137,21 @@ export default {
           hotel_code: x.hotel_code,
           images: x.images,
           name: x.name,
-          rates: x.rates.map((x) => {
+          rates: x.rates.map((y) => {
             const resultData = {
-              boarding_details: x.boarding_details || [],
-              other_inclusions: x.other_inclusions || [],
-              currency: x.currency,
-              price: x.price,
+              non_refundable: y.non_refundable,
+              boarding_details: y.boarding_details || [],
+              other_inclusions: y.other_inclusions || [],
+              currency: y.currency,
+              price: y.price,
+              rooms:
+                y.rooms.length > 0
+                  ? y.rooms.map((room) => {
+                      return { room_type: room.room_type };
+                    })
+                  : [],
             };
+
             return resultData;
           }),
         });
