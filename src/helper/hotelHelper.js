@@ -8,48 +8,52 @@ const { bookingRepository, customRepository, hotelRepository } = repositories;
 
 export default {
   async checkBiddingforBookingOnDate(req, data) {
-    delete req.user;
-    const bodyData = req.body;
-    const searchFilter = {
-      checkIn: bodyData.checkIn,
-      checkOut: bodyData.checkOut,
-      totalMember: bodyData.totalMember,
-      totalAdult: bodyData.totalAdult,
-      totalChildren: bodyData.totalChildren,
-    };
-    // fetch all booking and its bidding from the database on where
-    const AllBookingGroupData =
-      await bookingRepository.getAllBookingForScdulerBidding([], searchFilter);
     try {
-      if (AllBookingGroupData.length > 0) {
-        let resultResponse = [];
-        const chaunkArray = [],
-          counts = 10;
-        const arrayLenght = AllBookingGroupData.length;
-        const numberCount = arrayLenght / counts;
-        const floatCount = numberCount % 1 === 0;
-        const loopCount =
-          floatCount === false
-            ? parseInt(numberCount + 1)
-            : parseInt(numberCount);
-        let start = 0;
-        for (let index = 0; index < loopCount; index++) {
-          let end = start + counts;
-          chaunkArray.push(AllBookingGroupData.slice(start, end));
-          start = end;
-        }
-        const chunkBookingMap = chaunkArray.map(
-          async (x) => await this.fetchLatestPriceFromSearchData(x, data)
-        );
-        try {
-          resultResponse = await Promise.all(chunkBookingMap);
-        } catch (err) {
-          console.log(err);
-        }
-        return resultResponse;
-      } else {
-        return "No Booking-Bidding Found";
-      }
+      delete req.user;
+      const bodyData = req.body;
+      const searchFilter = {
+        checkIn: bodyData.checkIn,
+        checkOut: bodyData.checkOut,
+        totalMember: bodyData.totalMember,
+        totalAdult: bodyData.totalAdult,
+        totalChildren: bodyData.totalChildren,
+      };
+      // // fetch all booking and its bidding from the database on where
+      // const AllBookingGroupData =
+      //   await bookingRepository.getAllBookingForScdulerBidding([], searchFilter);
+      // try {
+      //   if (AllBookingGroupData.length > 0) {
+      //     let resultResponse = [];
+      //     const chaunkArray = [],
+      //       counts = 10;
+      //     const arrayLenght = AllBookingGroupData.length;
+      //     const numberCount = arrayLenght / counts;
+      //     const floatCount = numberCount % 1 === 0;
+      //     const loopCount =
+      //       floatCount === false
+      //         ? parseInt(numberCount + 1)
+      //         : parseInt(numberCount);
+      //     let start = 0;
+      //     for (let index = 0; index < loopCount; index++) {
+      //       let end = start + counts;
+      //       chaunkArray.push(AllBookingGroupData.slice(start, end));
+      //       start = end;
+      //     }
+      //     const chunkBookingMap = chaunkArray.map(
+      //       async (x) => await this.fetchLatestPriceFromSearchData(x, data)
+      //     );
+      //     try {
+      //       resultResponse = await Promise.all(chunkBookingMap);
+      //     } catch (err) {
+      //       console.log(err);
+      //     }
+      //     return resultResponse;
+      //   } else {
+      //     return "No Booking-Bidding Found";
+      //   }
+      // } catch (err) {
+      //   console.log(err);
+      // }
     } catch (err) {
       console.log(err);
     }
