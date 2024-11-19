@@ -178,7 +178,7 @@ export default {
               await requestHandler.sendEmail(
                 userData.email,
                 "hotelPaymentSuccuess",
-                `Payment Successfully for booking Number - ${element.bookingReference}`,
+                `TrippyBid Payment Successful: ${element.bookingReference}`,
                 {
                   name: fullName,
                   booking_id: element.id,
@@ -204,7 +204,7 @@ export default {
               await requestHandler.sendEmail(
                 userData.email,
                 "hotelPaymentFailed",
-                `Payment ${platformPaymentStatus} for booking Number - ${element.bookingReference}`,
+                `ACTION REQUIRED! Your payment was unsuccessful!`,
                 {
                   name: fullName,
                   booking_id: element.id,

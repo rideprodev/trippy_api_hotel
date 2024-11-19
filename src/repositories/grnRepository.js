@@ -394,7 +394,7 @@ export default {
               const sendmail = requestHandler.sendEmail(
                 userData.email,
                 "hotelBooking",
-                `Your Reservation has been Confirmed - Booking ID: ${bookingGroup.currentReference}`,
+                `Your reservation at- ${bodyData.hotelName} is confirmed - ${bookingGroup.currentReference}`,
                 {
                   name: `${userData.firstName} ${userData.lastName}`,
                   email: userData.email,
@@ -613,7 +613,7 @@ export default {
             const sendmail = requestHandler.sendEmail(
               userData.email,
               "hotelBookingCancelled",
-              `Reservation with ID: ${bookingObject.currentReference} has been Cancelled`,
+              `Your reservation at- ${hotelData.hotelName} has been cancelled- ${bookingObject.currentReference}`,
               {
                 name: `${userData.firstName} ${userData.lastName}`,
                 hotel_name: hotelData.hotelName,
