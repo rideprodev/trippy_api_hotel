@@ -61,7 +61,7 @@ export default {
       if (expairedBooking.length > 0) {
         for (let e = 0; e < expairedBooking.length; e++) {
           const elementExpaired = expairedBooking[e];
-          console.log("expairedBooking", elementExpaired.id);
+          // console.log("expairedBooking", elementExpaired.id);
           const bookingObject = await HotelBookingGroup.findOne({
             where: { id: elementExpaired.bookingGroupId },
           });
@@ -87,13 +87,13 @@ export default {
           await utility.getCurrentDateTime(),
           "days"
         );
-        console.log(
-          element.id,
-          parseInt(daysDifference),
-          element.platformPaymentStatus,
-          parseInt(daysDifference) === -1 &&
-            element.platformPaymentStatus == "not-done"
-        );
+        // console.log(
+        //   element.id,
+        //   parseInt(daysDifference),
+        //   element.platformPaymentStatus,
+        //   parseInt(daysDifference) === -1 &&
+        //     element.platformPaymentStatus == "not-done"
+        // );
         if (
           (parseInt(daysDifference) === -2 &&
             element.platformPaymentStatus == "pending") ||
