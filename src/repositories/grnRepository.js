@@ -577,7 +577,7 @@ export default {
           _response
         );
         console.log("================================");
-        console.log(_response.data.status);
+        console.log("cancellation status", _response.data?.status);
         console.log("================================");
         if (
           _response.data.status === "confirmed" ||

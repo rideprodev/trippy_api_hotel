@@ -28,7 +28,7 @@ export default {
       const expairedBooking = [],
         finalBookings = [],
         payemntForBooking = [];
-      let amount = 10,
+      let amount = 1,
         platformPaymentStatus = "";
       const fetchbookings = await HotelBooking.findAll({
         where: {
@@ -72,7 +72,9 @@ export default {
             const req = {};
             req.user = userData;
             req.bookingObject = bookingObject;
-            const respose = await grnRepository.bookingCancel(req);
+            try {
+              const respose = await grnRepository.bookingCancel(req);
+            } catch (err) {}
             // console.log(elementExpaired.id, respose);
           }
         }
@@ -194,7 +196,7 @@ export default {
               groupId: element.bookingGroupId,
               bookingId: element.id,
               cardId: cardId.cardId,
-              paymentStatus: `payment-failed ${transactionData?.message}`,
+              paymentStatus: "payment-failed",
             });
             await HotelBooking.update(
               { platformPaymentStatus: platformPaymentStatus },
@@ -745,7 +747,7 @@ export default {
               const userData = bookingGroupObject.userData;
               if (_response_cancel !== undefined) {
                 console.log("================================");
-                console.log(_response_cancel.data.status);
+                console.log("cancel status", _response_cancel.data.status);
                 console.log("================================");
                 if (
                   _response_cancel.data.status === "confirmed" ||
@@ -1198,7 +1200,7 @@ export default {
                 // console.log(_response_cancel);
                 if (_response_cancel !== undefined) {
                   console.log("================================");
-                  console.log(_response_cancel.data.status);
+                  console.log("cancel status", _response_cancel.data.status);
                   console.log("================================");
                   if (
                     _response_cancel.data.status === "confirmed" ||
