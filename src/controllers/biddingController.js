@@ -129,14 +129,13 @@ export default {
             )}`;
           }
 
-          // req.body.latestPrice = totalPrice;
-          // // req.body.roomType = `${revalidate.data?.hotel?.rate?.rooms[0].room_type}, ${revalidate.data?.hotel?.rate?.boarding_details}`;
-          // const result = await biddingRepository.placeMyBid(req);
-          // if (result) {
-          //   utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
-          // } else {
-          //   utility.getError(res, "WENT_WRONG");
-          // }
+          req.body.latestPrice = totalPrice;
+          const result = await biddingRepository.placeMyBid(req);
+          if (result) {
+            utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
+          } else {
+            utility.getError(res, "WENT_WRONG");
+          }
         } else {
           utility.getError(
             res,

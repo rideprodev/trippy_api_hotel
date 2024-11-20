@@ -219,7 +219,7 @@ export default {
         const sendmail = requestHandler.sendEmail(
           userData.email,
           "bidRegister",
-          `Your Bid for <b>${hotelName}</b> has been registered!`,
+          `Your Bid for- ${hotelName}, has been registered!`,
           {
             name: `${userData.firstName} ${userData.lastName}`,
             hotel_name: hotelName,
