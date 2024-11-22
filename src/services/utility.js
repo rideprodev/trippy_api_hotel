@@ -158,4 +158,18 @@ export default {
     const newDate = currentDate.subtract(interval, "day").format(dateformate);
     return newDate;
   },
+
+  /**
+   * Get current year
+   */
+  convertDateFromTimezone(date, timezone = null, Dformat = dateFormat) {
+    date = date || new Date();
+    let dateObj = "";
+    if (timezone) {
+      dateObj = moment.tz(date, timezone).format(Dformat);
+    } else {
+      dateObj = moment.utc(date).format(Dformat);
+    }
+    return dateObj;
+  },
 };

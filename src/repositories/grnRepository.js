@@ -408,7 +408,11 @@ export default {
                   cancellation_date: cancelByDate,
                   total_price: bodyData.totalPrice,
                   booking_id: bookingGroup.currentReference,
-                  booking_date: new Date(),
+                  booking_date: utility.convertDateFromTimezone(
+                    null,
+                    null,
+                    "YYYY-MM-DD"
+                  ),
                   service_tax: revalidateResponse.serviceChages,
                   total_rooms: bodyData.totalRooms,
                   supplier_price: revalidateResponse?.hotel?.rate?.price_details
@@ -620,10 +624,14 @@ export default {
                 full_address: hotelData.address,
                 booking_id: bookingObject.currentReference,
                 email: userData.email,
-                total_price: _response?.data?.booking_price?.amount,
+                total_price: bookingObject.price,
                 currency: _response?.data?.booking_price?.currency,
-                cancellation_date: _response?.data?.cancel_date,
-                booking_date: bookingObject.createdAt,
+                cancellation_date: utility.convertDateFromTimezone(
+                  _response?.data?.cancel_date
+                ),
+                booking_date: utility.convertDateFromTimezone(
+                  bookingObject.createdAt
+                ),
                 check_in: bookingObject.checkIn,
                 check_out: bookingObject.checkOut,
                 total_members: bookingObject.totalMember,
