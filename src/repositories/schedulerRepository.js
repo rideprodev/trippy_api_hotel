@@ -203,6 +203,13 @@ export default {
               { where: { id: element.id } }
             );
             try {
+              const cancellation_policy = JSON.parse(
+                element.cancellationPolicy
+              );
+              let cancelDate = cancellation_policy?.cancel_by_date
+                ? cancellation_policy.cancel_by_date
+                : element.cancelByDate;
+
               await requestHandler.sendEmail(
                 userData.email,
                 "hotelPaymentFailed",
@@ -211,7 +218,8 @@ export default {
                   name: fullName,
                   booking_id: element.id,
                   hotel_name: hotelData.hotelName,
-                  cancellation_date: element.cancelByDate,
+                  cancellation_date:
+                    utility.convertDateFromTimezone(cancelDate),
                   group_id: element.bookingGroupId,
                   reason: `Failed reason:- ${transactionData?.message}`,
                 }
@@ -705,7 +713,11 @@ export default {
                         cancellation_date: cancelByDate,
                         total_price: newRateData.totalPrice,
                         booking_id: _response?.data?.booking_reference,
-                        booking_date: currentDatatime,
+                        booking_date: utility.convertDateFromTimezone(
+                          null,
+                          null,
+                          "YYYY-MM-DD"
+                        ),
                         service_tax: newRateData.commissionAmount,
                         total_rooms: bookingGroupObject.totalRooms,
                         supplier_price: _response?.data?.price?.breakdown
@@ -772,9 +784,13 @@ export default {
                         room_type: newRateData.roomType,
                         total_members: bookingGroupObject.totalMember,
                         total_rooms: bookingGroupObject.totalRooms,
-                        cancellation_date: _response_cancel?.data?.cancel_date,
+                        cancellation_date: utility.convertDateFromTimezone(
+                          _response_cancel?.data?.cancel_date
+                        ),
                         booking_id: bookingGroupObject.currentReference,
-                        booking_date: bookingGroupObject.createdAt,
+                        booking_date: utility.convertDateFromTimezone(
+                          bookingGroupObject.createdAt
+                        ),
                         total_price: bookingGroupObject.price,
                         currency: userData.UserPersonalInformation.currencyCode,
                       }
@@ -1172,7 +1188,11 @@ export default {
                       cancellation_date: cancelByDate,
                       total_price: totalPrice,
                       booking_id: _response?.data?.booking_reference,
-                      booking_date: currentDatatime,
+                      booking_date: utility.convertDateFromTimezone(
+                        null,
+                        null,
+                        "YYYY-MM-DD"
+                      ),
                       service_tax: commissionAmount,
                       total_rooms: Bidding.bookingGroupData.totalRooms,
                       supplier_price: _response?.data?.price?.breakdown?.net[1]
@@ -1225,10 +1245,13 @@ export default {
                           room_type: Bidding.roomType,
                           total_members: Bidding.bookingGroupData.totalMember,
                           total_rooms: Bidding.bookingGroupData.totalRooms,
-                          cancellation_date:
-                            _response_cancel?.data?.cancel_date,
+                          cancellation_date: utility.convertDateFromTimezone(
+                            _response_cancel?.data?.cancel_date
+                          ),
                           booking_id: Bidding.currentReference,
-                          booking_date: Bidding.createdAt,
+                          booking_date: utility.convertDateFromTimezone(
+                            Bidding.createdAt
+                          ),
                         }
                       );
                     } catch (err) {}
