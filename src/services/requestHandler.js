@@ -153,4 +153,55 @@ export default {
       console.log(error?.response?.data);
     }
   },
+
+  async convertCurrency(amount, currency) {
+    try {
+      const requestData = {
+        from: currency,
+        to: "AUD",
+        amount: [amount],
+      };
+
+      const _request = {
+        method: "post",
+        url: `${config.app.CureencyConvertUrl}convert-currency`,
+        data: requestData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      // console.log(_request);
+      const { data } = await axios(_request);
+      // console.log(data);
+      return data;
+    } catch (error) {
+      console.log(error?.response?.data);
+    }
+  },
+
+  async createPayBack(bookingGroupId, bookingId, userId, transictionId) {
+    try {
+      const requestData = {
+        bookingGroupId,
+        bookingId,
+        userId,
+        transictionId,
+      };
+
+      const _request = {
+        method: "post",
+        url: `${config.app.authUrl}payback/add-refund-request`,
+        data: requestData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      // console.log(_request);
+      const { data } = await axios(_request);
+      console.log(data);
+      return data;
+    } catch (error) {
+      console.log(error?.response?.data);
+    }
+  },
 };

@@ -3,7 +3,7 @@ import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
 import utility from "../services/utility";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 const {
   HotelBookingGroup,
   HotelBooking,
@@ -504,21 +504,19 @@ export default {
           _response.data.booking_type === "C"
         ) {
           await bookingObject.update({ status: "cancelled" });
-          await HotelBooking.update(
-            {
-              status: "cancelled",
-              paymentStatus: _response?.data?.payment_status,
-              cancelledDate: _response?.data?.cancellation_details?.cancel_date,
-              refundAmout: _response?.data?.cancellation_details?.refund_amount,
-              cancellationCharge:
-                _response.data?.cancellation_details?.cancellation_charge,
+          const bookingData = await HotelBooking.findOne({
+            where: {
+              id: bookingObject?.bookingId,
             },
-            {
-              where: {
-                id: bookingObject?.bookingId,
-              },
-            }
-          );
+          });
+          await bookingData.update({
+            status: "cancelled",
+            paymentStatus: _response?.data?.payment_status,
+            cancelledDate: _response?.data?.cancellation_details?.cancel_date,
+            refundAmout: _response?.data?.cancellation_details?.refund_amount,
+            cancellationCharge:
+              _response.data?.cancellation_details?.cancellation_charge,
+          });
           await HotelBidding.update(
             {
               status: "cancelled",
@@ -529,6 +527,27 @@ export default {
               },
             }
           );
+          // check for the refund
+          if (bookingData.platformPaymentStatus === "paid") {
+            const HotelBookingLogData = await HotelBookingLog.findOne({
+              where: {
+                groupId: bookingObject?.id,
+                bookingId: bookingObject?.bookingId,
+                transactionId: { [Op.ne]: null },
+              },
+              order: [["id", "DESC"]],
+            });
+            if (HotelBookingLogData && HotelBookingLogData.transactionId > 0) {
+              try {
+                await requestHandler.createPayBack(
+                  bookingObject?.id,
+                  bookingObject?.bookingId,
+                  bookingObject?.userId,
+                  HotelBookingLogData.transactionId
+                );
+              } catch (error) {}
+            }
+          }
         } else if (
           _response.data?.booking_status === "failed" ||
           _response.data?.booking_status === "rejected"
