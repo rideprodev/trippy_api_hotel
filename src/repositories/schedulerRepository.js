@@ -130,66 +130,77 @@ export default {
           if (config.app.environment !== "development") {
             amount = element.totalPrice;
           }
-          const _requestTransaction = {
-            userId: element.userId,
-            paymentFor: "hotel",
-            paymentType: "direct",
-            description: `Booking Id-${element.id}`,
-            amount: amount,
-            currency: element.currency,
-            cardId: cardId.cardId,
-            card: {},
-            isAdded: false,
-            reason: "",
-          };
-
-          console.log(_requestTransaction);
-
-          const transactionData = await requestHandler.sendForPay(
-            _requestTransaction
+          const convertedCurrency = await requestHandler.convertCurrency(
+            amount,
+            element.currency
           );
-
           if (
-            transactionData &&
-            transactionData.data &&
-            transactionData.data.id
+            convertedCurrency &&
+            convertedCurrency.convertedAmount &&
+            convertedAmount.length > 0
           ) {
-            // update bookingLog;
-            await HotelBookingLog.create({
+            amount = convertedCurrency.convertedAmount[0];
+            const _requestTransaction = {
               userId: element.userId,
-              groupId: element.bookingGroupId,
-              bookingId: element.id,
+              paymentFor: "hotel",
+              paymentType: "direct",
+              description: `Booking Id-${element.id}`,
+              amount: amount,
+              currency: "AUD",
               cardId: cardId.cardId,
-              transactionId: transactionData.data.id,
-              paymentStatus: "paid",
-            });
-            await HotelBooking.update(
-              { platformPaymentStatus: "paid" },
-              { where: { id: element.id } }
-            );
-            await HotelBidding.update(
-              { status: "cancelled" },
-              {
-                where: {
-                  groupId: element.bookingGroupId,
-                },
-              }
+              card: {},
+              isAdded: false,
+              reason: "",
+            };
+
+            console.log(_requestTransaction);
+
+            const transactionData = await requestHandler.sendForPay(
+              _requestTransaction
             );
 
-            try {
-              await requestHandler.sendEmail(
-                userData.email,
-                "hotelPaymentSuccuess",
-                `TrippyBid Payment Successful: ${element.bookingReference}`,
+            if (
+              transactionData &&
+              transactionData.data &&
+              transactionData.data.id
+            ) {
+              // update bookingLog;
+              await HotelBookingLog.create({
+                userId: element.userId,
+                groupId: element.bookingGroupId,
+                bookingId: element.id,
+                cardId: cardId.cardId,
+                transactionId: transactionData.data.id,
+                paymentStatus: "paid",
+              });
+              await HotelBooking.update(
+                { platformPaymentStatus: "paid" },
+                { where: { id: element.id } }
+              );
+              await HotelBidding.update(
+                { status: "cancelled" },
                 {
-                  name: fullName,
-                  booking_id: element.id,
-                  total_price: amount,
-                  currency: element.currency,
-                  hotel_name: hotelData.hotelName,
+                  where: {
+                    groupId: element.bookingGroupId,
+                  },
                 }
               );
-            } catch (err) {}
+
+              try {
+                await requestHandler.sendEmail(
+                  userData.email,
+                  "hotelPaymentSuccuess",
+                  `TrippyBid Payment Successful: ${element.bookingReference}`,
+                  {
+                    name: fullName,
+                    booking_id: element.id,
+                    total_price: amount,
+                    currency: "AUD",
+                    hotel_name: hotelData.hotelName,
+                  }
+                );
+              } catch (err) {}
+            }
           } else {
             await HotelBookingLog.create({
               userId: element.userId,

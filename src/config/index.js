@@ -14,6 +14,7 @@ export default {
     swaggerHost: process.env.SWAGGER_HOST,
     MailerHost: process.env.MAILER_HOST,
     GRNBaseUrl: process.env.GRN_BASE_URL,
+    CureencyConvertUrl: process.env.CURRENCY_CONVERT_URL,
     GRNPercentageKey: process.env.GRN_PERCENTAGE_KEY,
     biddingLimitOnBooking: process.env.BIDDING_LIMIT_ON_BOOKING,
     currency: process.env.CURRENCY_ABBR,

@@ -5,18 +5,14 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
       },
-      balance: {
-        type: DataTypes.STRING(50),
+      bookingGroupId: {
+        type: DataTypes.INTEGER,
       },
-      total: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-        defaultValue: 0,
+      bookingId: {
+        type: DataTypes.INTEGER,
       },
-      currency: {
-        type: DataTypes.STRING(50),
-        defaultValue: "AUD",
-        allowNull: false,
+      transictionId: {
+        type: DataTypes.INTEGER,
       },
       status: {
         type: DataTypes.ENUM("request", "in-progress", "complete", "cancelled"),
@@ -31,7 +27,19 @@ module.exports = (sequelize, DataTypes) => {
   PayBackRequest.associate = function (models) {
     PayBackRequest.belongsTo(models.User, {
       foreignKey: "userId",
-      as: "payBackRequest",
+      as: "payBackUserData",
+    });
+    PayBackRequest.belongsTo(models.HotelBookingGroup, {
+      foreignKey: "bookingGroupId",
+      as: "PayBackGroupData",
+    });
+    PayBackRequest.belongsTo(models.HotelBooking, {
+      foreignKey: "bookingId",
+      as: "PayBackBookingData",
+    });
+    PayBackRequest.belongsTo(models.Transaction, {
+      foreignKey: "transictionId",
+      as: "PayBackTransictionData",
     });
     PayBackRequest.hasMany(models.PayBackLog, {
       foreignKey: "requestId",
