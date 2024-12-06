@@ -182,10 +182,10 @@ export default {
   async createPayBack(bookingGroupId, bookingId, userId, transictionId) {
     try {
       const requestData = {
-        bookingGroupId,
-        bookingId,
-        userId,
-        transictionId,
+        bookingGroupId: `${bookingGroupId}`,
+        bookingId: `${bookingId}`,
+        userId: `${userId}`,
+        transictionId: `${transictionId}`,
       };
 
       const _request = {
