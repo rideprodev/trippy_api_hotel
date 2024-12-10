@@ -148,10 +148,9 @@ export default {
               non_refundable: y.non_refundable,
               boarding_details: y.boarding_details || [],
               other_inclusions: y.other_inclusions || [],
-              cancel_by_date:
-                y?.cancellation_policy && y?.cancellation_policy?.cancel_by_date
-                  ? y.cancellation_policy.cancel_by_date
-                  : {},
+              cancellation_policy: y?.cancellation_policy
+                ? y.cancellation_policy
+                : {},
               currency: y.currency,
               price: y.price,
               rooms:
