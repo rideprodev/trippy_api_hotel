@@ -12,6 +12,7 @@ const {
   HotelBookingLog,
   HotelBidding,
   Hotel,
+  PayBackRequest,
 } = models;
 
 export default {
@@ -529,23 +530,38 @@ export default {
           );
           // check for the refund
           if (bookingData.platformPaymentStatus === "paid") {
-            const HotelBookingLogData = await HotelBookingLog.findOne({
+            const checkRequest = await PayBackRequest.findOne({
               where: {
-                groupId: bookingObject?.id,
+                bookingGroupId: bookingObject?.id,
                 bookingId: bookingObject?.bookingId,
-                transactionId: { [Op.ne]: null },
+                userId: bookingObject?.userId,
+                transictionId: HotelBookingLogData.transactionId,
               },
-              order: [["id", "DESC"]],
             });
-            if (HotelBookingLogData && HotelBookingLogData.transactionId > 0) {
-              try {
-                await requestHandler.createPayBack(
-                  bookingObject?.id,
-                  bookingObject?.bookingId,
-                  bookingObject?.userId,
-                  HotelBookingLogData.transactionId
-                );
-              } catch (error) {}
+            if (checkRequest && checkRequest.id) {
+              console.log("Already exist");
+            } else {
+              const HotelBookingLogData = await HotelBookingLog.findOne({
+                where: {
+                  groupId: bookingObject?.id,
+                  bookingId: bookingObject?.bookingId,
+                  transactionId: { [Op.ne]: null },
+                },
+                order: [["id", "DESC"]],
+              });
+              if (
+                HotelBookingLogData &&
+                HotelBookingLogData.transactionId > 0
+              ) {
+                try {
+                  await requestHandler.createPayBack(
+                    bookingObject?.id,
+                    bookingObject?.bookingId,
+                    bookingObject?.userId,
+                    HotelBookingLogData.transactionId
+                  );
+                } catch (error) {}
+              }
             }
           }
         } else if (
