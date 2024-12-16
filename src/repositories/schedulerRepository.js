@@ -61,7 +61,7 @@ export default {
       if (expairedBooking.length > 0) {
         for (let e = 0; e < expairedBooking.length; e++) {
           const elementExpaired = expairedBooking[e];
-          // console.log("expairedBooking", elementExpaired.id);
+          console.log("expairedBooking", elementExpaired.id);
           const bookingObject = await HotelBookingGroup.findOne({
             where: { id: elementExpaired.bookingGroupId },
           });
