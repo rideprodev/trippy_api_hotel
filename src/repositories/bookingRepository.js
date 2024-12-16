@@ -58,6 +58,7 @@ export default {
             "hotelCode",
             "cityCode",
             "cancelByDate",
+            "platformPaymentStatus",
             "reavalidateResponse",
           ],
           model: HotelBooking,
