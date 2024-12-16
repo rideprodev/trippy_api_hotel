@@ -530,29 +530,26 @@ export default {
           );
           // check for the refund
           if (bookingData.platformPaymentStatus === "paid") {
-            const checkRequest = await PayBackRequest.findOne({
+            const HotelBookingLogData = await HotelBookingLog.findOne({
               where: {
-                bookingGroupId: bookingObject?.id,
+                groupId: bookingObject?.id,
                 bookingId: bookingObject?.bookingId,
-                userId: bookingObject?.userId,
-                transictionId: HotelBookingLogData.transactionId,
+                transactionId: { [Op.ne]: null },
               },
+              order: [["id", "DESC"]],
             });
-            if (checkRequest && checkRequest.id) {
-              console.log("Already exist");
-            } else {
-              const HotelBookingLogData = await HotelBookingLog.findOne({
+            if (HotelBookingLogData && HotelBookingLogData.transactionId > 0) {
+              const checkRequest = await PayBackRequest.findOne({
                 where: {
-                  groupId: bookingObject?.id,
+                  bookingGroupId: bookingObject?.id,
                   bookingId: bookingObject?.bookingId,
-                  transactionId: { [Op.ne]: null },
+                  userId: bookingObject?.userId,
+                  transictionId: HotelBookingLogData.transactionId,
                 },
-                order: [["id", "DESC"]],
               });
-              if (
-                HotelBookingLogData &&
-                HotelBookingLogData.transactionId > 0
-              ) {
+              if (checkRequest && checkRequest.id) {
+                console.log("Already exist");
+              } else {
                 try {
                   await requestHandler.createPayBack(
                     bookingObject?.id,
