@@ -1125,6 +1125,9 @@ export default {
                   }
                 }
               }
+              //  update revalidate response with final amount
+              reavalidateResponse.data.serviceChages = commissionAmount;
+              reavalidateResponse.data.finalAmount = totalPrice;
               let bookingData = {
                 userId: userData.id,
                 bookingGroupId: Bidding.groupId,
