@@ -246,7 +246,7 @@ export default {
           {
             model: HotelBooking,
             as: "booking",
-            attributes: ["hotelCode"],
+            attributes: ["hotelCode", "platformPaymentStatus"],
           },
           {
             model: HotelBooking,
