@@ -205,6 +205,7 @@ export default {
           res,
           {
             status: response.data.booking_status,
+            booking_type: response.data.booking_type,
             cancel_date: response.data?.cancellation_details?.cancel_date,
             cancellation_charges:
               response.data?.cancellation_details?.cancellation_charge,
