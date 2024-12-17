@@ -13,6 +13,7 @@ const {
   HotelBidding,
   Hotel,
   PayBackRequest,
+  Transaction,
 } = models;
 
 export default {
@@ -466,6 +467,7 @@ export default {
   async bookingStatus(req) {
     try {
       const bookingObject = req.bookingObject;
+      const userData = req.user;
       const apiEndPoint = GRN_Apis.bookingStatus(
         bookingObject.currentReference
       );
@@ -528,8 +530,17 @@ export default {
               },
             }
           );
+
           // check for the refund
-          if (bookingData.platformPaymentStatus === "paid") {
+          const daysDifference = utility.dateDifference(
+            bookingData.cancelByDate,
+            await utility.getCurrentDateTime(),
+            "days"
+          );
+          if (
+            bookingData.platformPaymentStatus === "paid" &&
+            parseInt(daysDifference) <= 0
+          ) {
             const HotelBookingLogData = await HotelBookingLog.findOne({
               where: {
                 groupId: bookingObject?.id,
@@ -551,12 +562,41 @@ export default {
                 console.log("Already exist");
               } else {
                 try {
-                  await requestHandler.createPayBack(
+                  const request_data = await requestHandler.createPayBack(
                     bookingObject?.id,
                     bookingObject?.bookingId,
                     bookingObject?.userId,
                     HotelBookingLogData.transactionId
                   );
+                  if (request_data.success === true) {
+                    const hotelData = await Hotel.findOne({
+                      attributes: ["hotelName"],
+                      where: {
+                        hotelCode: bookingData.hotelCode,
+                      },
+                    });
+                    const transactionData = await Transaction.findOne({
+                      attributes: ["currency", "total"],
+                      where: { id: HotelBookingLogData.transactionId },
+                    });
+                    try {
+                      const fullName = `${userData?.firstName} ${userData?.lastName}`;
+                      await requestHandler.sendEmail(
+                        userData?.email,
+                        "hotelRefundStatus",
+                        `TrippyBid Refund Request Raised`,
+                        {
+                          name: fullName,
+                          status: "Raised",
+                          currency: "AUD",
+                          amount: transactionData?.total,
+                          hotel_name: hotelData.hotelName,
+                        }
+                      );
+                    } catch (err) {
+                      console.log(err);
+                    }
+                  }
                 } catch (error) {}
               }
             }

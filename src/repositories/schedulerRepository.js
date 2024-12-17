@@ -94,18 +94,26 @@ export default {
         //   parseInt(daysDifference) === -1 &&
         //     element.platformPaymentStatus == "not-done"
         // );
+
+        // if ( // client stop for multiple time payment attempt
+        //   (parseInt(daysDifference) === -2 &&
+        //     element.platformPaymentStatus == "pending") ||
+        //   (parseInt(daysDifference) === -1 &&
+        //     element.platformPaymentStatus == "not-done")
+        // ) {
+        //   platformPaymentStatus =
+        //     parseInt(daysDifference) == -2 ? "not-done" : "unpaid";
+        //   payemntForBooking.push(element);
+        // } else if (
+        //   parseInt(daysDifference) === -0 &&
+        //   element.platformPaymentStatus != "failed"
+        // ) {
+        //   payemntForBooking.push(element);
+        //   platformPaymentStatus = "failed";
+        // }
         if (
-          (parseInt(daysDifference) === -2 &&
-            element.platformPaymentStatus == "pending") ||
-          (parseInt(daysDifference) === -1 &&
-            element.platformPaymentStatus == "not-done")
-        ) {
-          platformPaymentStatus =
-            parseInt(daysDifference) == -2 ? "not-done" : "unpaid";
-          payemntForBooking.push(element);
-        } else if (
-          parseInt(daysDifference) === -0 &&
-          element.platformPaymentStatus != "failed"
+          parseInt(daysDifference) === -6 &&
+          element.platformPaymentStatus != "pending"
         ) {
           payemntForBooking.push(element);
           platformPaymentStatus = "failed";

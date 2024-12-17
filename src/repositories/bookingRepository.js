@@ -1,6 +1,7 @@
 import { Op, Sequelize } from "sequelize";
 import models from "../models";
 import schedulerRepository from "./schedulerRepository";
+import requestHandler from "../services/requestHandler";
 const {
   User,
   HotelBookingGroup,
@@ -446,7 +447,7 @@ export default {
               name: fullName,
               booking_id: bookingObject?.currentReference,
               total_price: bodyData.price,
-              currency: bodyData.currency,
+              currency: "AUD",
               hotel_name: bodyData.hotelName,
             }
           );
