@@ -2,6 +2,7 @@ import repositories from "../repositories";
 import models from "../models";
 import schedulerRepository from "../repositories/schedulerRepository";
 import config from "../config";
+import utility from "../services/utility";
 const { Setting } = models;
 const { bookingRepository, customRepository, hotelRepository } = repositories;
 
@@ -107,11 +108,23 @@ export default {
     try {
       for (let index = 0; index < data?.hotels?.length; index++) {
         const element = data?.hotels?.[index];
-        const rates = await element?.rates?.filter(
-          (x) =>
-            x.non_refundable == false &&
-            x.cancellation_policy.under_cancellation == false
-        );
+        const rates = [];
+        for (let index = 0; index < element.rates.length; index++) {
+          const x = element.rates[index];
+          if (
+            x?.non_refundable === false &&
+            x?.cancellation_policy?.under_cancellation === false
+          ) {
+            const daysDifference = utility.dateDifference(
+              x.cancellation_policy.cancel_by_date,
+              await utility.getCurrentDateTime(),
+              "days"
+            );
+            if (daysDifference < -7) {
+              rates.push(x);
+            }
+          }
+        }
         element.rates = rates;
       }
 
