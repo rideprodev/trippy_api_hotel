@@ -298,9 +298,10 @@ export default {
       if (card) {
         next();
       } else {
-        utility.getError(res, "Card is bot valid please add befor transaction");
+        utility.getError(res, "Card is not valid please add befor transaction");
       }
     } catch (error) {
+      s;
       next(error);
     }
   },

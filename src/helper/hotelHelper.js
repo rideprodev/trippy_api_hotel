@@ -9,21 +9,59 @@ const { bookingRepository, customRepository, hotelRepository } = repositories;
 export default {
   async checkBiddingforBookingOnDate(req, data) {
     try {
+      let AllBookingGroupData = [];
       delete req.user;
       const bodyData = req.body;
       const searchFilter = {
         checkIn: bodyData.checkIn,
         checkOut: bodyData.checkOut,
+        totalRooms: bodyData.rooms.length,
         totalMember: bodyData.totalMember,
         totalAdult: bodyData.totalAdult,
         totalChildren: bodyData.totalChildren,
+        currency: bodyData.currency,
       };
+      // console.log(searchFilter);
       // fetch all booking and its bidding from the database on where
-      const AllBookingGroupData =
+      const AllGroupDataFromSchedular =
         await bookingRepository.getAllBookingForScdulerBidding(
           [],
           searchFilter
         );
+      if (AllGroupDataFromSchedular.length > 0) {
+        const agesCheckedData = [];
+        for (let index = 0; index < AllGroupDataFromSchedular.length; index++) {
+          const elementAges = AllGroupDataFromSchedular[index];
+          if (JSON.parse(elementAges.searchPayload)) {
+            const searchPayload = JSON.parse(elementAges.searchPayload);
+            if (
+              searchPayload?.childrenAges &&
+              Object.keys(searchPayload.childrenAges).length === 0 &&
+              Object.keys(bodyData.childrenAges).length === 0
+            ) {
+              agesCheckedData.push(elementAges);
+            } else {
+              let isMatched = 0;
+              const searchKeys = Object.keys(searchPayload.childrenAges);
+              const searchValues = Object.values(searchPayload.childrenAges);
+              for (let index = 0; index < searchKeys.length; index++) {
+                const elementA = searchKeys[index];
+                if (
+                  bodyData.childrenAges[`${elementA}`] &&
+                  bodyData.childrenAges[`${elementA}`] == searchValues[index]
+                ) {
+                  isMatched = isMatched + 1;
+                }
+              }
+              if (isMatched === searchKeys.length) {
+                agesCheckedData.push(elementAges);
+              }
+            }
+          }
+          AllBookingGroupData = agesCheckedData;
+        }
+      }
+      console.log(AllGroupDataFromSchedular.length, AllBookingGroupData.length);
       try {
         if (AllBookingGroupData.length > 0) {
           let resultResponse = [];
@@ -50,6 +88,7 @@ export default {
           } catch (err) {
             console.log(err);
           }
+          // console.log("resultResponse", resultResponse);
           return resultResponse;
         } else {
           return "No Booking-Bidding Found";
@@ -140,9 +179,11 @@ export default {
           hotelCode: x.hotel_code,
         });
         orignalResponse.push({
-          search_id: data.search_id,
           ...cityData[0],
           ...x,
+          rates: x.rates.map((y) => {
+            return { searchId: data.search_id, ...y };
+          }),
         });
         response.push({
           search_id: data.search_id,

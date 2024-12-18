@@ -72,7 +72,9 @@ export default {
           200
         );
         if (!bodyData.cutOffTime) {
-          // hotelHelper.checkBiddingforBookingOnDate(req, finalResponseForSent);
+          hotelHelper.checkBiddingforBookingOnDate(req, {
+            hotels: req.orignalResponse,
+          });
         }
       }
     } catch (error) {
