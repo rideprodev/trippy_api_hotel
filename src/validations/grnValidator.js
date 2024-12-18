@@ -20,6 +20,7 @@ const search = Joi.object({
   totalMember: Joi.string().required(),
   totalAdult: Joi.string().required(),
   totalChildren: Joi.string().required(),
+  childrenAges: Joi.object().required().allow({}),
 });
 
 const refetch = Joi.object({
