@@ -9,11 +9,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       },
       bookingName: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(100),
         allowNull: false,
       },
       bookingComments: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING(100),
       },
       currentReference: {
         type: DataTypes.STRING(50),
