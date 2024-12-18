@@ -289,10 +289,37 @@ export default {
   async checkCardExist(req, res, next) {
     try {
       const bodyData = req.body;
-      const userData = req.user;
-      const card = await Cards.findOne({ where: { id: bodyData.cardId } });
+      const card = await Cards.findOne({
+        where: {
+          id: bodyData.cardId,
+          status: "active",
+        },
+      });
       if (card) {
-        next();
+        if (
+          bodyData.reavalidateResponse?.hotel?.rate?.cancellation_policy
+            ?.cancel_by_date
+        ) {
+          const cancelByDate =
+            bodyData.reavalidateResponse?.hotel?.rate?.cancellation_policy
+              ?.cancel_by_date;
+          const daysDifference = utility.dateDifference(
+            cancelByDate,
+            `${card.year}-${card.month}-28`,
+            "days"
+          );
+          if (parseInt(daysDifference) >= 1) {
+            console.log("valid card", parseInt(daysDifference));
+            next();
+          } else {
+            utility.getError(
+              res,
+              "This card is not valid for this booking please choose other one!"
+            );
+          }
+        } else {
+          utility.getError(res, "Cancellation date is no recoganized!");
+        }
       } else {
         utility.getError(res, "Card is bot valid please add befor transaction");
       }
