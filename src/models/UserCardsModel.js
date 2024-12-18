@@ -17,6 +17,12 @@ module.exports = (sequelize, DataTypes) => {
       cardNumber: {
         type: DataTypes.STRING,
       },
+      month: {
+        type: DataTypes.STRING,
+      },
+      year: {
+        type: DataTypes.STRING,
+      },
       encodedNumber: {
         type: DataTypes.STRING,
       },
