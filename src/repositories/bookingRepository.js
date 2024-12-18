@@ -542,9 +542,11 @@ export default {
             Op.eq,
             Sequelize.fn("STR_TO_DATE", FilterDate.checkOut, "%Y-%m-%d")
           ),
+          { total_rooms: FilterDate.totalRooms },
           { total_member: FilterDate.totalMember },
           { total_adult: FilterDate.totalAdult },
           { total_children: FilterDate.totalChildren },
+          { currency: FilterDate.currency },
           ...where,
         ];
         biddingWhere = { status: "active" };
@@ -591,6 +593,7 @@ export default {
           "totalMember",
           "createdAt",
           "bookingComments",
+          "currency",
         ],
         order: [
           ["id", "DESC"],
