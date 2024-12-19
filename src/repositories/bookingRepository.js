@@ -224,7 +224,7 @@ export default {
    * Get One Hotel Booking
    * @param {Object} req
    */
-  async getOneHotelUserWiseBooking(req, where = {}) {
+  async getOneHotelUserWiseBooking(req, where = {}, biddingWhere = {}) {
     try {
       const _hotel = await HotelBookingGroup.findOne({
         where: where,
@@ -256,6 +256,8 @@ export default {
           {
             model: HotelBidding,
             as: "biddingData",
+            where: biddingWhere,
+            order: [["priority", "ASC"]],
             include: {
               model: HotelBiddingPrices,
               as: "biddingPriceData",
@@ -594,6 +596,7 @@ export default {
           "createdAt",
           "bookingComments",
           "currency",
+          "price",
         ],
         order: [
           ["id", "DESC"],
@@ -621,6 +624,11 @@ export default {
             model: HotelBidding,
             as: "biddingData",
             required: true,
+          },
+          {
+            model: HotelBooking,
+            as: "booking",
+            attributes: ["hotelCode", "platformPaymentStatus"],
           },
           {
             attributes: ["paxes"],

@@ -60,89 +60,89 @@ export default {
    */
   async placeMyBid(req, res, next) {
     try {
-      const bodyData = req.body;
-      req.body.search_id = bodyData.searchId;
-      req.body.group_code = bodyData.groupCode;
-      req.body.rate_key = bodyData.rateKey;
-      const revalidate = await grnRepository.revalidate(req);
-      if (revalidate.status !== 200) {
-        utility.getError(res, revalidate.message);
-      } else if (revalidate.data.errors && revalidate.data.errors.length > 0) {
-        utility.getError(
-          res,
-          `${revalidate.data.errors[0].code} : ${revalidate.data.errors[0].messages[0]}`
-        );
-      } else if (revalidate?.data?.hotel?.rate?.rate_type !== "bookable") {
-        utility.getError(res, "Can't bid because this hotel is full !");
-      } else {
-        let nonRefundable = null,
-          underCancellation = null;
+      // const bodyData = req.body;
+      // req.body.search_id = bodyData.searchId;
+      // req.body.group_code = bodyData.groupCode;
+      // req.body.rate_key = bodyData.rateKey;
+      // const revalidate = await grnRepository.revalidate(req);
+      // if (revalidate.status !== 200) {
+      //   utility.getError(res, revalidate.message);
+      // } else if (revalidate.data.errors && revalidate.data.errors.length > 0) {
+      //   utility.getError(
+      //     res,
+      //     `${revalidate.data.errors[0].code} : ${revalidate.data.errors[0].messages[0]}`
+      //   );
+      // } else if (revalidate?.data?.hotel?.rate?.rate_type !== "bookable") {
+      //   utility.getError(res, "Can't bid because this hotel is full !");
+      // } else {
+      //   let nonRefundable = null,
+      //     underCancellation = null;
 
-        if (
-          revalidate?.data?.hotel?.rate &&
-          typeof revalidate?.data?.hotel?.rate?.non_refundable === "boolean"
-        ) {
-          nonRefundable = `${revalidate?.data?.hotel?.rate?.non_refundable}`;
-          if (
-            typeof revalidate?.data?.hotel?.rate?.cancellation_policy
-              ?.under_cancellation === "boolean"
-          ) {
-            underCancellation = `${revalidate?.data?.hotel?.rate?.cancellation_policy?.under_cancellation}`;
-          }
-        }
-        if (nonRefundable === "false" && underCancellation === "false") {
-          // need to add user commission
+      //   if (
+      //     revalidate?.data?.hotel?.rate &&
+      //     typeof revalidate?.data?.hotel?.rate?.non_refundable === "boolean"
+      //   ) {
+      //     nonRefundable = `${revalidate?.data?.hotel?.rate?.non_refundable}`;
+      //     if (
+      //       typeof revalidate?.data?.hotel?.rate?.cancellation_policy
+      //         ?.under_cancellation === "boolean"
+      //     ) {
+      //       underCancellation = `${revalidate?.data?.hotel?.rate?.cancellation_policy?.under_cancellation}`;
+      //     }
+      //   }
+      //   if (nonRefundable === "false" && underCancellation === "false") {
+      //     // need to add user commission
 
-          let commission = 0,
-            commissionAmount = 0,
-            totalPrice = 0;
+      //     let commission = 0,
+      //       commissionAmount = 0,
+      //       totalPrice = 0;
 
-          const userData = req.user;
-          if (userData.commission === "relevant") {
-            const comissionPercent = await Setting.findOne({
-              where: { key: config.app.GRNPercentageKey },
-            });
-            commission = parseFloat(comissionPercent.value);
-            commissionAmount =
-              (parseFloat(revalidate.data?.hotel?.rate?.price) * commission) /
-              100;
-            totalPrice =
-              parseFloat(revalidate.data?.hotel?.rate?.price) +
-              commissionAmount;
-            revalidate.data.serviceChages = `${commissionAmount}`;
-            revalidate.data.finalAmount = `${parseFloat(totalPrice).toFixed(
-              2
-            )}`;
-          } else {
-            commission = userData?.commissionValue
-              ? parseFloat(userData.commissionValue)
-              : 0;
-            commissionAmount =
-              (parseFloat(revalidate.data?.hotel?.rate?.price) * commission) /
-              100;
-            totalPrice =
-              parseFloat(revalidate.data?.hotel?.rate?.price) +
-              commissionAmount;
-            revalidate.data.serviceChages = `${commissionAmount}`;
-            revalidate.data.finalAmount = `${parseFloat(totalPrice).toFixed(
-              2
-            )}`;
-          }
+      //     const userData = req.user;
+      //     if (userData.commission === "relevant") {
+      //       const comissionPercent = await Setting.findOne({
+      //         where: { key: config.app.GRNPercentageKey },
+      //       });
+      //       commission = parseFloat(comissionPercent.value);
+      //       commissionAmount =
+      //         (parseFloat(revalidate.data?.hotel?.rate?.price) * commission) /
+      //         100;
+      //       totalPrice =
+      //         parseFloat(revalidate.data?.hotel?.rate?.price) +
+      //         commissionAmount;
+      //       revalidate.data.serviceChages = `${commissionAmount}`;
+      //       revalidate.data.finalAmount = `${parseFloat(totalPrice).toFixed(
+      //         2
+      //       )}`;
+      //     } else {
+      //       commission = userData?.commissionValue
+      //         ? parseFloat(userData.commissionValue)
+      //         : 0;
+      //       commissionAmount =
+      //         (parseFloat(revalidate.data?.hotel?.rate?.price) * commission) /
+      //         100;
+      //       totalPrice =
+      //         parseFloat(revalidate.data?.hotel?.rate?.price) +
+      //         commissionAmount;
+      //       revalidate.data.serviceChages = `${commissionAmount}`;
+      //       revalidate.data.finalAmount = `${parseFloat(totalPrice).toFixed(
+      //         2
+      //       )}`;
+      //     }
 
-          req.body.latestPrice = totalPrice;
-          const result = await biddingRepository.placeMyBid(req);
-          if (result) {
-            utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
-          } else {
-            utility.getError(res, "WENT_WRONG");
-          }
-        } else {
-          utility.getError(
-            res,
-            "Can't bid, You can't bid on a non-refundable hotel !"
-          );
-        }
-      }
+      //     req.body.latestPrice = totalPrice;
+      const result = await biddingRepository.placeMyBid(req);
+      // if (result) {
+      utility.getResponse(res, result, "ADDED", httpStatus.CREATED);
+      // } else {
+      //   utility.getError(res, "WENT_WRONG");
+      // }
+      // } else {
+      //   utility.getError(
+      //     res,
+      //     "Can't bid, You can't bid on a non-refundable hotel !"
+      //   );
+      // }
+      // }
     } catch (error) {
       next(error);
     }
