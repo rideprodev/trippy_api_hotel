@@ -621,6 +621,12 @@ export default {
               const newRateData = requestData.newRates;
               const bookingGroupObject = requestData.groupObjectData;
               const userData = bookingGroupObject.userData;
+              const bookingDataObject = bookingGroupObject.booking;
+              const previousHotelData = await Hotel.findOne({
+                attributes: ["hotelName", "address"],
+                where: { hotelCode: bookingDataObject.hotelCode },
+              });
+              bookingGroupObject.previousHotelData = previousHotelData;
               if (
                 _response !== undefined &&
                 (_response?.data?.status == "pending" ||
@@ -721,12 +727,14 @@ export default {
                     const sendmail_confirm = requestHandler.sendEmail(
                       userData.email,
                       "bidSuccess",
-                      `Your Bid Is hit successfully & Reservation has been Confirmed - Booking ID: ${_response?.data?.booking_reference}`,
+                      `Success! TrippyBid Secured Your Reservation at Your Bid Price! Booking Id- ${_response?.data?.booking_reference}`,
                       {
                         name: `${userData.firstName} ${userData.lastName}`,
                         email: userData.email,
                         hotel_name: revalidateHotelData.name,
                         full_address: revalidateHotelData.address,
+                        previous_hotel_name: previousHotelData?.hotelName,
+                        previous_full_address: previousHotelData?.address,
                         image_url: revalidateHotelData.images.url,
                         check_in: bookingGroupObject.checkIn,
                         check_out: bookingGroupObject.checkOut,
@@ -779,6 +787,7 @@ export default {
               const newRateData = requestData.newRates;
               const bookingGroupObject = requestData.groupObjectData;
               const userData = bookingGroupObject.userData;
+              const previousHotelData = bookingGroupObject.previousHotelData;
               if (_response_cancel !== undefined) {
                 console.log("================================");
                 console.log("cancel status", _response_cancel.data.status);
@@ -801,6 +810,8 @@ export default {
                       {
                         name: `${userData.firstName} ${userData.lastName}`,
                         email: userData.email,
+                        hotel_name: previousHotelData?.hotelName,
+                        full_address: previousHotelData?.address,
                         check_in: bookingGroupObject.checkIn,
                         check_out: bookingGroupObject.checkOut,
                         room_type: newRateData.roomType,
@@ -814,7 +825,7 @@ export default {
                           bookingGroupObject.createdAt
                         ),
                         total_price: bookingGroupObject.price,
-                        currency: userData.UserPersonalInformation.currencyCode,
+                        currency: bookingGroupObject.currency,
                       }
                     );
                   } catch (err) {}

@@ -12,6 +12,7 @@ const {
 } = models;
 import { Op, Sequelize } from "sequelize";
 import requestHandler from "../services/requestHandler";
+import bookingRepository from "./bookingRepository";
 
 export default {
   /**
@@ -211,10 +212,19 @@ export default {
       bodyData.reavalidateResponse = JSON.stringify(
         bodyData.reavalidateResponse
       );
+      const bookingGroupData =
+        await bookingRepository.getOneHotelUserWiseBooking(
+          req,
+          {
+            id: bodyData.groupId,
+          },
+          { status: "active" }
+        );
       //  need to get the expairation date backend
       const _response = await HotelBidding.create(bodyData);
       bodyData.biddingId = _response.id;
       await this.updateLatestPrice(bodyData);
+
       try {
         const sendmail = requestHandler.sendEmail(
           userData.email,
@@ -224,6 +234,7 @@ export default {
             name: `${userData.firstName} ${userData.lastName}`,
             hotel_name: hotelName,
             priority: bodyData.priority,
+            bookingGroupData: bookingGroupData,
           }
         );
       } catch (err) {}
