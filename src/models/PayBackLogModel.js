@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       },
       status: {
-        type: DataTypes.ENUM("request", "in-progress", "complete", "cancelled"),
+        type: DataTypes.ENUM("request", "in-progress", "refunded", "cancelled"),
         defaultValue: "request",
       },
       comment: {
