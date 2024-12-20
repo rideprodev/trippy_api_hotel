@@ -584,7 +584,7 @@ export default {
                       await requestHandler.sendEmail(
                         userData?.email,
                         "hotelRefundStatus",
-                        `TrippyBid Refund Request Raised`,
+                        `TrippyBid Refund Request raised`,
                         {
                           name: fullName,
                           status: "raised",
