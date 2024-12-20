@@ -587,7 +587,7 @@ export default {
                         `TrippyBid Refund Request Raised`,
                         {
                           name: fullName,
-                          status: "Raised",
+                          status: "raised",
                           currency: "AUD",
                           amount: transactionData?.total,
                           hotel_name: hotelData.hotelName,
