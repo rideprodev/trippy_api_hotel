@@ -258,6 +258,7 @@ export default {
             as: "biddingData",
             where: biddingWhere,
             order: [["priority", "ASC"]],
+            required: false,
             include: {
               model: HotelBiddingPrices,
               as: "biddingPriceData",
