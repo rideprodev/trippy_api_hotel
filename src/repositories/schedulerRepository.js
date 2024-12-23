@@ -1042,15 +1042,15 @@ export default {
             const comissionPercent = await Setting.findOne({
               where: { key: config.app.GRNPercentageKey },
             });
-            const BiddingCharges = await Setting.findOne({
-              where: { key: config.app.BidCharges },
-            });
             commission =
               parseFloat(comissionPercent.value) +
               parseFloat(BiddingCharges.value);
             commissionAmount = (totalPrice * commission) / 100;
             totalPrice = totalPrice + commissionAmount;
           } else if (userData.commission === "irrelevant") {
+            const BiddingCharges = await Setting.findOne({
+              where: { key: config.app.BidCharges },
+            });
             commission = userData?.commissionValue
               ? parseFloat(userData.commissionValue)
               : 0;
