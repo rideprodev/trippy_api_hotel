@@ -1037,7 +1037,9 @@ export default {
         if (reavalidateResponse?.data?.hotel?.rate?.rate_type === "bookable") {
           // check for the booking or update the rate
           totalPrice = parseFloat(reavalidateResponse.data.hotel.rate?.price);
-
+          const BiddingCharges = await Setting.findOne({
+            where: { key: config.app.BidCharges },
+          });
           if (userData.commission === "relevant") {
             const comissionPercent = await Setting.findOne({
               where: { key: config.app.GRNPercentageKey },
@@ -1048,9 +1050,6 @@ export default {
             commissionAmount = (totalPrice * commission) / 100;
             totalPrice = totalPrice + commissionAmount;
           } else if (userData.commission === "irrelevant") {
-            const BiddingCharges = await Setting.findOne({
-              where: { key: config.app.BidCharges },
-            });
             commission = userData?.commissionValue
               ? parseFloat(userData.commissionValue)
               : 0;
