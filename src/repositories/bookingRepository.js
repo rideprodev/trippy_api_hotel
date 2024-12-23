@@ -60,6 +60,7 @@ export default {
             "cityCode",
             "cancelByDate",
             "platformPaymentStatus",
+            "roomType",
             "reavalidateResponse",
           ],
           model: HotelBooking,
@@ -247,7 +248,7 @@ export default {
           {
             model: HotelBooking,
             as: "booking",
-            attributes: ["hotelCode", "platformPaymentStatus"],
+            attributes: ["hotelCode", "roomType", "platformPaymentStatus"],
           },
           {
             model: HotelBooking,
@@ -629,7 +630,7 @@ export default {
           {
             model: HotelBooking,
             as: "booking",
-            attributes: ["hotelCode", "platformPaymentStatus"],
+            attributes: ["hotelCode", "roomType", "platformPaymentStatus"],
           },
           {
             attributes: ["paxes"],
