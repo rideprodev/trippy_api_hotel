@@ -576,12 +576,19 @@ export default {
             //  setting up the booking data
             if (JSON.parse(bookingDetails.paxes)) {
               const bookingItems = JSON.parse(bookingDetails.paxes);
-              for (let pax = 0; pax < bookingItems.length; pax++) {
-                const elementPax = bookingItems[pax];
-                elementPax.room_code = revalidateHotelData?.rate?.room_code;
-                elementPax.rate_key = revalidateHotelData?.rate?.rate_key;
-                elementPax.rooms[0].room_reference =
-                  revalidateHotelData?.rate?.rooms[0]?.room_reference;
+              for (
+                let RoomItem = 0;
+                RoomItem < bookingItems.length;
+                RoomItem++
+              ) {
+                const elementItem = bookingItems[RoomItem];
+                elementItem.room_code = revalidateHotelData?.rate?.room_code;
+                elementItem.rate_key = revalidateHotelData?.rate?.rate_key;
+                for (let pax = 0; pax < elementItem.rooms.length; pax++) {
+                  const elementPax = elementItem.rooms[pax];
+                  elementPax.room_reference =
+                    revalidateHotelData?.rate?.rooms[pax]?.room_reference;
+                }
               }
 
               const bookingRequest = {
@@ -1069,15 +1076,21 @@ export default {
 
           if (JSON.parse(bookingDetails.paxes)) {
             const bookingItems = JSON.parse(bookingDetails.paxes);
-            for (let pax = 0; pax < bookingItems.length; pax++) {
-              const elementPax = bookingItems[pax];
-              elementPax.room_code =
+            for (let RoomItem = 0; RoomItem < bookingItems.length; RoomItem++) {
+              const elementItem = bookingItems[RoomItem];
+              elementItem.room_code =
                 reavalidateResponse.data?.hotel?.rate?.room_code;
-              elementPax.rate_key =
+              elementItem.rate_key =
                 reavalidateResponse.data?.hotel?.rate?.rate_key;
-              elementPax.rooms[0].room_reference =
-                reavalidateResponse.data.hotel.rate.rooms[0].room_reference;
+              for (let pax = 0; pax < elementItem.rooms.length; pax++) {
+                const elementPax = elementItem.rooms[pax];
+                elementPax.room_reference =
+                  reavalidateResponse.data.hotel.rate.rooms[
+                    pax
+                  ]?.room_reference;
+              }
             }
+
             console.log(
               "=================== start booking ===================="
             );
