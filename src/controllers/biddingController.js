@@ -131,7 +131,7 @@ export default {
           req.body.latestPrice = totalPrice;
           const result = await biddingRepository.placeMyBid(req);
           if (result) {
-            utility.getResponse(res, result, "ADDED", httpStatus.CREATED);
+            utility.getResponse(res, null, "ADDED", httpStatus.CREATED);
           } else {
             utility.getError(res, "WENT_WRONG");
           }
