@@ -104,11 +104,11 @@ export default {
         false
       );
       // console.log(_response);
-      if (_response !== undefined) {
+      if (_response !== undefined && _response?.status) {
         this.genrateGrnLogger(
           req,
-          _response.status,
-          _response.message,
+          _response?.status,
+          _response?.message,
           GRN_Apis.search,
           false
         );

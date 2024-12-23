@@ -234,68 +234,78 @@ export default {
         hotelCode: req.body.hotelCode,
       });
 
-      data.hotel.rates = await data?.hotel?.rates?.filter(
-        (x) =>
-          x?.non_refundable == false &&
-          x.cancellation_policy.under_cancellation == false
-      );
+      const newRates = [];
 
-      const arraySorted = await data?.hotel?.rates?.sort(
-        (a, b) => a.price - b.price
-      );
-      const roomTypes = [];
-      const arrayFilter = arraySorted.filter((x) => {
-        const checkAvailibility = roomTypes.filter(
-          (m) => m == x.rooms[0].room_type
-        );
-        if (checkAvailibility.length === 0) {
-          roomTypes.push(x.rooms[0].room_type);
-          return x;
+      for (let index = 0; index < data?.hotel?.rates.length; index++) {
+        const x = data?.hotel?.rates[index];
+        if (
+          x?.non_refundable === false &&
+          x.cancellation_policy.under_cancellation === false
+        ) {
+          newRates.push(x);
         }
-      });
-      data.hotel.rates = arrayFilter;
-      data.images = images;
-      const HotelResponse = {
-        address: data.hotel.address,
-        category: data.hotel.category,
-        description: data.hotel.description,
-        facilities: data.hotel.facilities,
-        images: data.hotel.images,
-        name: data.hotel.name,
-        rates: data.hotel?.rates?.map((y) => {
-          const reatesData = {
-            boarding_details: y.boarding_details,
-            cancellation_policy:
-              y.cancellation_policy &&
-              y.cancellation_policy.cancel_by_date &&
-              y.non_refundable === false
-                ? y.cancellation_policy
-                : {},
-            non_refundable: y.non_refundable,
-            currency: y.currency,
-            price: y.price,
-            group_code: y.group_code,
-            rate_key: y.rate_key,
-            rooms: y?.rooms?.map((r) => {
-              return {
-                description: r.description,
-                no_of_adults: r.no_of_adults,
-                no_of_children: r.no_of_children,
-                room_type: r.room_type,
-              };
-            }),
-          };
-          return reatesData;
-        }),
-      };
+      }
 
-      data.hotel = HotelResponse;
-      delete data.no_of_adults;
-      delete data.no_of_children;
-      delete data.no_of_hotels;
-      delete data.no_of_rooms;
-      delete data.more_results;
-      return data;
+      if (newRates.length > 0) {
+        data.hotel.rates = newRates;
+
+        const arraySorted = await data?.hotel?.rates?.sort(
+          (a, b) => a.price - b.price
+        );
+        const roomTypes = [];
+        const arrayFilter = arraySorted.filter((x) => {
+          const checkAvailibility = roomTypes.filter(
+            (m) => m == x.rooms[0].room_type
+          );
+          if (checkAvailibility.length === 0) {
+            roomTypes.push(x.rooms[0].room_type);
+            return x;
+          }
+        });
+        data.hotel.rates = arrayFilter;
+        data.images = images;
+        const HotelResponse = {
+          address: data.hotel.address,
+          category: data.hotel.category,
+          description: data.hotel.description,
+          facilities: data.hotel.facilities,
+          images: data.hotel.images,
+          name: data.hotel.name,
+          rates: data.hotel?.rates?.map((y) => {
+            const reatesData = {
+              boarding_details: y.boarding_details,
+              cancellation_policy:
+                y.cancellation_policy &&
+                y.cancellation_policy.cancel_by_date &&
+                y.non_refundable === false
+                  ? y.cancellation_policy
+                  : {},
+              non_refundable: y.non_refundable,
+              currency: y.currency,
+              price: y.price,
+              group_code: y.group_code,
+              rate_key: y.rate_key,
+              rooms: y?.rooms?.map((r) => {
+                return {
+                  description: r.description,
+                  no_of_adults: r.no_of_adults,
+                  no_of_children: r.no_of_children,
+                  room_type: r.room_type,
+                };
+              }),
+            };
+            return reatesData;
+          }),
+        };
+
+        data.hotel = HotelResponse;
+        delete data.no_of_adults;
+        delete data.no_of_children;
+        delete data.no_of_hotels;
+        delete data.no_of_rooms;
+        delete data.more_results;
+        return data;
+      }
     } catch (error) {
       console.log(error);
     }
