@@ -504,7 +504,6 @@ export default {
           await schedulerRepository.fetchLatestPriceFromSearchToSchedulet(
             biddings
           );
-        return biddingPrices;
         return biddingPrices?.updateLatestPrice
           ? biddingPrices.updateLatestPrice
           : [];
