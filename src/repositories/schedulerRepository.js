@@ -385,7 +385,7 @@ export default {
             );
             for (let k = 0; k < elementj.roomType.length; k++) {
               const elementk = elementj.roomType[k];
-              const newRates = filterHotel[0].rates.filter((r) => {
+              const newRates = filterHotel[0]?.rates.filter((r) => {
                 if (
                   r.non_refundable === false &&
                   `${r.rooms[0].room_type}, ${r.boarding_details}` == elementk
@@ -542,7 +542,7 @@ export default {
           }
           // check bookable or not
           filterRevalidate = RevalidateResult.filter((x, i) => {
-            if (x.data.hotel.rate.rate_type === "bookable") {
+            if (x.data.hotel?.rate.rate_type === "bookable") {
               return x;
             } else {
               finalForRevalidate = finalForRevalidate.filter((a, b) => {
