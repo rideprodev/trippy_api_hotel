@@ -145,7 +145,7 @@ export default {
           if (
             convertedCurrency &&
             convertedCurrency.convertedAmount &&
-            convertedAmount.length > 0
+            convertedCurrency.convertedAmount.length > 0
           ) {
             amount = convertedCurrency.convertedAmount[0];
             const _requestTransaction = {
@@ -364,7 +364,7 @@ export default {
         totalPrice = 0,
         updateLatestPrice = [],
         cancellationBid = [];
-      if (result.length > 0 && result[0]?.data?.hotels) {
+      if (result?.length > 0 && result[0]?.data?.hotels) {
         // get the commission interest
         const currentDatatime = new Date();
         const comissionPercent = await Setting.findOne({
@@ -645,7 +645,7 @@ export default {
                   cancellationPolicy = null;
                 if (
                   _response?.data?.hotel?.booking_items &&
-                  _response?.data?.hotel?.booking_items.length > 0 &&
+                  _response?.data?.hotel?.booking_items?.length > 0 &&
                   typeof _response?.data?.hotel?.booking_items[0]
                     ?.non_refundable === "boolean"
                 ) {
@@ -999,7 +999,7 @@ export default {
       request.body = JSON.parse(Bidding.bookingGroupData.searchPayload);
       request.body.hotelCode = [Bidding.hotelCode];
       const search_respose = await grnRepository.search(request);
-      if (search_respose?.data?.hotels.length > 0) {
+      if (search_respose?.data?.hotels?.length > 0) {
         const rateData = search_respose?.data?.hotels[0]?.rates;
         filterRateData = rateData.filter(
           (x) =>
@@ -1134,7 +1134,7 @@ export default {
                 transactionId = null;
               if (
                 _response?.data?.hotel?.booking_items &&
-                _response?.data?.hotel?.booking_items.length > 0 &&
+                _response?.data?.hotel?.booking_items?.length > 0 &&
                 typeof _response?.data?.hotel?.booking_items[0]
                   ?.non_refundable === "boolean"
               ) {
