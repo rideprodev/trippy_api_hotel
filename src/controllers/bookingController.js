@@ -139,7 +139,7 @@ export default {
       if (response.length > 0) {
         utility.getResponse(res, response, "Letest Price Updated!");
       } else {
-        utility.getError(res, "All Room sold out!");
+        utility.getError(res, "All biidings room are sold out!");
       }
     } catch (error) {
       next(error);
