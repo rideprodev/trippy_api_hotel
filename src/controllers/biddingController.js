@@ -340,7 +340,14 @@ export default {
           biddingData[0]
         );
         if (response.status !== 200) {
-          utility.getError(res, `${response.message}`);
+          utility.getError(
+            res,
+            `${
+              response?.message
+                ? response.message
+                : "Currently this Room Sold out!"
+            }`
+          );
         } else if (
           response.data &&
           response.data.errors &&
@@ -348,7 +355,11 @@ export default {
         ) {
           utility.getError(
             res,
-            `${response.data.errors[0].code} : ${response.data.errors[0].messages[0]}`
+            `${response.data.errors[0].code} : ${
+              response?.data?.errors[0]?.messages[0]
+                ? response?.data?.errors[0]?.messages[0]
+                : "Currently this Room Sold out!"
+            }`
           );
         } else {
           if (
