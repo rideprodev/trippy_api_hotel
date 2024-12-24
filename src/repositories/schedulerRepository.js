@@ -393,7 +393,7 @@ export default {
                   return r;
                 }
               });
-              if (newRates.length > 0) {
+              if (newRates?.length > 0) {
                 // add the commission on price
                 if (elementi.commission === "relevant") {
                   commission =
