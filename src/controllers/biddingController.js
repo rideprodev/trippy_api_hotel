@@ -345,7 +345,7 @@ export default {
             `${
               response?.message
                 ? response.message
-                : "Currently this Room Sold out!"
+                : "Currently this room is sold out!"
             }`
           );
         } else if (
@@ -358,7 +358,7 @@ export default {
             `${response.data.errors[0].code} : ${
               response?.data?.errors[0]?.messages[0]
                 ? response?.data?.errors[0]?.messages[0]
-                : "Currently this Room Sold out!"
+                : "Currently this room is sold out!"
             }`
           );
         } else {
