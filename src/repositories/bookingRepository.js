@@ -151,12 +151,6 @@ export default {
           "id",
           "userId",
           "bookingId",
-          [
-            Sequelize.literal(
-              '( SELECT CONCAT(`userData`.`first_name`, " ", `userData`.`last_name`) )'
-            ),
-            "userName",
-          ],
           "bookingName",
           "bookingComments",
           "currentReference",
