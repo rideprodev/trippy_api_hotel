@@ -26,7 +26,7 @@ router.get(
   "/mybooking/:bookingId",
   authMiddleware,
   resourceAccessMiddleware(["user"]),
-  hotelMiddleware.isbookingExist,
+  hotelMiddleware.isbookingExistUserWise,
   bookingController.getOneUserWiseBooking
 );
 

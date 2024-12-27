@@ -151,9 +151,32 @@ export default {
    * @param {Object} res
    * @param {Function} next
    */
-  async isbookingExist(req, res, next) {
+  async isbookingExistUserWise(req, res, next) {
     try {
       const userData = req.user;
+      const bookingObject = await bookingRepository.getOneHotelBooking({
+        id: req.params.bookingId,
+        userId: userData.id,
+      });
+      if (bookingObject) {
+        req.bookingObject = bookingObject;
+        next();
+      } else {
+        utility.getError(res, "ID_NOT_FOUND");
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check the booking is exist or not
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isbookingExist(req, res, next) {
+    try {
       const bookingObject = await bookingRepository.getOneHotelBooking({
         id: req.params.bookingId,
       });
