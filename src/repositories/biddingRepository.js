@@ -13,6 +13,7 @@ const {
 import { Op, Sequelize } from "sequelize";
 import requestHandler from "../services/requestHandler";
 import bookingRepository from "./bookingRepository";
+import { required } from "joi";
 
 export default {
   /**
@@ -36,6 +37,16 @@ export default {
             { checkOut: { [Op.like]: `%${queryData.name}%` } },
             { hotelCode: { [Op.like]: `%${queryData.name}%` } },
             { biddingPrice: { [Op.like]: `%${queryData.name}%` } },
+            Sequelize.where(
+              Sequelize.col("userData.first_name"),
+              Op.like,
+              `%${queryData.name}%`
+            ),
+            Sequelize.where(
+              Sequelize.col("userData.last_name"),
+              Op.like,
+              `%${queryData.name}%`
+            ),
           ],
         };
       }
@@ -46,6 +57,32 @@ export default {
       }
 
       const _biddingData = await HotelBidding.findAndCountAll({
+        attributes: [
+          "id",
+          "userId",
+          [
+            Sequelize.literal(
+              '( SELECT CONCAT(`userData`.`first_name`, " ", `userData`.`last_name`) )'
+            ),
+            "userName",
+          ],
+          "groupId",
+          "roomType",
+          "checkIn",
+          "checkOut",
+          "hotelCode",
+          "biddingPrice",
+          "minBid",
+          "maxBid",
+          "priority",
+          "expairationAt",
+          "status",
+          "latestPrice",
+          "paymentMode",
+          "reavalidateResponse",
+          "createdAt",
+          "updatedAt",
+        ],
         where: where,
         include: [
           {

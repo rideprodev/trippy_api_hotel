@@ -39,6 +39,16 @@ export default {
             { price: { [Op.like]: `%${queryData.name}%` } },
             { status: { [Op.like]: `%${queryData.name}%` } },
             { paymentStatus: { [Op.like]: `%${queryData.name}%` } },
+            Sequelize.where(
+              Sequelize.col("userData.first_name"),
+              Op.like,
+              `%${queryData.name}%`
+            ),
+            Sequelize.where(
+              Sequelize.col("userData.last_name"),
+              Op.like,
+              `%${queryData.name}%`
+            ),
           ],
         };
       }
