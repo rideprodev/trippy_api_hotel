@@ -60,12 +60,6 @@ export default {
         attributes: [
           "id",
           "userId",
-          [
-            Sequelize.literal(
-              '( SELECT CONCAT(`userData`.`first_name`, " ", `userData`.`last_name`) )'
-            ),
-            "userName",
-          ],
           "groupId",
           "roomType",
           "checkIn",
