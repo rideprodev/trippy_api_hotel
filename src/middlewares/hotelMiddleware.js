@@ -156,7 +156,6 @@ export default {
       const userData = req.user;
       const bookingObject = await bookingRepository.getOneHotelBooking({
         id: req.params.bookingId,
-        userId: userData.id,
       });
       if (bookingObject) {
         req.bookingObject = bookingObject;
