@@ -137,6 +137,33 @@ export default {
       }
 
       const _hotels = await HotelBookingGroup.findAndCountAll({
+        attributes: [
+          "id",
+          "userId",
+          "bookingId",
+          [
+            Sequelize.literal(
+              '( SELECT CONCAT(`userData`.`first_name`, " ", `userData`.`last_name`) )'
+            ),
+            "userName",
+          ],
+          "bookingName",
+          "bookingComments",
+          "currentReference",
+          "checkIn",
+          "checkOut",
+          "bookingDate",
+          "currency",
+          "price",
+          "status",
+          "totalRooms",
+          "totalMember",
+          "totalAdult",
+          "totalChildren",
+          "searchPayload",
+          "createdAt",
+          "updatedAt",
+        ],
         include: includes,
         order: [["id", "DESC"]],
         distinct: true,
