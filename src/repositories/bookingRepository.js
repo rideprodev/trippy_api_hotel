@@ -482,6 +482,7 @@ export default {
             ],
             model: HotelBookingLog,
             as: "bookingLogs",
+            order: [["id", "DESC"]],
           },
         ],
         order: [[Sequelize.col("biddingData.priority"), "ASC"]],
