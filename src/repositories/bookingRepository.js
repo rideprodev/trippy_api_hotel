@@ -55,6 +55,161 @@ export default {
 
       const includes = [
         {
+          attributes: ["firstName", "lastName"],
+          model: User,
+          as: "userData",
+        },
+        {
+          attributes: [
+            "hotelCode",
+            "cityCode",
+            "cancelByDate",
+            "platformPaymentStatus",
+            "roomType",
+          ],
+          model: HotelBooking,
+          as: "booking",
+          required: false,
+        },
+      ];
+
+      if (queryData.status && queryData.status === "current") {
+        where = {
+          ...where,
+          [Op.or]: [
+            {
+              [Op.and]: [{ checkIn: { [Op.gt]: date } }, { status: "pending" }],
+            },
+            {
+              [Op.and]: [
+                { checkIn: { [Op.gt]: date } },
+                { status: "confirmed" },
+              ],
+            },
+            { createdAt: { [Op.eq]: date } },
+          ],
+        };
+      } else if (queryData.status && queryData.status === "completed") {
+        where = {
+          ...where,
+          [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "confirmed" }],
+        };
+      } else if (queryData.status && queryData.status === "cancelled") {
+        where = {
+          ...where,
+          [Op.and]: [{ createdAt: { [Op.ne]: date } }, { status: "cancelled" }],
+        };
+      } else if (queryData.status && queryData.status === "failed") {
+        where = {
+          ...where,
+          [Op.or]: [
+            {
+              [Op.and]: [
+                { createdAt: { [Op.ne]: date } },
+                { status: "failed" },
+              ],
+            },
+            {
+              [Op.and]: [
+                { createdAt: { [Op.ne]: date } },
+                { status: "rejected" },
+              ],
+            },
+          ],
+        };
+      }
+
+      if (queryData.limit && queryData.limit > 0 && queryData.offset >= 0) {
+        limit = +queryData.limit;
+        offset = +queryData.offset;
+      }
+
+      const _hotels = await HotelBookingGroup.findAndCountAll({
+        attributes: [
+          "id",
+          "userId",
+          "currentReference",
+          "checkIn",
+          "checkOut",
+          "bookingDate",
+          "currency",
+          "price",
+          "status",
+          "totalRooms",
+          "totalMember",
+        ],
+        include: includes,
+        order: [["id", "DESC"]],
+        distinct: true,
+        where: where,
+        offset: offset,
+        limit: limit,
+      });
+
+      for (let i = 0; i < _hotels.rows.length; i++) {
+        const element = _hotels.rows[i];
+        if (element?.booking?.hotelCode) {
+          element.dataValues.hotelData = await Hotel.findOne({
+            attributes: ["hotelCode", "hotelName", "countryCode"],
+            where: { hotelCode: element.booking.hotelCode },
+          });
+        }
+        if (element?.booking?.cityCode) {
+          element.dataValues.cityData = await HotelCity.findOne({
+            attributes: ["cityCode", "cityName"],
+            where: { cityCode: element.booking.cityCode },
+          });
+        }
+        if (element?.dataValues?.hotelData?.countryCode) {
+          element.dataValues.countryData = await HotelCountry.findOne({
+            attributes: ["countryCode", "countryName"],
+            where: { countryCode: element.dataValues.hotelData.countryCode },
+          });
+        }
+      }
+      return _hotels;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get All Hotel Booking
+   * @param {Object} req
+   */
+  async getAllHotelBookingUser(req, where = {}) {
+    try {
+      const queryData = req.query;
+      let limit = null,
+        offset = null;
+      const date = new Date();
+      if (queryData.name) {
+        where = {
+          ...where,
+          [Op.or]: [
+            { hotelCode: { [Op.like]: `%${queryData.name}%` } },
+            { cityCode: { [Op.like]: `%${queryData.name}%` } },
+            { checkIn: { [Op.like]: `%${queryData.name}%` } },
+            { checkOut: { [Op.like]: `%${queryData.name}%` } },
+            { price: { [Op.like]: `%${queryData.name}%` } },
+            { status: { [Op.like]: `%${queryData.name}%` } },
+            { paymentStatus: { [Op.like]: `%${queryData.name}%` } },
+            Sequelize.where(
+              Sequelize.col("userData.first_name"),
+              Op.like,
+              `%${queryData.name}%`
+            ),
+            Sequelize.where(
+              Sequelize.col("userData.last_name"),
+              Op.like,
+              `%${queryData.name}%`
+            ),
+          ],
+        };
+      }
+
+      const includes = [
+        {
           attributes: ["paxes"],
           model: HotelBookingDetail,
           as: "bookingDetils",
