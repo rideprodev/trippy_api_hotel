@@ -335,7 +335,14 @@ export default {
         const element = _hotel.bookings[i];
         if (element?.hotelCode) {
           element.dataValues.hotelData = await Hotel.findOne({
-            attributes: ["hotelCode", "hotelName", "countryCode"],
+            attributes: [
+              "hotelCode",
+              "hotelName",
+              "countryCode",
+              "countryCode",
+              "address",
+              "StarCategory",
+            ],
             where: { hotelCode: element.hotelCode },
           });
           element.dataValues.image = await HotelImage.findOne({
@@ -363,19 +370,6 @@ export default {
         const element = _hotel.bookingDetils[i];
         element.paxes = `${element.paxes}`.split(",");
         element.ages = `${element.ages}`.split(",");
-      }
-      if (_hotel?.booking?.hotelCode) {
-        const hotelData = await Hotel.findOne({
-          attributes: [
-            "hotelCode",
-            "hotelName",
-            "countryCode",
-            "address",
-            "StarCategory",
-          ],
-          where: { hotelCode: _hotel.booking.hotelCode },
-        });
-        _hotel.booking.dataValues.hotel = hotelData.dataValues;
       }
       if (_hotel?.biddingData?.length > 0) {
         for (let i = 0; i < _hotel.biddingData.length; i++) {
