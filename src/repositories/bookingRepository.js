@@ -272,6 +272,9 @@ export default {
               "email",
               "phoneNumberCountryCode",
               "phoneNumber",
+              "status",
+              "createdAt",
+              "updatedAt",
             ],
             model: User,
             as: "userData",
@@ -279,7 +282,16 @@ export default {
           {
             model: HotelBooking,
             as: "booking",
-            attributes: ["hotelCode", "roomType", "platformPaymentStatus"],
+            attributes: [
+              "hotelCode",
+              "roomType",
+              "platformPaymentStatus",
+              "cancelByDate",
+              "cancelByDate",
+              "cancelledDate",
+              "refundAmout",
+              "cancellationCharge",
+            ],
           },
           {
             model: HotelBooking,
