@@ -371,7 +371,7 @@ export default {
           ],
           where: { hotelCode: _hotel.booking.hotelCode },
         });
-        _hotel.booking.dataValues = hotelData.dataValues;
+        _hotel.booking.dataValues.hotel = hotelData.dataValues;
       }
       if (_hotel?.biddingData?.length > 0) {
         for (let i = 0; i < _hotel.biddingData.length; i++) {
