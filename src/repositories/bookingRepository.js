@@ -15,6 +15,7 @@ const {
   HotelBiddingPrices,
   HotelImage,
   UserPersonalInformation,
+  PayBackRequest,
 } = models;
 
 export default {
@@ -460,12 +461,16 @@ export default {
             model: HotelBidding,
             as: "biddingData",
             where: biddingWhere,
-            order: [["priority", "ASC"]],
             required: false,
             include: {
               model: HotelBiddingPrices,
               as: "biddingPriceData",
             },
+          },
+          {
+            attributes: ["id", "status"],
+            model: PayBackRequest,
+            as: "payBackRequestData",
           },
           {
             attributes: ["paxes"],
@@ -482,10 +487,12 @@ export default {
             ],
             model: HotelBookingLog,
             as: "bookingLogs",
-            order: [["id", "DESC"]],
           },
         ],
-        order: [[Sequelize.col("biddingData.priority"), "ASC"]],
+        order: [
+          [Sequelize.col("biddingData.priority"), "ASC"],
+          [Sequelize.col("bookingLogs.id"), "DESC"],
+        ],
       });
       for (let i = 0; i < _hotel.bookings.length; i++) {
         const element = _hotel.bookings[i];

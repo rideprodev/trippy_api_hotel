@@ -99,6 +99,10 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "bookingGroupId",
       as: "bookingDetils",
     });
+    HotelBookingGroup.hasOne(models.PayBackRequest, {
+      foreignKey: "bookingGroupId",
+      as: "payBackRequestData",
+    });
     HotelBookingGroup.hasMany(models.HotelBookingLog, {
       foreignKey: "groupId",
       as: "bookingLogs",
