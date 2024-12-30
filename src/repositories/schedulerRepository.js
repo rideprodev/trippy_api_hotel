@@ -113,7 +113,7 @@ export default {
         // }
         if (
           parseInt(daysDifference) === -6 &&
-          element.platformPaymentStatus != "pending"
+          element.platformPaymentStatus === "pending"
         ) {
           payemntForBooking.push(element);
           platformPaymentStatus = "failed";
