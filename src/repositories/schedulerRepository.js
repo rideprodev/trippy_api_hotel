@@ -132,24 +132,37 @@ export default {
         }
       }
       if (remainder === true) {
-        const _requestTransaction = {
-          userId: element.userId,
-          paymentFor: "hotel",
-          paymentType: "direct",
-          description: `Card Pre Authentication`,
-          amount: amount,
-          currency: "AUD",
-          cardId: cardId.cardId,
-          card: {},
-          isAdded: false,
-          reason: "",
-        };
-
-        console.log(_requestTransaction);
-
-        const transactionData = await requestHandler.sendForPay(
-          _requestTransaction
-        );
+        // Payment Remainder mail
+        // try {
+        //   await requestHandler.sendEmail(
+        //     userData.email,
+        //     "hotelPaymentSuccuess",
+        //     `TrippyBid Payment Successful: ${element.bookingReference}`,
+        //     {
+        //       name: fullName,
+        //       booking_id: element.id,
+        //       total_price: amount,
+        //       currency: "AUD",
+        //       hotel_name: hotelData.hotelName,
+        //     }
+        //   );
+        // } catch (err) {}
+        // const _requestTransaction = {
+        //   userId: element.userId,
+        //   paymentFor: "hotel",
+        //   paymentType: "direct",
+        //   description: `Card Pre Authentication`,
+        //   amount: amount,
+        //   currency: "AUD",
+        //   cardId: cardId.cardId,
+        //   card: {},
+        //   isAdded: false,
+        //   reason: "",
+        // };
+        // console.log(_requestTransaction);
+        // const transactionData = await requestHandler.sendForPay(
+        //   _requestTransaction
+        // );
       } else if (payemntForBooking.length > 0) {
         for (let j = 0; j < payemntForBooking.length; j++) {
           const element = payemntForBooking[j];
@@ -231,7 +244,7 @@ export default {
                   `TrippyBid Payment Successful: ${element.bookingReference}`,
                   {
                     name: fullName,
-                    booking_id: element.id,
+                    booking_id: element.bookingReference,
                     total_price: amount,
                     currency: "AUD",
                     hotel_name: hotelData.hotelName,
@@ -265,7 +278,7 @@ export default {
                 `ACTION REQUIRED! Your payment was unsuccessful!`,
                 {
                   name: fullName,
-                  booking_id: element.id,
+                  booking_id: element.bookingReference,
                   hotel_name: hotelData.hotelName,
                   cancellation_date:
                     utility.convertDateFromTimezone(cancelDate),
