@@ -85,7 +85,13 @@ export default {
             as: "userData",
           },
           {
-            attributes: ["id", "bookingId", "bookingName", "bookingComments"],
+            attributes: [
+              "id",
+              "bookingId",
+              "bookingName",
+              "bookingComments",
+              "currency",
+            ],
             model: HotelBookingGroup,
             as: "bookingGroupData",
           },
@@ -129,12 +135,28 @@ export default {
         where: where,
         include: [
           {
-            attributes: ["firstName", "lastName"],
+            attributes: [
+              "firstName",
+              "lastName",
+              "profilePicture",
+              "email",
+              "phoneNumberCountryCode",
+              "phoneNumber",
+              "status",
+              "createdAt",
+              "updatedAt",
+            ],
             model: User,
             as: "userData",
           },
           {
-            attributes: ["id", "bookingId", "bookingName", "bookingComments"],
+            attributes: [
+              "id",
+              "bookingId",
+              "bookingName",
+              "bookingComments",
+              "currency",
+            ],
             model: HotelBookingGroup,
             as: "bookingGroupData",
           },
