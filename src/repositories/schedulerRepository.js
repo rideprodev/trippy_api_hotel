@@ -82,6 +82,7 @@ export default {
       // check the latest date on the booking
       for (let index = 0; index < finalBookings.length; index++) {
         const element = finalBookings[index];
+        let remainder = false;
         const daysDifference = utility.dateDifference(
           element.cancelByDate,
           await utility.getCurrentDateTime(),
@@ -112,15 +113,44 @@ export default {
         //   platformPaymentStatus = "failed";
         // }
         if (
+          parseInt(daysDifference) === -9 &&
+          element.platformPaymentStatus === "pending"
+        ) {
+          remainder = true;
+        } else if (
           parseInt(daysDifference) === -6 &&
           element.platformPaymentStatus === "pending"
+        ) {
+          payemntForBooking.push(element);
+          platformPaymentStatus = "unpaid";
+        } else if (
+          parseInt(daysDifference) === -4 &&
+          element.platformPaymentStatus === "unpaid"
         ) {
           payemntForBooking.push(element);
           platformPaymentStatus = "failed";
         }
       }
+      if (remainder === true) {
+        const _requestTransaction = {
+          userId: element.userId,
+          paymentFor: "hotel",
+          paymentType: "direct",
+          description: `Card Pre Authentication`,
+          amount: amount,
+          currency: "AUD",
+          cardId: cardId.cardId,
+          card: {},
+          isAdded: false,
+          reason: "",
+        };
 
-      if (payemntForBooking.length > 0) {
+        console.log(_requestTransaction);
+
+        const transactionData = await requestHandler.sendForPay(
+          _requestTransaction
+        );
+      } else if (payemntForBooking.length > 0) {
         for (let j = 0; j < payemntForBooking.length; j++) {
           const element = payemntForBooking[j];
           // console.log("payemntForBooking", element.id, platformPaymentStatus);
