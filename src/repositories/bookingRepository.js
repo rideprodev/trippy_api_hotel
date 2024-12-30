@@ -461,7 +461,6 @@ export default {
             model: HotelBidding,
             as: "biddingData",
             where: biddingWhere,
-            order: [["priority", "ASC"]],
             required: false,
             include: {
               model: HotelBiddingPrices,
@@ -488,7 +487,6 @@ export default {
             ],
             model: HotelBookingLog,
             as: "bookingLogs",
-            order: [["id", "DESC"]],
           },
         ],
         order: [
