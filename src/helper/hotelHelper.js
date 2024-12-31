@@ -159,7 +159,7 @@ export default {
               await utility.getCurrentDateTime(),
               "days"
             );
-            if (daysDifference < -7) {
+            if (daysDifference < -8) {
               rates.push(x);
             }
           }

@@ -28,6 +28,7 @@ export default {
       const expairedBooking = [],
         finalBookings = [],
         payemntForBooking = [];
+      const currentDate = await utility.getCurrentDateTime();
       let amount = 1,
         platformPaymentStatus = "";
       const fetchbookings = await HotelBooking.findAll({
@@ -42,7 +43,7 @@ export default {
         const element = fetchbookings[index];
         const daysDifference = utility.dateDifference(
           element.cancelByDate,
-          await utility.getCurrentDateTime(),
+          currentDate,
           "days"
         );
         // console.log(
@@ -82,10 +83,9 @@ export default {
       // check the latest date on the booking
       for (let index = 0; index < finalBookings.length; index++) {
         const element = finalBookings[index];
-        let remainder = false;
         const daysDifference = utility.dateDifference(
           element.cancelByDate,
-          await utility.getCurrentDateTime(),
+          currentDate,
           "days"
         );
         // console.log(
@@ -96,27 +96,128 @@ export default {
         //     element.platformPaymentStatus == "not-done"
         // );
 
-        // if ( // client stop for multiple time payment attempt
-        //   (parseInt(daysDifference) === -2 &&
-        //     element.platformPaymentStatus == "pending") ||
-        //   (parseInt(daysDifference) === -1 &&
-        //     element.platformPaymentStatus == "not-done")
-        // ) {
-        //   platformPaymentStatus =
-        //     parseInt(daysDifference) == -2 ? "not-done" : "unpaid";
-        //   payemntForBooking.push(element);
-        // } else if (
-        //   parseInt(daysDifference) === -0 &&
-        //   element.platformPaymentStatus != "failed"
-        // ) {
-        //   payemntForBooking.push(element);
-        //   platformPaymentStatus = "failed";
-        // }
         if (
+          //Reminder
           parseInt(daysDifference) === -9 &&
           element.platformPaymentStatus === "pending"
         ) {
-          remainder = true;
+          // Payment Reminder mail
+          try {
+            const userData = await User.findOne({
+              where: { id: element.userId },
+            });
+            const fullName = `${userData.firstName} ${userData.lastName}`;
+            const hotelData = await Hotel.findOne({
+              attributes: ["hotelName"],
+              where: { hotelCode: element.hotelCode },
+            });
+            await requestHandler.sendEmail(
+              userData.email,
+              "hotelPaymentReminder",
+              `TrippyBid Payment Reminder: ${element.bookingReference}`,
+              {
+                name: fullName,
+                hotel_name: hotelData?.hotelName,
+                payment_date: utility.getDateAfterBeforeFromDate(
+                  currentDate,
+                  2
+                ),
+                total_price: element.totalPrice,
+                currency: element.currency,
+                hotel_name: hotelData.hotelName,
+              }
+            );
+          } catch (err) {}
+        } else if (
+          //authentication
+          parseInt(daysDifference) === -7 &&
+          element.platformPaymentStatus === "pending"
+        ) {
+          const cardId = await HotelBookingLog.findOne({
+            where: { groupId: element.bookingGroupId },
+          });
+          const _requestTransaction = {
+            userId: element.userId,
+            paymentFor: "hotel",
+            paymentType: "direct",
+            description: `Booking Id-${element.id}`,
+            amount: "1",
+            currency: "AUD",
+            cardId: cardId.cardId,
+            card: {},
+            isAdded: false,
+            reason: "Authentication",
+          };
+
+          console.log(_requestTransaction);
+
+          const transactionData = await requestHandler.sendForPay(
+            _requestTransaction
+          );
+
+          if (
+            transactionData &&
+            transactionData.data &&
+            transactionData.data.id
+          ) {
+            const RefundData = await requestHandler.sendForRefund(
+              transactionData.data.id,
+              element.userId
+            );
+            if (
+              RefundData &&
+              RefundData.data &&
+              RefundData.data.refund &&
+              RefundData.data.refund?.status !== "APPROVED"
+            ) {
+              const userData = await User.findOne({
+                where: { id: element.userId },
+              });
+              const fullName = `${userData.firstName} ${userData.lastName}`;
+              const hotelData = await Hotel.findOne({
+                attributes: ["hotelName"],
+                where: { hotelCode: element.hotelCode },
+              });
+
+              try {
+                await requestHandler.sendEmail(
+                  userData.email,
+                  "hotelPaymentAuthentication",
+                  `TrippyBid Payment Authentication Failed: ${element.bookingReference}`,
+                  {
+                    name: fullName,
+                    hotel_name: hotelData?.hotelName,
+                    payment_date:
+                      utility.getDateAfterBeforeFromDate(currentDate),
+                    hotel_name: hotelData.hotelName,
+                  }
+                );
+              } catch (err) {}
+            }
+          } else {
+            // payment not done please update the card
+            const userData = await User.findOne({
+              where: { id: element.userId },
+            });
+            const fullName = `${userData.firstName} ${userData.lastName}`;
+            const hotelData = await Hotel.findOne({
+              attributes: ["hotelName"],
+              where: { hotelCode: element.hotelCode },
+            });
+            try {
+              await requestHandler.sendEmail(
+                userData.email,
+                "hotelPaymentAuthentication",
+                `TrippyBid Payment Authentication Failed: ${element.bookingReference}`,
+                {
+                  name: fullName,
+                  hotel_name: hotelData?.hotelName,
+                  payment_date: utility.getDateAfterBeforeFromDate(currentDate),
+                  hotel_name: hotelData.hotelName,
+                }
+              );
+            } catch (err) {}
+          }
         } else if (
           parseInt(daysDifference) === -6 &&
           element.platformPaymentStatus === "pending"
@@ -124,46 +225,17 @@ export default {
           payemntForBooking.push(element);
           platformPaymentStatus = "unpaid";
         } else if (
-          parseInt(daysDifference) === -4 &&
-          element.platformPaymentStatus === "unpaid"
+          (parseInt(daysDifference) === -4 &&
+            element.platformPaymentStatus === "unpaid") ||
+          (parseInt(daysDifference) === -4 &&
+            element.platformPaymentStatus === "pending")
         ) {
           payemntForBooking.push(element);
           platformPaymentStatus = "failed";
         }
       }
-      if (remainder === true) {
-        // Payment Remainder mail
-        // try {
-        //   await requestHandler.sendEmail(
-        //     userData.email,
-        //     "hotelPaymentSuccuess",
-        //     `TrippyBid Payment Successful: ${element.bookingReference}`,
-        //     {
-        //       name: fullName,
-        //       booking_id: element.id,
-        //       total_price: amount,
-        //       currency: "AUD",
-        //       hotel_name: hotelData.hotelName,
-        //     }
-        //   );
-        // } catch (err) {}
-        // const _requestTransaction = {
-        //   userId: element.userId,
-        //   paymentFor: "hotel",
-        //   paymentType: "direct",
-        //   description: `Card Pre Authentication`,
-        //   amount: amount,
-        //   currency: "AUD",
-        //   cardId: cardId.cardId,
-        //   card: {},
-        //   isAdded: false,
-        //   reason: "",
-        // };
-        // console.log(_requestTransaction);
-        // const transactionData = await requestHandler.sendForPay(
-        //   _requestTransaction
-        // );
-      } else if (payemntForBooking.length > 0) {
+
+      if (payemntForBooking.length > 0) {
         for (let j = 0; j < payemntForBooking.length; j++) {
           const element = payemntForBooking[j];
           // console.log("payemntForBooking", element.id, platformPaymentStatus);
