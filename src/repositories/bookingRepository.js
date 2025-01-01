@@ -210,11 +210,11 @@ export default {
       }
 
       const includes = [
-        {
-          attributes: ["paxes"],
-          model: HotelBookingDetail,
-          as: "bookingDetils",
-        },
+        // {
+        //   attributes: ["paxes"],
+        //   model: HotelBookingDetail,
+        //   as: "bookingDetils",
+        // },
         {
           attributes: ["firstName", "lastName"],
           model: User,
@@ -231,6 +231,23 @@ export default {
           ],
           model: HotelBooking,
           as: "booking",
+          required: false,
+        },
+        {
+          attributes: [
+            "id",
+            "hotelCode",
+            "latestPrice",
+            "biddingPrice",
+            "minBid",
+            "maxBid",
+            "priority",
+            "expairationAt",
+            "status",
+            "roomType",
+          ],
+          model: HotelBidding,
+          as: "biddingData",
           required: false,
         },
       ];
@@ -251,22 +268,6 @@ export default {
             { createdAt: { [Op.eq]: date } },
           ],
         };
-        includes.push({
-          attributes: [
-            "id",
-            "hotelCode",
-            "latestPrice",
-            "biddingPrice",
-            "minBid",
-            "maxBid",
-            "priority",
-            "expairationAt",
-            "status",
-            "roomType",
-          ],
-          model: HotelBidding,
-          as: "biddingData",
-        });
       } else if (queryData.status && queryData.status === "completed") {
         where = {
           ...where,
@@ -834,7 +835,12 @@ export default {
           {
             model: HotelBooking,
             as: "booking",
-            attributes: ["hotelCode", "roomType", "platformPaymentStatus"],
+            attributes: [
+              "hotelCode",
+              "roomType",
+              "platformPaymentStatus",
+              "cancelByDate",
+            ],
           },
           {
             attributes: ["paxes"],
@@ -858,6 +864,7 @@ export default {
             include: {
               model: UserPersonalInformation,
               as: "UserPersonalInformation",
+              attributes: ["contry", "nationality", "currencyCode"],
             },
           },
         ],

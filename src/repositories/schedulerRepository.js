@@ -47,6 +47,7 @@ export default {
           "days"
         );
         // console.log(
+        //   element.id,
         //   element.cancelByDate,
         //   await utility.getCurrentDateTime(),
         //   daysDifference,
@@ -96,129 +97,130 @@ export default {
         //     element.platformPaymentStatus == "not-done"
         // );
 
+        // if (
+        //   //Reminder
+        //   parseInt(daysDifference) === -9 &&
+        //   element.platformPaymentStatus === "pending"
+        // ) {
+        //   // Payment Reminder mail
+        //   try {
+        //     const userData = await User.findOne({
+        //       where: { id: element.userId },
+        //     });
+        //     const fullName = `${userData.firstName} ${userData.lastName}`;
+        //     const hotelData = await Hotel.findOne({
+        //       attributes: ["hotelName"],
+        //       where: { hotelCode: element.hotelCode },
+        //     });
+        //     await requestHandler.sendEmail(
+        //       userData.email,
+        //       "hotelPaymentReminder",
+        //       `TrippyBid Payment Reminder: ${element.bookingReference}`,
+        //       {
+        //         name: fullName,
+        //         hotel_name: hotelData?.hotelName,
+        //         payment_date: utility.getDateAfterBeforeFromDate(
+        //           currentDate,
+        //           2
+        //         ),
+        //         total_price: element.totalPrice,
+        //         currency: element.currency,
+        //         hotel_name: hotelData.hotelName,
+        //       }
+        //     );
+        //   } catch (err) {}
+        // } else if (
+        //   //authentication
+        //   parseInt(daysDifference) === -7 &&
+        //   element.platformPaymentStatus === "pending"
+        // ) {
+        //   const cardId = await HotelBookingLog.findOne({
+        //     where: { groupId: element.bookingGroupId },
+        //   });
+        //   const _requestTransaction = {
+        //     userId: element.userId,
+        //     paymentFor: "hotel",
+        //     paymentType: "direct",
+        //     description: `Booking Id-${element.id}`,
+        //     amount: "1",
+        //     currency: "AUD",
+        //     cardId: cardId.cardId,
+        //     card: {},
+        //     isAdded: false,
+        //     reason: "Authentication",
+        //   };
+
+        //   // console.log(_requestTransaction);
+
+        //   const transactionData = await requestHandler.sendForPay(
+        //     _requestTransaction
+        //   );
+
+        //   if (
+        //     transactionData &&
+        //     transactionData.data &&
+        //     transactionData.data.id
+        //   ) {
+        //     const RefundData = await requestHandler.sendForRefund(
+        //       transactionData.data.id,
+        //       element.userId
+        //     );
+        //     if (
+        //       RefundData &&
+        //       RefundData.data &&
+        //       RefundData.data.refund &&
+        //       RefundData.data.refund?.status !== "APPROVED"
+        //     ) {
+        //       const userData = await User.findOne({
+        //         where: { id: element.userId },
+        //       });
+        //       const fullName = `${userData.firstName} ${userData.lastName}`;
+        //       const hotelData = await Hotel.findOne({
+        //         attributes: ["hotelName"],
+        //         where: { hotelCode: element.hotelCode },
+        //       });
+
+        //       try {
+        //         await requestHandler.sendEmail(
+        //           userData.email,
+        //           "hotelPaymentAuthentication",
+        //           `TrippyBid Payment Authentication Failed: ${element.bookingReference}`,
+        //           {
+        //             name: fullName,
+        //             hotel_name: hotelData?.hotelName,
+        //             payment_date:
+        //               utility.getDateAfterBeforeFromDate(currentDate),
+        //             hotel_name: hotelData.hotelName,
+        //           }
+        //         );
+        //       } catch (err) {}
+        //     }
+        //   } else {
+        //     // payment not done please update the card
+        //     const userData = await User.findOne({
+        //       where: { id: element.userId },
+        //     });
+        //     const fullName = `${userData.firstName} ${userData.lastName}`;
+        //     const hotelData = await Hotel.findOne({
+        //       attributes: ["hotelName"],
+        //       where: { hotelCode: element.hotelCode },
+        //     });
+        //     try {
+        //       await requestHandler.sendEmail(
+        //         userData.email,
+        //         "hotelPaymentAuthentication",
+        //         `TrippyBid Payment Authentication Failed: ${element.bookingReference}`,
+        //         {
+        //           name: fullName,
+        //           hotel_name: hotelData?.hotelName,
+        //           payment_date: utility.getDateAfterBeforeFromDate(currentDate),
+        //           hotel_name: hotelData.hotelName,
+        //         }
+        //       );
+        //     } catch (err) {}
+        //   }
+        // } else
         if (
-          //Reminder
-          parseInt(daysDifference) === -9 &&
-          element.platformPaymentStatus === "pending"
-        ) {
-          // Payment Reminder mail
-          try {
-            const userData = await User.findOne({
-              where: { id: element.userId },
-            });
-            const fullName = `${userData.firstName} ${userData.lastName}`;
-            const hotelData = await Hotel.findOne({
-              attributes: ["hotelName"],
-              where: { hotelCode: element.hotelCode },
-            });
-            await requestHandler.sendEmail(
-              userData.email,
-              "hotelPaymentReminder",
-              `TrippyBid Payment Reminder: ${element.bookingReference}`,
-              {
-                name: fullName,
-                hotel_name: hotelData?.hotelName,
-                payment_date: utility.getDateAfterBeforeFromDate(
-                  currentDate,
-                  2
-                ),
-                total_price: element.totalPrice,
-                currency: element.currency,
-                hotel_name: hotelData.hotelName,
-              }
-            );
-          } catch (err) {}
-        } else if (
-          //authentication
-          parseInt(daysDifference) === -7 &&
-          element.platformPaymentStatus === "pending"
-        ) {
-          const cardId = await HotelBookingLog.findOne({
-            where: { groupId: element.bookingGroupId },
-          });
-          const _requestTransaction = {
-            userId: element.userId,
-            paymentFor: "hotel",
-            paymentType: "direct",
-            description: `Booking Id-${element.id}`,
-            amount: "1",
-            currency: "AUD",
-            cardId: cardId.cardId,
-            card: {},
-            isAdded: false,
-            reason: "Authentication",
-          };
-
-          console.log(_requestTransaction);
-
-          const transactionData = await requestHandler.sendForPay(
-            _requestTransaction
-          );
-
-          if (
-            transactionData &&
-            transactionData.data &&
-            transactionData.data.id
-          ) {
-            const RefundData = await requestHandler.sendForRefund(
-              transactionData.data.id,
-              element.userId
-            );
-            if (
-              RefundData &&
-              RefundData.data &&
-              RefundData.data.refund &&
-              RefundData.data.refund?.status !== "APPROVED"
-            ) {
-              const userData = await User.findOne({
-                where: { id: element.userId },
-              });
-              const fullName = `${userData.firstName} ${userData.lastName}`;
-              const hotelData = await Hotel.findOne({
-                attributes: ["hotelName"],
-                where: { hotelCode: element.hotelCode },
-              });
-
-              try {
-                await requestHandler.sendEmail(
-                  userData.email,
-                  "hotelPaymentAuthentication",
-                  `TrippyBid Payment Authentication Failed: ${element.bookingReference}`,
-                  {
-                    name: fullName,
-                    hotel_name: hotelData?.hotelName,
-                    payment_date:
-                      utility.getDateAfterBeforeFromDate(currentDate),
-                    hotel_name: hotelData.hotelName,
-                  }
-                );
-              } catch (err) {}
-            }
-          } else {
-            // payment not done please update the card
-            const userData = await User.findOne({
-              where: { id: element.userId },
-            });
-            const fullName = `${userData.firstName} ${userData.lastName}`;
-            const hotelData = await Hotel.findOne({
-              attributes: ["hotelName"],
-              where: { hotelCode: element.hotelCode },
-            });
-            try {
-              await requestHandler.sendEmail(
-                userData.email,
-                "hotelPaymentAuthentication",
-                `TrippyBid Payment Authentication Failed: ${element.bookingReference}`,
-                {
-                  name: fullName,
-                  hotel_name: hotelData?.hotelName,
-                  payment_date: utility.getDateAfterBeforeFromDate(currentDate),
-                  hotel_name: hotelData.hotelName,
-                }
-              );
-            } catch (err) {}
-          }
-        } else if (
           parseInt(daysDifference) === -6 &&
           element.platformPaymentStatus === "pending"
         ) {
@@ -428,10 +430,27 @@ export default {
       // filter unique hotel codes with its roomType
       const rooms = hotelCode.map((y) => {
         const roomTypes = x.biddingData.filter((z) => z.hotelCode === y);
-        const roomType = roomTypes
-          .map((m) => m.roomType)
-          .filter((item, i, ar) => ar.indexOf(item) === i);
-        return { hotelCode: y, roomType };
+        const roomType = roomTypes.map((m) => {
+          return { roomType: m.roomType, expairationAt: m.expairationAt };
+        });
+        const uniqueRoomType = [];
+        for (let roomNumber = 0; roomNumber < roomType.length; roomNumber++) {
+          const elementRooms = roomType[roomNumber];
+          if (uniqueRoomType.length === 0) {
+            uniqueRoomType.push(elementRooms);
+          } else {
+            const checkFilter = uniqueRoomType.filter(
+              (u) =>
+                u.roomType === elementRooms.roomType &&
+                utility.convertDateFormat(u.expairationAt) ===
+                  utility.convertDateFormat(elementRooms.expairationAt)
+            );
+            if (checkFilter.length === 0) {
+              uniqueRoomType.push(elementRooms);
+            }
+          }
+        }
+        return { hotelCode: y, roomType: uniqueRoomType };
       });
       hotelData.push({
         id: x.id,
@@ -478,7 +497,8 @@ export default {
         commissionAmount = 0,
         totalPrice = 0,
         updateLatestPrice = [],
-        cancellationBid = [];
+        cancellationBid = [],
+        isPendingBidding = false;
       if (result?.length > 0 && result[0]?.data?.hotels) {
         // get the commission interest
         const currentDatatime = new Date();
@@ -490,11 +510,11 @@ export default {
         });
 
         for (let i = 0; i < hotelData.length; i++) {
-          const elementi = hotelData[i];
+          const elementi = hotelData[i]; // hotel data array
           const newResponse = result[i]?.data?.hotels;
           elementi.newRates = [];
           for (let j = 0; j < elementi.rooms.length; j++) {
-            const elementj = elementi.rooms[j];
+            const elementj = elementi.rooms[j]; // hote data rooms array
             const filterHotel = newResponse.filter(
               (h) => h.hotel_code === elementj.hotelCode
             );
@@ -503,9 +523,29 @@ export default {
               const newRates = filterHotel[0]?.rates.filter((r) => {
                 if (
                   r.non_refundable === false &&
-                  `${r.rooms[0].room_type}, ${r.boarding_details}` == elementk
+                  r.cancellation_policy &&
+                  r.cancellation_policy?.under_cancellation === false &&
+                  // utility.getDateAfterBeforeFromDate(
+                  //   r.cancellation_policy.cancel_by_date,
+                  //   config.app.CancellationDaysDifference,
+                  //   "YYYY-MM-DD"
+                  // ) === expiryDate &&
+                  `${r.rooms[0].room_type}, ${r.boarding_details}` ==
+                    elementk.roomType
                 ) {
-                  return r;
+                  // check the days diffrence of the resopnse if it lower
+                  const daysDifference = utility.dateDifference(
+                    utility.getDateAfterBeforeFromDate(
+                      r.cancellation_policy.cancel_by_date,
+                      config.app.CancellationDaysDifference,
+                      "YYYY-MM-DDTH:m:s"
+                    ),
+                    elementk.expairationAt,
+                    "days"
+                  );
+                  if (daysDifference <= 0) {
+                    return r;
+                  }
                 }
               });
               if (newRates?.length > 0) {
@@ -542,6 +582,7 @@ export default {
             }
           }
         }
+
         // compare the prices
         for (let i = 0; i < hotelData.length; i++) {
           const elementi = hotelData[i];
@@ -744,6 +785,7 @@ export default {
               const bookingGroupObject = requestData.groupObjectData;
               const userData = bookingGroupObject.userData;
               const bookingDataObject = bookingGroupObject.booking;
+              const biddingData = requestData.bid;
               const previousHotelData = await Hotel.findOne({
                 attributes: ["hotelName", "address"],
                 where: { hotelCode: bookingDataObject.hotelCode },
@@ -757,6 +799,7 @@ export default {
                 let nonRefundable = null,
                   underCancellation = null,
                   cancelByDate = null,
+                  expirationDate = null,
                   cancellationPolicy = null;
                 if (
                   _response?.data?.hotel?.booking_items &&
@@ -777,8 +820,16 @@ export default {
                       const cancelDate =
                         _response.data.hotel.booking_items[0]
                           ?.cancellation_policy?.cancel_by_date;
-                      cancelByDate =
-                        utility.getDateAfterBeforeFromDate(cancelDate);
+                      cancelByDate = utility.getDateAfterBeforeFromDate(
+                        cancelDate,
+                        config.app.CancellationDaysDifference,
+                        "YYYY-MM-DDTH:m:s"
+                      );
+                      expirationDate = utility.getDateAfterBeforeFromDate(
+                        cancelDate,
+                        1,
+                        "YYYY-MM-DDTH:m:s"
+                      );
                     }
                   }
                 }
@@ -818,9 +869,11 @@ export default {
                   nonRefundable: nonRefundable,
                   underCancellation: underCancellation,
                   cancelByDate: cancelByDate,
+                  expairationAt: expirationDate,
                   cancellationPolicy: cancellationPolicy,
                   searchId: _response?.data?.search_id,
                   reavalidateResponse: JSON.stringify(revalidateData),
+                  biddingId: biddingData.id,
                 };
                 // console.log(bookingData);
                 // create the new booking
@@ -884,14 +937,55 @@ export default {
                     );
                   } catch (err) {}
                 }
-                const apiEndPoint = GRN_Apis.bookingCancel(
-                  bookingGroupObject.currentReference
+                const daysDifference = utility.dateDifference(
+                  cancelByDate,
+                  bookingDataObject.cancelByDate,
+                  "days"
                 );
-                return await requestHandler.fetchResponseFromHotel(
-                  apiEndPoint,
-                  GRNtoken,
-                  { cutoff_time: 60000 }
-                );
+                if (daysDifference <= 0) {
+                  const apiEndPoint = GRN_Apis.bookingCancel(
+                    bookingGroupObject.currentReference
+                  );
+                  return await requestHandler.fetchResponseFromHotel(
+                    apiEndPoint,
+                    GRNtoken,
+                    { cutoff_time: 60000 }
+                  );
+                } else {
+                  isPendingBidding = true;
+                  //  update logs
+                  const bookingLog = await HotelBookingLog.findAll({
+                    where: {
+                      groupId: bookingGroupObject.id,
+                      bookingId: bookingGroupObject.bookingId,
+                    },
+                  });
+                  // console.log(bookingLog);
+                  for (let i = 0; i < bookingLog.length; i++) {
+                    const element1 = bookingLog[i];
+                    cardId = element1.cardId;
+                    if (element1.transactionId > 0) {
+                      transactionId = element1.transactionId;
+                    }
+                  }
+                  const logRequest = {
+                    userId: bookingGroupObject.userId,
+                    groupId: bookingGroupObject.id,
+                  };
+                  if (cardId > 0) {
+                    logRequest.cardId = cardId;
+                  }
+                  if (transactionId > 0) {
+                    logRequest.transactionId = transactionId;
+                  }
+                  // console.log(logRequest);
+                  HotelBookingLog.create({
+                    ...logRequest,
+                    bookingId: requestData.newBookingId,
+                    paymentStatus: "booked",
+                  });
+                  return [];
+                }
               }
             }
           );
@@ -900,7 +994,9 @@ export default {
           } catch (err) {
             console.log(err);
           }
-          const updateDataAndMailPromise = cancelledBooking.map(
+          console.log(isPendingBidding);
+
+          const updateDataAndMailPromise = cancelledBooking?.map(
             async (x, i) => {
               let transactionId = 0,
                 cardId = 0;
@@ -994,7 +1090,7 @@ export default {
                   if (transactionId > 0) {
                     logRequest.transactionId = transactionId;
                   }
-                  // console.log(logRequest
+                  // console.log(logRequest);
                   HotelBookingLog.bulkCreate([
                     {
                       ...logRequest,
@@ -1012,7 +1108,7 @@ export default {
               }
             }
           );
-          // // update the complete biddings
+          // update the complete biddings
           const updateBiddingsConfimed = bookingResult.map((x, i) => {
             const _response = x;
             const requestData = finalForRevalidate[i];
@@ -1024,16 +1120,16 @@ export default {
               (_response?.data?.status == "pending" ||
                 _response?.data?.status == "confirmed")
             ) {
-              // console.log(newRateData.totalPrice);
-              HotelBidding.update(
-                { expairationAt: requestData.newExpairationDate },
-                {
-                  where: {
-                    // id: { [Op.ne]: biddingData.id },
-                    groupId: requestData.id,
-                  },
-                }
-              );
+              // // console.log(newRateData.totalPrice);
+              // HotelBidding.update(
+              //   { expairationAt: requestData.newExpairationDate },
+              //   {
+              //     where: {
+              //       // id: { [Op.ne]: biddingData.id },
+              //       groupId: requestData.id,
+              //     },
+              //   }
+              // );
               HotelBidding.update(
                 {
                   status: "completed",
@@ -1042,19 +1138,28 @@ export default {
                 },
                 { where: { id: biddingData.id } }
               );
-              HotelBidding.update(
-                { status: "cancelled", priority: 999999 },
-                {
-                  where: {
-                    id: { [Op.ne]: biddingData.id },
-                    groupId: bookingGroupObject.id,
-                    [Op.and]: [
-                      { priority: { [Op.gt]: biddingData.priority } },
-                      { priority: { [Op.lt]: 999990 } },
-                    ],
-                  },
-                }
-              );
+              // Update less priority status
+              let lessPriorityStatusData = {};
+              if (isPendingBidding === true) {
+                lessPriorityStatusData = {
+                  status: "pending",
+                };
+              } else {
+                lessPriorityStatusData = {
+                  status: "cancelled",
+                  priority: 999999,
+                };
+              }
+              HotelBidding.update(lessPriorityStatusData, {
+                where: {
+                  id: { [Op.ne]: biddingData.id },
+                  groupId: bookingGroupObject.id,
+                  [Op.and]: [
+                    { priority: { [Op.gt]: biddingData.priority } },
+                    { priority: { [Op.lt]: 999990 } },
+                  ],
+                },
+              });
             } else {
               // if Booking is not done than remove all bidding for cancellation
               // const all_cancelled = cancellationBid;
@@ -1079,7 +1184,7 @@ export default {
           } catch (err) {
             console.log(err);
           }
-          //........
+          //   //........
         }
         return {
           cancelledBooking,

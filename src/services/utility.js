@@ -172,4 +172,12 @@ export default {
     }
     return dateObj;
   },
+
+  /**
+   * change Date Format
+   */
+  convertDateFormat(date, Dformat = "YYYY-MM-DD") {
+    date = date || new Date();
+    return moment(date).format(Dformat);
+  },
 };

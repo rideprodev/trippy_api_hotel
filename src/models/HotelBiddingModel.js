@@ -44,11 +44,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       status: {
         type: DataTypes.ENUM(
+          "pending",
           "active",
           "inactive",
           "cancelled",
           "completed",
-          "Not Availiable",
           "expired"
         ),
         defaultValue: "active",

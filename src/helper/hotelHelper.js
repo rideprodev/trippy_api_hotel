@@ -114,10 +114,27 @@ export default {
       // filter unique hotel codes with its roomType
       const rooms = hotelCode.map((y) => {
         const roomTypes = x.biddingData.filter((z) => z.hotelCode === y);
-        const roomType = roomTypes
-          .map((m) => m.roomType)
-          .filter((item, i, ar) => ar.indexOf(item) === i);
-        return { hotelCode: y, roomType };
+        const roomType = roomTypes.map((m) => {
+          return { roomType: m.roomType, expairationAt: m.expairationAt };
+        });
+        const uniqueRoomType = [];
+        for (let roomNumber = 0; roomNumber < roomType.length; roomNumber++) {
+          const elementRooms = roomType[roomNumber];
+          if (uniqueRoomType.length === 0) {
+            uniqueRoomType.push(elementRooms);
+          } else {
+            const checkFilter = uniqueRoomType.filter(
+              (u) =>
+                u.roomType === elementRooms.roomType &&
+                utility.convertDateFormat(u.expairationAt) ===
+                  utility.convertDateFormat(elementRooms.expairationAt)
+            );
+            if (checkFilter.length === 0) {
+              uniqueRoomType.push(elementRooms);
+            }
+          }
+        }
+        return { hotelCode: y, roomType: uniqueRoomType };
       });
       hotelData.push({
         id: x.id,
@@ -154,12 +171,18 @@ export default {
             x?.non_refundable === false &&
             x?.cancellation_policy?.under_cancellation === false
           ) {
+            const newCancellationDate = utility.getDateAfterBeforeFromDate(
+              x.cancellation_policy.cancel_by_date,
+              config.app.CancellationDaysDifference,
+              "YYYY-MM-DDTH:m:s"
+            );
+            x.cancellation_policy.cancel_by_date = newCancellationDate;
             const daysDifference = utility.dateDifference(
               x.cancellation_policy.cancel_by_date,
               await utility.getCurrentDateTime(),
               "days"
             );
-            if (daysDifference < -8) {
+            if (daysDifference < -2) {
               rates.push(x);
             }
           }
@@ -242,7 +265,20 @@ export default {
           x?.non_refundable === false &&
           x.cancellation_policy.under_cancellation === false
         ) {
-          newRates.push(x);
+          const newCancellationDate = utility.getDateAfterBeforeFromDate(
+            x.cancellation_policy.cancel_by_date,
+            config.app.CancellationDaysDifference,
+            "YYYY-MM-DDTH:m:s"
+          );
+          x.cancellation_policy.cancel_by_date = newCancellationDate;
+          const daysDifference = utility.dateDifference(
+            x.cancellation_policy.cancel_by_date,
+            await utility.getCurrentDateTime(),
+            "days"
+          );
+          if (daysDifference < -2) {
+            newRates.push(x);
+          }
         }
       }
 
@@ -336,6 +372,19 @@ export default {
         totalPrice = parseFloat(data?.hotel?.rate?.price) + commissionAmount;
         data.serviceChages = `${commissionAmount}`;
         data.finalAmount = `${parseFloat(totalPrice).toFixed(2)}`;
+      }
+
+      if (
+        data?.hotel?.rate?.non_refundable === false &&
+        data?.hotel?.rate.cancellation_policy.under_cancellation === false
+      ) {
+        const newCancellationDate = utility.getDateAfterBeforeFromDate(
+          data?.hotel?.rate.cancellation_policy.cancel_by_date,
+          config.app.CancellationDaysDifference,
+          "YYYY-MM-DDTH:m:s"
+        );
+        data.hotel.rate.cancellation_policy.cancel_by_date =
+          newCancellationDate;
       }
 
       return data;
