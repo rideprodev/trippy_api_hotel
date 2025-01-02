@@ -132,7 +132,7 @@ export default {
     try {
       const biddingObject = await biddingRepository.getOneBidding({
         id: req.params.id,
-        status: { [Op.or]: ["active", "inactive", "matched"] },
+        status: { [Op.or]: ["active", "inactive"] },
       });
       if (biddingObject) {
         req.biddingObject = biddingObject;

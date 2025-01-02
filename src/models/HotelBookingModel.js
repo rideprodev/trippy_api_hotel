@@ -66,13 +66,17 @@ module.exports = (sequelize, DataTypes) => {
         ),
         defaultValue: "pending",
       },
-      platformPaymentStatus: {
-        type: DataTypes.ENUM("pending", "paid", "not-done", "unpaid", "failed"),
-        defaultValue: "pending",
-      },
       paymentStatus: {
         type: DataTypes.ENUM("pending", "paid", "unpaid"),
         allowNull: true,
+      },
+      platformStatus: {
+        type: DataTypes.ENUM("pending", "confirmed", "cancelled"),
+        defaultValue: "pending",
+      },
+      platformPaymentStatus: {
+        type: DataTypes.ENUM("pending", "paid", "not-done", "unpaid", "failed"),
+        defaultValue: "pending",
       },
       nonRefundable: {
         type: DataTypes.ENUM("true", "false"),
@@ -81,6 +85,9 @@ module.exports = (sequelize, DataTypes) => {
       underCancellation: {
         type: DataTypes.ENUM("true", "false"),
         defaultValue: null,
+      },
+      expirationDate: {
+        type: DataTypes.STRING(50),
       },
       cancelByDate: {
         type: DataTypes.STRING(50),
@@ -102,6 +109,9 @@ module.exports = (sequelize, DataTypes) => {
       },
       searchId: {
         type: DataTypes.STRING(100),
+      },
+      biddingId: {
+        type: DataTypes.INTEGER,
       },
     },
     {
@@ -127,6 +137,10 @@ module.exports = (sequelize, DataTypes) => {
     HotelBooking.belongsTo(models.User, {
       foreignKey: "userId",
       as: "userData",
+    });
+    HotelBooking.belongsTo(models.HotelBidding, {
+      foreignKey: "biddingId",
+      as: "biddingData",
     });
   };
   return HotelBooking;

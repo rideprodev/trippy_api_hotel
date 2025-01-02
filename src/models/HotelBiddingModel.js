@@ -44,11 +44,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       status: {
         type: DataTypes.ENUM(
+          "pending",
           "active",
           "inactive",
           "cancelled",
           "completed",
-          "Not Availiable",
           "expired"
         ),
         defaultValue: "active",
@@ -57,6 +57,9 @@ module.exports = (sequelize, DataTypes) => {
       latestPrice: {
         type: DataTypes.STRING(50),
         allowNull: false,
+      },
+      bookingId: {
+        type: DataTypes.INTEGER,
       },
       paymentMode: {
         type: DataTypes.ENUM("wallete"),
@@ -89,6 +92,10 @@ module.exports = (sequelize, DataTypes) => {
     HotelBidding.hasMany(models.HotelBiddingPrices, {
       foreignKey: "biddingId",
       as: "biddingPriceData",
+    });
+    HotelBidding.belongsTo(models.HotelBooking, {
+      foreignKey: "bookingId",
+      as: "biddingBookingData",
     });
   };
   return HotelBidding;

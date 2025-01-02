@@ -19,6 +19,7 @@ export default {
     biddingLimitOnBooking: process.env.BIDDING_LIMIT_ON_BOOKING,
     currency: process.env.CURRENCY_ABBR,
     BidCharges: process.env.BIDDNG_CHARGES,
+    CancellationDaysDifference: process.env.CACELLATION_DAYS_DIFFERENCE,
     languages: ["en"],
     setBaseUrl(url) {
       this.baseUrl = url;

@@ -4,6 +4,7 @@ import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
 import utility from "../services/utility";
 import { Op, where } from "sequelize";
+import config from "../config";
 const {
   HotelBookingGroup,
   HotelBooking,
@@ -277,6 +278,7 @@ export default {
           let nonRefundable = null,
             underCancellation = null,
             cancelByDate = null,
+            expirationDate = null,
             cancellationPolicy = null;
           if (
             _response?.data?.hotel?.booking_items &&
@@ -297,22 +299,22 @@ export default {
                 const cancelDate =
                   _response.data.hotel.booking_items[0]?.cancellation_policy
                     ?.cancel_by_date;
-                cancelByDate = utility.getDateAfterBeforeFromDate(cancelDate);
+                cancelByDate = utility.getDateAfterBeforeFromDate(
+                  cancelDate,
+                  config.app.CancellationDaysDifference,
+                  "YYYY-MM-DDTH:m:s"
+                );
+                expirationDate = utility.getDateAfterBeforeFromDate(
+                  cancelDate,
+                  1,
+                  "YYYY-MM-DDTH:m:s"
+                );
               }
             }
           }
           // ---------- platform payment status -----------
           let platformPaymentStatus = "pending";
-          const daysDifference = utility.dateDifference(
-            bodyData.checkIn,
-            currentDatatime,
-            "days"
-          );
-          if (parseInt(daysDifference) === -1) {
-            platformPaymentStatus = "not-done";
-          } else if (parseInt(daysDifference) === -0) {
-            platformPaymentStatus = "unpaid";
-          }
+
           let bookingData = {
             userId: userData.id,
             bookingGroupId: bookingGroup.id,
@@ -343,10 +345,12 @@ export default {
             paymentStatus: _response?.data?.payment_status
               ? _response?.data?.payment_status
               : "pending",
+            platformStatus: _response?.data?.status,
             platformPaymentStatus,
             nonRefundable: nonRefundable,
             underCancellation: underCancellation,
-            cancelByDate: cancelByDate,
+            expirationDate,
+            cancelByDate,
             cancellationPolicy: cancellationPolicy,
             searchId: bodyData.searchId,
             reavalidateResponse: JSON.stringify(bodyData.reavalidateResponse),
@@ -514,6 +518,7 @@ export default {
           });
           await bookingData.update({
             status: "cancelled",
+            platformStatus: "cancelled",
             paymentStatus: _response?.data?.payment_status,
             cancelledDate: _response?.data?.cancellation_details?.cancel_date,
             refundAmout: _response?.data?.cancellation_details?.refund_amount,

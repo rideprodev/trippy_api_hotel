@@ -472,6 +472,7 @@ export default {
         "biddingPrice",
         "minBid",
         "maxBid",
+        "priority",
         "expairationAt",
         "latestPrice",
         "createdAt",
@@ -480,14 +481,18 @@ export default {
       include: [
         {
           attributes: [
+            "id",
             "bookingId",
             "currentReference",
             "searchPayload",
+            "checkIn",
+            "checkOut",
             "totalRooms",
             "bookingName",
             "totalMember",
             "createdAt",
             "bookingComments",
+            "currency",
           ],
           model: HotelBookingGroup,
           as: "bookingGroupData",
@@ -510,6 +515,7 @@ export default {
           include: {
             model: UserPersonalInformation,
             as: "UserPersonalInformation",
+            attributes: ["contry", "nationality", "currencyCode"],
           },
         },
       ],

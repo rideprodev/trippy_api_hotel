@@ -136,11 +136,11 @@ export default {
   async fetchLatestPrice(req, res, next) {
     try {
       const response = await bookingRepository.fetchLatestPrice(req);
-      if (response.length > 0) {
-        utility.getResponse(res, response, "Letest Price Updated!");
-      } else {
-        utility.getError(res, "All biidings room are sold out!");
-      }
+      // if (response.length > 0) {
+      utility.getResponse(res, response, "Letest Price Updated!");
+      // } else {
+      //   utility.getError(res, "All biidings room are sold out!");
+      // }
     } catch (error) {
       next(error);
     }
