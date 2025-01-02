@@ -345,6 +345,7 @@ export default {
             paymentStatus: _response?.data?.payment_status
               ? _response?.data?.payment_status
               : "pending",
+            platformStatus: _response?.data?.status,
             platformPaymentStatus,
             nonRefundable: nonRefundable,
             underCancellation: underCancellation,
@@ -517,6 +518,7 @@ export default {
           });
           await bookingData.update({
             status: "cancelled",
+            platformStatus: "cancelled",
             paymentStatus: _response?.data?.payment_status,
             cancelledDate: _response?.data?.cancellation_details?.cancel_date,
             refundAmout: _response?.data?.cancellation_details?.refund_amount,

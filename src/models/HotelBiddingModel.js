@@ -58,6 +58,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(50),
         allowNull: false,
       },
+      bookingId: {
+        type: DataTypes.INTEGER,
+      },
       paymentMode: {
         type: DataTypes.ENUM("wallete"),
         defaultValue: "wallete",
@@ -89,6 +92,10 @@ module.exports = (sequelize, DataTypes) => {
     HotelBidding.hasMany(models.HotelBiddingPrices, {
       foreignKey: "biddingId",
       as: "biddingPriceData",
+    });
+    HotelBidding.belongsTo(models.HotelBooking, {
+      foreignKey: "bookingId",
+      as: "biddingBookingData",
     });
   };
   return HotelBidding;
