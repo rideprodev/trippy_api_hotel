@@ -179,6 +179,7 @@ export default {
     try {
       const bookingObject = await bookingRepository.getOneHotelBooking({
         id: req.params.bookingId,
+        status: "confirmed",
       });
       if (bookingObject) {
         req.bookingObject = bookingObject;
@@ -375,6 +376,7 @@ export default {
           checkIn: bodyData.checkIn,
           checkOut: bodyData.checkOut,
           status: "confirmed",
+          platformStatus: "confirmed",
         });
         if (bookingData) {
           bodyData.isGrouped = false;
@@ -388,6 +390,36 @@ export default {
         }
       } else {
         next();
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Check Booking only availiable for accept and reject
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async isbookingForAcceptExist(req, res, next) {
+    try {
+      const bodyData = req.body;
+
+      const bookingData = await bookingRepository.getOneActiveBooking({
+        id: bodyData.bookingId,
+        bookingGroupId: req.params.bookingId,
+        status: "confirmed",
+        platformStatus: "pending",
+      });
+      if (bookingData) {
+        req.booking = bookingData;
+        next();
+      } else {
+        utility.getError(
+          res,
+          "Booking is not availible please contact the administrator!"
+        );
       }
     } catch (error) {
       next(error);
@@ -508,6 +540,7 @@ export default {
       const bookingData = await bookingRepository.getOneActiveBooking({
         bookingGroupId: bodyData.groupId,
         status: "confirmed",
+        platformStatus: "confirmed",
       });
       if (bookingData) {
         if (bodyData.newPosition > 999990) {

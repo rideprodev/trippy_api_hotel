@@ -210,11 +210,11 @@ export default {
       }
 
       const includes = [
-        // {
-        //   attributes: ["paxes"],
-        //   model: HotelBookingDetail,
-        //   as: "bookingDetils",
-        // },
+        {
+          attributes: ["paxes"],
+          model: HotelBookingDetail,
+          as: "bookingDetils",
+        },
         {
           attributes: ["firstName", "lastName"],
           model: User,
@@ -895,6 +895,36 @@ export default {
         order: [["id", "DESC"]],
       });
       return _bookingData;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Update the action Accept or Reject
+   * @param {Object} req
+   */
+  async UpdateTheActionAcceptOrReject(req) {
+    try {
+      const bodyData = req.body;
+      const bookingObject = req.bookingObject;
+      const booking = req.booking;
+      if (bodyData.action === "reject") {
+        await booking.update({ platformStatus: "cancelled" });
+      } else {
+        await HotelBooking.update(
+          { platformStatus: "cancelled" },
+          {
+            where: {
+              bookingGroupId: req.params.bookingId,
+              platformStatus: "confirmed",
+            },
+          }
+        );
+        await booking.update({ platformStatus: "confirmed" });
+        await bookingObject.update({ bookingId: bodyData.bookingId });
+      }
+      return true;
     } catch (error) {
       throw Error(error);
     }

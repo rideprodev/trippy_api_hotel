@@ -145,4 +145,21 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Acept Or Reject Booking
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async aceptOrRejectBooking(req, res, next) {
+    try {
+      const response = await bookingRepository.UpdateTheActionAcceptOrReject(
+        req
+      );
+      utility.getResponse(res, response, "UPDATED!");
+    } catch (error) {
+      next(error);
+    }
+  },
 };
