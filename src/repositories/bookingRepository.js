@@ -911,6 +911,24 @@ export default {
       const booking = req.booking;
       if (bodyData.action === "reject") {
         await booking.update({ platformStatus: "cancelled" });
+        if (booking.biddingId) {
+          const biddingDetail = await HotelBidding.findOne({
+            where: {
+              id: booking.biddingId,
+            },
+          });
+          if (biddingDetail) {
+            await HotelBidding.update(
+              { status: "active" },
+              {
+                where: {
+                  priority: { [Op.gt]: biddingDetail.priority },
+                  status: "pending",
+                },
+              }
+            );
+          }
+        }
       } else {
         await HotelBooking.update(
           { platformStatus: "cancelled" },
@@ -923,6 +941,24 @@ export default {
         );
         await booking.update({ platformStatus: "confirmed" });
         await bookingObject.update({ bookingId: bodyData.bookingId });
+        if (booking.biddingId) {
+          const biddingDetail = await HotelBidding.findOne({
+            where: {
+              id: booking.biddingId,
+            },
+          });
+          if (biddingDetail) {
+            await HotelBidding.update(
+              { status: "cancelled" },
+              {
+                where: {
+                  priority: { [Op.gt]: biddingDetail.priority },
+                  status: "pending",
+                },
+              }
+            );
+          }
+        }
       }
       return true;
     } catch (error) {
