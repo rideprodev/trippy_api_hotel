@@ -469,10 +469,19 @@ export default {
             as: "biddingData",
             where: biddingWhere,
             required: false,
-            include: {
-              model: HotelBiddingPrices,
-              as: "biddingPriceData",
-            },
+            include: [
+              {
+                model: HotelBiddingPrices,
+                as: "biddingPriceData",
+                required: false,
+              },
+              {
+                attributes: ["status", "platformStatus"],
+                model: HotelBooking,
+                as: "biddingBookingData",
+                required: false,
+              },
+            ],
           },
           {
             attributes: ["id", "status"],
