@@ -83,4 +83,16 @@ router.get(
   bookingController.fetchLatestPrice
 );
 
+router.put(
+  "/acceptOrReject/:bookingId",
+  authMiddleware,
+  validateMiddleware({
+    schema: grnValidator.aceptOrRejectBooking,
+  }),
+  resourceAccessMiddleware(["user"]),
+  hotelMiddleware.isbookingExist,
+  hotelMiddleware.isbookingForAcceptExist,
+  bookingController.aceptOrRejectBooking
+);
+
 export default router;

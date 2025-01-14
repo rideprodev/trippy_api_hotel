@@ -102,6 +102,11 @@ const updateCardOnBooking = Joi.object({
   cardId: Joi.number().greater(0).required(),
 });
 
+const aceptOrRejectBooking = Joi.object({
+  bookingId: Joi.string().required(),
+  action: Joi.string().valid("accept", "reject").required(),
+});
+
 export default {
   search,
   revalidate,
@@ -110,4 +115,5 @@ export default {
   bookingStatus,
   payment,
   updateCardOnBooking,
+  aceptOrRejectBooking,
 };
