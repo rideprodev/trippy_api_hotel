@@ -940,7 +940,10 @@ export default {
           }
         );
         await booking.update({ platformStatus: "confirmed" });
-        await bookingObject.update({ bookingId: bodyData.bookingId });
+        await bookingObject.update({
+          bookingId: bodyData.bookingId,
+          currentReference: booking.bookingReference,
+        });
         if (booking.biddingId) {
           const biddingDetail = await HotelBidding.findOne({
             where: {
