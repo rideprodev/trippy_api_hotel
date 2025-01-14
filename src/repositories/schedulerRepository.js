@@ -5,7 +5,7 @@ import config from "../config";
 import grnRepository from "./grnRepository";
 import biddingRepository from "./biddingRepository";
 import GRN_Apis from "../config/GRN_Apis";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import bookingRepository from "./bookingRepository";
 const {
   User,
@@ -1274,6 +1274,7 @@ export default {
           hotelData,
           result,
           groupObjectData,
+          isPendingBidding,
         };
       } else {
         return "No Any Search Result Found";

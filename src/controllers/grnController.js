@@ -1,3 +1,4 @@
+import config from "../config";
 import hotelHelper from "../helper/hotelHelper";
 import repositories from "../repositories";
 import utility from "../services/utility";
@@ -166,7 +167,20 @@ export default {
             booking_reference: response.data.booking_reference,
             hotel: {
               paxes: response.data?.hotel?.paxes,
-              booking_items: response?.data?.hotel?.booking_items,
+              booking_items: response?.data?.hotel?.booking_items.map((x) => {
+                if (
+                  x?.cancellation_policy &&
+                  x.cancellation_policy.cancel_by_date
+                ) {
+                  x.cancellation_policy.cancel_by_date =
+                    utility.getDateAfterBeforeFromDate(
+                      x.cancellation_policy.cancel_by_date,
+                      config.app.CancellationDaysDifference,
+                      "YYYY-MM-DDTH:m:s"
+                    );
+                }
+                return x;
+              }),
               city_name: response?.data?.hotel?.city_name,
               hotel_code: response?.data?.hotel?.hotel_code,
             },
