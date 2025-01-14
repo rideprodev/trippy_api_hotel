@@ -249,6 +249,12 @@ export default {
           model: HotelBidding,
           as: "biddingData",
           required: false,
+          include: {
+            attributes: ["status", "platformStatus"],
+            model: HotelBooking,
+            as: "biddingBookingData",
+            required: false,
+          },
         },
       ];
 
@@ -710,9 +716,12 @@ export default {
           await schedulerRepository.fetchLatestPriceFromSearchToSchedulet(
             biddings
           );
-        return biddingPrices?.updateLatestPrice
-          ? biddingPrices.updateLatestPrice
-          : [];
+        return {
+          isPendingBidding: biddingPrices?.isPendingBidding,
+          latestPrice: biddingPrices?.updateLatestPrice
+            ? biddingPrices.updateLatestPrice
+            : [],
+        };
       } else {
         return [];
       }
