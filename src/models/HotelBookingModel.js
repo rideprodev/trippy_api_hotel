@@ -92,6 +92,9 @@ module.exports = (sequelize, DataTypes) => {
       cancelByDate: {
         type: DataTypes.STRING(50),
       },
+      platformcancelledDate: {
+        type: DataTypes.STRING(50),
+      },
       cancelledDate: {
         type: DataTypes.STRING(50),
       },
