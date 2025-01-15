@@ -179,7 +179,6 @@ export default {
     try {
       const bookingObject = await bookingRepository.getOneHotelBooking({
         id: req.params.bookingId,
-        status: "confirmed",
       });
       if (bookingObject) {
         req.bookingObject = bookingObject;

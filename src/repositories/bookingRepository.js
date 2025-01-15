@@ -228,6 +228,8 @@ export default {
             "platformPaymentStatus",
             "roomType",
             "reavalidateResponse",
+            "status",
+            "platformStatus",
           ],
           model: HotelBooking,
           as: "booking",
@@ -245,6 +247,7 @@ export default {
             "expairationAt",
             "status",
             "roomType",
+            "bookingId",
           ],
           model: HotelBidding,
           as: "biddingData",
@@ -263,12 +266,24 @@ export default {
           ...where,
           [Op.or]: [
             {
-              [Op.and]: [{ checkIn: { [Op.gt]: date } }, { status: "pending" }],
+              [Op.and]: [
+                { checkIn: { [Op.gt]: date } },
+                { status: "pending" },
+                { platformStatus: "pending" },
+              ],
             },
             {
               [Op.and]: [
                 { checkIn: { [Op.gt]: date } },
                 { status: "confirmed" },
+                { platformStatus: "pending" },
+              ],
+            },
+            {
+              [Op.and]: [
+                { checkIn: { [Op.gt]: date } },
+                { status: "confirmed" },
+                { platformStatus: "confirmed" },
               ],
             },
             { createdAt: { [Op.eq]: date } },
@@ -277,12 +292,21 @@ export default {
       } else if (queryData.status && queryData.status === "completed") {
         where = {
           ...where,
-          [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "confirmed" }],
+          [Op.and]: [
+            { checkIn: { [Op.lt]: date } },
+            { status: "confirmed" },
+            { platformStatus: "confirmed" },
+            { platformPaymentStatus: "paid" },
+          ],
         };
       } else if (queryData.status && queryData.status === "cancelled") {
         where = {
           ...where,
-          [Op.and]: [{ createdAt: { [Op.ne]: date } }, { status: "cancelled" }],
+          [Op.and]: [
+            { createdAt: { [Op.ne]: date } },
+            { status: "cancelled" },
+            { platformStatus: "cancelled" },
+          ],
         };
       } else if (queryData.status && queryData.status === "failed") {
         where = {

@@ -111,14 +111,19 @@ export default {
           (parseInt(daysDifference) === -1 &&
             element.platformPaymentStatus === "pending")
         ) {
-          payemntForBooking.push({ paymentDaysDiffrenece: 1, element });
+          payemntForBooking.push({
+            paymentDaysDiffrenece: 1,
+            paymentBooking: element,
+          });
           platformPaymentStatus = "failed";
         }
       }
       // if payment performed
       if (payemntForBooking.length > 0) {
         for (let j = 0; j < payemntForBooking.length; j++) {
-          const element = payemntForBooking[j];
+          const paymentDaysDifference =
+            payemntForBooking[j].paymentDaysDiffrenece;
+          const element = payemntForBooking[j].paymentBooking;
           // console.log("payemntForBooking", element.id, platformPaymentStatus);
           const cardId = await HotelBookingLog.findOne({
             where: { groupId: element.bookingGroupId },
@@ -134,108 +139,161 @@ export default {
           if (config.app.environment !== "development") {
             amount = element.totalPrice;
           }
-          const convertedCurrency = await requestHandler.convertCurrency(
-            amount,
-            element.currency
-          );
-          if (
-            convertedCurrency &&
-            convertedCurrency.convertedAmount &&
-            convertedCurrency.convertedAmount.length > 0
-          ) {
-            amount = convertedCurrency.convertedAmount[0];
-            const _requestTransaction = {
-              userId: element.userId,
-              paymentFor: "hotel",
-              paymentType: "direct",
-              description: `Booking Id-${element.id}`,
-              amount: amount,
-              currency: "AUD",
-              cardId: cardId.cardId,
-              card: {},
-              isAdded: false,
-              reason: "",
-            };
-            console.log(_requestTransaction);
-            const transactionData = await requestHandler.sendForPay(
-              _requestTransaction
-            );
-            if (
-              transactionData &&
-              transactionData.data &&
-              transactionData.data.id
-            ) {
-              // update bookingLog;
-              await HotelBookingLog.create({
-                userId: element.userId,
-                groupId: element.bookingGroupId,
-                bookingId: element.id,
-                cardId: cardId.cardId,
-                transactionId: transactionData.data.id,
-                paymentStatus: "paid",
-              });
-              await HotelBooking.update(
-                { platformPaymentStatus: "paid" },
-                { where: { id: element.id } }
-              );
-              await HotelBidding.update(
-                { status: "cancelled" },
+
+          // check the days difference and send mail accordingly
+          if (paymentDaysDifference === 3) {
+            // send the remainder mail
+            try {
+              await requestHandler.sendEmail(
+                userData.email,
+                "hotelPaymentReminder",
+                `TrippyBid Payment Reminder: ${element.bookingReference}`,
                 {
-                  where: {
-                    groupId: element.bookingGroupId,
-                  },
+                  name: fullName,
+                  total_price: amount,
+                  currency: "AUD",
+                  hotel_name: hotelData.hotelName,
+                  payment_date: element.cancelByDate,
                 }
               );
+            } catch (err) {}
+          } else if (paymentDaysDifference === 2) {
+            // perform the authtication
+            if (true) {
               try {
                 await requestHandler.sendEmail(
                   userData.email,
-                  "hotelPaymentSuccuess",
-                  `TrippyBid Payment Successful: ${element.bookingReference}`,
+                  "hotelPaymentAuthenticationSuccess",
+                  `TrippyBid Payment Authentication: ${element.bookingReference}`,
                   {
                     name: fullName,
-                    booking_id: element.bookingReference,
                     total_price: amount,
                     currency: "AUD",
                     hotel_name: hotelData.hotelName,
+                    payment_date: element.cancelByDate,
+                  }
+                );
+              } catch (err) {}
+            } else {
+              try {
+                await requestHandler.sendEmail(
+                  userData.email,
+                  "hotelPaymentAuthenticationFailed",
+                  `TrippyBid Payment Authentication: ${element.bookingReference}`,
+                  {
+                    name: fullName,
+                    total_price: amount,
+                    currency: "AUD",
+                    hotel_name: hotelData.hotelName,
+                    payment_date: element.cancelByDate,
                   }
                 );
               } catch (err) {}
             }
           } else {
-            // if the payment failed
-            await HotelBookingLog.create({
-              userId: element.userId,
-              groupId: element.bookingGroupId,
-              bookingId: element.id,
-              cardId: cardId.cardId,
-              paymentStatus: "payment-failed",
-            });
-            await HotelBooking.update(
-              { platformPaymentStatus: platformPaymentStatus },
-              { where: { id: element.id } }
+            const convertedCurrency = await requestHandler.convertCurrency(
+              amount,
+              element.currency
             );
-            try {
-              const cancellation_policy = JSON.parse(
-                element.cancellationPolicy
+            if (
+              convertedCurrency &&
+              convertedCurrency.convertedAmount &&
+              convertedCurrency.convertedAmount.length > 0
+            ) {
+              amount = convertedCurrency.convertedAmount[0];
+              const _requestTransaction = {
+                userId: element.userId,
+                paymentFor: "hotel",
+                paymentType: "direct",
+                description: `Booking Id-${element.id}`,
+                amount: amount,
+                currency: "AUD",
+                cardId: cardId.cardId,
+                card: {},
+                isAdded: false,
+                reason: "",
+              };
+              console.log(_requestTransaction);
+              const transactionData = await requestHandler.sendForPay(
+                _requestTransaction
               );
-              let cancelDate = cancellation_policy?.cancel_by_date
-                ? cancellation_policy.cancel_by_date
-                : element.cancelByDate;
-              await requestHandler.sendEmail(
-                userData.email,
-                "hotelPaymentFailed",
-                `ACTION REQUIRED! Your payment was unsuccessful!`,
-                {
-                  name: fullName,
-                  booking_id: element.bookingReference,
-                  hotel_name: hotelData.hotelName,
-                  cancellation_date:
-                    utility.convertDateFromTimezone(cancelDate),
-                  group_id: element.bookingGroupId,
-                  reason: `Failed reason:- ${transactionData?.message}`,
-                }
-              );
-            } catch (err) {}
+              if (
+                transactionData &&
+                transactionData.data &&
+                transactionData.data.id
+              ) {
+                // update bookingLog;
+                await HotelBookingLog.create({
+                  userId: element.userId,
+                  groupId: element.bookingGroupId,
+                  bookingId: element.id,
+                  cardId: cardId.cardId,
+                  transactionId: transactionData.data.id,
+                  paymentStatus: "paid",
+                });
+                await HotelBooking.update(
+                  { platformPaymentStatus: "paid" },
+                  { where: { id: element.id } }
+                );
+                await HotelBidding.update(
+                  { status: "cancelled" },
+                  {
+                    where: {
+                      groupId: element.bookingGroupId,
+                    },
+                  }
+                );
+                try {
+                  await requestHandler.sendEmail(
+                    userData.email,
+                    "hotelPaymentSuccuess",
+                    `TrippyBid Payment Successful: ${element.bookingReference}`,
+                    {
+                      name: fullName,
+                      booking_id: element.bookingReference,
+                      total_price: amount,
+                      currency: "AUD",
+                      hotel_name: hotelData.hotelName,
+                    }
+                  );
+                } catch (err) {}
+              } else {
+                // if the payment failed
+                await HotelBookingLog.create({
+                  userId: element.userId,
+                  groupId: element.bookingGroupId,
+                  bookingId: element.id,
+                  cardId: cardId.cardId,
+                  paymentStatus: "payment-failed",
+                });
+                await HotelBooking.update(
+                  { platformPaymentStatus: platformPaymentStatus },
+                  { where: { id: element.id } }
+                );
+                try {
+                  const cancellation_policy = JSON.parse(
+                    element.cancellationPolicy
+                  );
+                  let cancelDate = cancellation_policy?.cancel_by_date
+                    ? cancellation_policy.cancel_by_date
+                    : element.cancelByDate;
+                  await requestHandler.sendEmail(
+                    userData.email,
+                    "hotelPaymentFailed",
+                    `ACTION REQUIRED! Your payment was unsuccessful!`,
+                    {
+                      name: fullName,
+                      booking_id: element.bookingReference,
+                      hotel_name: hotelData.hotelName,
+                      cancellation_date:
+                        utility.convertDateFromTimezone(cancelDate),
+                      group_id: element.bookingGroupId,
+                      reason: `Failed reason:- ${transactionData?.message}`,
+                    }
+                  );
+                } catch (err) {}
+              }
+            }
           }
         }
         return true;
@@ -1238,6 +1296,7 @@ export default {
           let nonRefundable = null,
             underCancellation = null,
             cancelByDate = null,
+            expirationDate = null,
             cancellationPolicy = null,
             cardId = null,
             transactionId = null;
