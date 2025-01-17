@@ -266,24 +266,12 @@ export default {
           ...where,
           [Op.or]: [
             {
-              [Op.and]: [
-                { checkIn: { [Op.gt]: date } },
-                { status: "pending" },
-                { platformStatus: "pending" },
-              ],
+              [Op.and]: [{ checkIn: { [Op.gt]: date } }, { status: "pending" }],
             },
             {
               [Op.and]: [
                 { checkIn: { [Op.gt]: date } },
                 { status: "confirmed" },
-                { platformStatus: "pending" },
-              ],
-            },
-            {
-              [Op.and]: [
-                { checkIn: { [Op.gt]: date } },
-                { status: "confirmed" },
-                { platformStatus: "confirmed" },
               ],
             },
             { createdAt: { [Op.eq]: date } },
