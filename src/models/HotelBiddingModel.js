@@ -39,6 +39,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER(10),
         defaultValue: 1,
       },
+      localPriority: {
+        type: DataTypes.INTEGER(10),
+        defaultValue: 1,
+      },
       expairationAt: {
         type: DataTypes.DATE,
       },

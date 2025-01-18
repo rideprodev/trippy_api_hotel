@@ -490,6 +490,7 @@ export default {
       );
       if (count.length < config.app.biddingLimitOnBooking) {
         bodyData.priority = count.length === 0 ? 1 : count[0].priority + 1;
+        bodyData.localPriority = bodyData.priority;
         next();
       } else {
         utility.getError(res, "Maximum of 10 bid can be serve in a booking!");

@@ -642,100 +642,101 @@ export default {
         bookingObject.currentReference
       );
       const userData = req.user;
-
-      const _response = await requestHandler.fetchResponseFromHotel(
-        apiEndPoint,
-        await this.getSessionToken(),
-        { cutoff_time: 60000 }
-      );
-      // console.log(_response);
-      if (_response !== undefined) {
-        this.genrateGrnLogger(
-          req,
-          _response.status,
-          _response.message,
+      if (bookingObject.status !== "cancelled") {
+        const _response = await requestHandler.fetchResponseFromHotel(
           apiEndPoint,
-          _response
+          await this.getSessionToken(),
+          { cutoff_time: 60000 }
         );
-        console.log("================================");
-        console.log("cancellation status", _response.data?.status);
-        console.log("================================");
-        if (
-          _response.data.status === "confirmed" ||
-          _response.data.status === "pending"
-        ) {
-          console.log("================================");
-          console.log(
-            "Booking Cancellation Confirm/pending Refund Intialize",
-            _response.data.status
+        // console.log(_response);
+        if (_response !== undefined) {
+          this.genrateGrnLogger(
+            req,
+            _response.status,
+            _response.message,
+            apiEndPoint,
+            _response
           );
           console.log("================================");
-          // refund intiate
+          console.log("cancellation status", _response.data?.status);
+          console.log("================================");
+          if (
+            _response.data.status === "confirmed" ||
+            _response.data.status === "pending"
+          ) {
+            console.log("================================");
+            console.log(
+              "Booking Cancellation Confirm/pending Refund Intialize",
+              _response.data.status
+            );
+            console.log("================================");
+            // refund intiate
 
-          const bookingLog = await HotelBookingLog.findOne({
-            where: {
-              bookingId: bookingObject?.bookingId,
-              transactionId: { [Op.ne]: null },
-            },
-          });
-
-          await bookingObject.update({ status: "pending" });
-          const updatebooking = await HotelBooking.findOne({
-            where: {
-              id: bookingObject?.bookingId,
-            },
-          });
-          await updatebooking.update({ status: "pending" });
-          try {
-            const hotelData = await Hotel.findOne({
-              attributes: ["hotelName", "address"],
-              where: { hotelCode: updatebooking.hotelCode },
+            const bookingLog = await HotelBookingLog.findOne({
+              where: {
+                bookingId: bookingObject?.bookingId,
+                transactionId: { [Op.ne]: null },
+              },
             });
-            const sendmail = requestHandler.sendEmail(
-              userData.email,
-              "hotelBookingCancelled",
-              `Your reservation at- ${hotelData.hotelName} has been cancelled- ${bookingObject.currentReference}`,
+
+            await bookingObject.update({ status: "pending" });
+            const updatebooking = await HotelBooking.findOne({
+              where: {
+                id: bookingObject?.bookingId,
+              },
+            });
+            await updatebooking.update({ status: "pending" });
+            try {
+              const hotelData = await Hotel.findOne({
+                attributes: ["hotelName", "address"],
+                where: { hotelCode: updatebooking.hotelCode },
+              });
+              const sendmail = requestHandler.sendEmail(
+                userData.email,
+                "hotelBookingCancelled",
+                `Your reservation at- ${hotelData.hotelName} has been cancelled- ${bookingObject.currentReference}`,
+                {
+                  name: `${userData.firstName} ${userData.lastName}`,
+                  hotel_name: hotelData.hotelName,
+                  full_address: hotelData.address,
+                  booking_id: bookingObject.currentReference,
+                  email: userData.email,
+                  total_price: bookingObject.price,
+                  currency: _response?.data?.booking_price?.currency,
+                  cancellation_date: utility.convertDateFromTimezone(
+                    _response?.data?.cancel_date
+                  ),
+                  booking_date: utility.convertDateFromTimezone(
+                    bookingObject.createdAt
+                  ),
+                  check_in: bookingObject.checkIn,
+                  check_out: bookingObject.checkOut,
+                  total_members: bookingObject.totalMember,
+                  total_rooms: bookingObject.totalRooms,
+                  room_type: updatebooking.roomType,
+                }
+              );
+            } catch (err) {}
+
+            await HotelBookingLog.create({
+              userId: userData.id,
+              groupId: bookingObject.id,
+              bookingId: bookingObject?.bookingId,
+              transactionId: bookingLog?.transactionId,
+              paymentStatus: "cancelled",
+            });
+            await HotelBidding.update(
               {
-                name: `${userData.firstName} ${userData.lastName}`,
-                hotel_name: hotelData.hotelName,
-                full_address: hotelData.address,
-                booking_id: bookingObject.currentReference,
-                email: userData.email,
-                total_price: bookingObject.price,
-                currency: _response?.data?.booking_price?.currency,
-                cancellation_date: utility.convertDateFromTimezone(
-                  _response?.data?.cancel_date
-                ),
-                booking_date: utility.convertDateFromTimezone(
-                  bookingObject.createdAt
-                ),
-                check_in: bookingObject.checkIn,
-                check_out: bookingObject.checkOut,
-                total_members: bookingObject.totalMember,
-                total_rooms: bookingObject.totalRooms,
-                room_type: updatebooking.roomType,
+                status: "cancelled",
+              },
+              {
+                where: {
+                  groupId: bookingObject.id,
+                },
               }
             );
-          } catch (err) {}
-
-          await HotelBookingLog.create({
-            userId: userData.id,
-            groupId: bookingObject.id,
-            bookingId: bookingObject?.bookingId,
-            transactionId: bookingLog?.transactionId,
-            paymentStatus: "cancelled",
-          });
-          await HotelBidding.update(
-            {
-              status: "cancelled",
-            },
-            {
-              where: {
-                groupId: bookingObject.id,
-              },
-            }
-          );
-          this.bookingStatus(req);
+            this.bookingStatus(req);
+          }
         }
       }
       return _response;
