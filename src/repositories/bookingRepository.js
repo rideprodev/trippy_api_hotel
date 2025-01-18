@@ -244,6 +244,7 @@ export default {
             "minBid",
             "maxBid",
             "priority",
+            "localPriority",
             "expairationAt",
             "status",
             "roomType",
