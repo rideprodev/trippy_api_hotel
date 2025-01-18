@@ -638,11 +638,11 @@ export default {
   async bookingCancel(req) {
     try {
       const bookingObject = req.bookingObject;
-      const apiEndPoint = GRN_Apis.bookingCancel(
-        bookingObject.currentReference
-      );
       const userData = req.user;
       if (bookingObject.status !== "cancelled") {
+        const apiEndPoint = GRN_Apis.bookingCancel(
+          bookingObject.currentReference
+        );
         const _response = await requestHandler.fetchResponseFromHotel(
           apiEndPoint,
           await this.getSessionToken(),
@@ -735,11 +735,52 @@ export default {
                 },
               }
             );
+            const checkMainBooking = await HotelBooking.findOne({
+              where: {
+                bookingGroupId: bookingObject.id,
+                platformStatus: "rejected",
+              },
+            });
+            if (checkMainBooking) {
+              const apiEndPoint = GRN_Apis.bookingCancel(
+                checkMainBooking.bookingReference
+              );
+              const _response_cancel =
+                await requestHandler.fetchResponseFromHotel(
+                  apiEndPoint,
+                  await this.getSessionToken(),
+                  { cutoff_time: 60000 }
+                );
+              if (
+                _response_cancel.data.status === "confirmed" ||
+                _response_cancel.data.status === "pending"
+              ) {
+                console.log("================================");
+                console.log(
+                  "Booking Cancellation Confirm/pending Refund Intialize",
+                  _response_cancel.data.status
+                );
+                await checkMainBooking.update({
+                  status: "cancelled",
+                  platformStatus: "cancelled",
+                  paymentStatus: _response_cancel?.data?.payment_status,
+                  cancelledDate:
+                    _response_cancel?.data?.cancellation_details?.cancel_date,
+                  refundAmout:
+                    _response_cancel?.data?.cancellation_details?.refund_amount,
+                  cancellationCharge:
+                    _response_cancel.data?.cancellation_details
+                      ?.cancellation_charge,
+                });
+              }
+            }
             this.bookingStatus(req);
           }
         }
+        return _response;
+      } else {
+        return { message: "Booking is already cancelled" };
       }
-      return _response;
     } catch (error) {
       throw Error(error);
     }

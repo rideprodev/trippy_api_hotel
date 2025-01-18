@@ -936,8 +936,8 @@ export default {
                             biddingId: { [Op.ne]: null },
                           },
                           {
-                            status: "confirmed",
-                            platformStatus: "confirmed",
+                            status: "pending",
+                            platformStatus: "pending",
                             biddingId: { [Op.ne]: null },
                           },
                         ],
@@ -1081,9 +1081,10 @@ export default {
                                 logRequest.transactionId = transactionId;
                               }
                               // console.log(logRequest);
+
                               HotelBookingLog.create({
                                 ...logRequest,
-                                bookingId: bookingObjectData.id,
+                                bookingId: bookingGroupObject.bookingId,
                                 paymentStatus: "cancelled",
                               });
                             }
@@ -1104,6 +1105,8 @@ export default {
                       bookingDataObject.biddingId === "" ||
                       bookingDataObject.biddingId === null
                     ) {
+                      let transactionId = 0,
+                        cardId = 0;
                       HotelBooking.update(
                         {
                           platformStatus: "rejected",
@@ -1138,11 +1141,18 @@ export default {
                         logRequest.transactionId = transactionId;
                       }
                       // console.log(logRequest);
-                      HotelBookingLog.create({
-                        ...logRequest,
-                        bookingId: bookingGroupObject.bookingId,
-                        paymentStatus: "cancelled",
-                      });
+                      HotelBookingLog.bulkCreate([
+                        {
+                          ...logRequest,
+                          bookingId: bookingGroupObject.bookingId,
+                          paymentStatus: "cancelled",
+                        },
+                        {
+                          ...logRequest,
+                          bookingId: booking.id,
+                          paymentStatus: "booked",
+                        },
+                      ]);
                       try {
                         const sendmail_cancel = requestHandler.sendEmail(
                           userData.email,
@@ -1169,7 +1179,7 @@ export default {
                           }
                         );
                       } catch (err) {}
-                      return [];
+                      // return;
                     } else {
                       const apiEndPoint = GRN_Apis.bookingCancel(
                         bookingGroupObject.currentReference
@@ -1215,7 +1225,7 @@ export default {
                       bookingId: requestData.newBookingId,
                       paymentStatus: "booked",
                     });
-                    return [];
+                    // return;
                   }
                 }
               }
@@ -1241,7 +1251,7 @@ export default {
                 const previousHotelData = bookingGroupObject.previousHotelData;
                 if (_response_cancel !== undefined) {
                   console.log("================================");
-                  console.log("cancel status", _response_cancel.data.status);
+                  console.log("cancel status", _response_cancel?.data?.status);
                   console.log("================================");
                   if (
                     _response_cancel?.data?.status === "confirmed" ||

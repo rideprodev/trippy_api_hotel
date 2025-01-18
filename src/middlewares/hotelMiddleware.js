@@ -484,12 +484,11 @@ export default {
       const count = await biddingRepository.getAllBidding(
         {
           groupId: bodyData.groupId,
-          status: "active",
         },
-        ["priority", "DESC"]
+        ["localPriority", "DESC"]
       );
       if (count.length < config.app.biddingLimitOnBooking) {
-        bodyData.priority = count.length === 0 ? 1 : count[0].priority + 1;
+        bodyData.priority = count.length === 0 ? 1 : count[0].localPriority + 1;
         bodyData.localPriority = bodyData.priority;
         next();
       } else {
