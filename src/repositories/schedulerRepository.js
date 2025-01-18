@@ -36,6 +36,7 @@ export default {
           status: "confirmed",
           platformStatus: "confirmed",
           platformPaymentStatus: { [Op.ne]: "paid" },
+          id: 301,
         },
       });
       // Find All Current Dates
@@ -81,34 +82,32 @@ export default {
           currentDate,
           "days"
         );
-        // console.log(
-        //   element.id,
-        //   parseInt(daysDifference),
-        //   element.platformPaymentStatus,
-        //   parseInt(daysDifference) === -1 &&
-        //     element.platformPaymentStatus == "not-done"
-        // );
-
         if (
-          parseInt(daysDifference) === -3 &&
+          parseInt(daysDifference) === -2 &&
           element.platformPaymentStatus === "pending"
         ) {
-          payemntForBooking.push({ paymentDaysDiffrenece: 3, element });
+          payemntForBooking.push({
+            paymentDaysDiffrenece: 3,
+            paymentBooking: element,
+          });
           platformPaymentStatus = "not-done";
         } else if (
-          (parseInt(daysDifference) === -2 &&
+          (parseInt(daysDifference) === -1 &&
             element.platformPaymentStatus === "not-done") ||
-          (parseInt(daysDifference) === -2 &&
+          (parseInt(daysDifference) === -1 &&
             element.platformPaymentStatus === "pending")
         ) {
-          payemntForBooking.push({ paymentDaysDiffrenece: 2, element });
+          payemntForBooking.push({
+            paymentDaysDiffrenece: 2,
+            paymentBooking: element,
+          });
           platformPaymentStatus = "unpaid";
         } else if (
-          (parseInt(daysDifference) === -1 &&
+          (parseInt(daysDifference) === 0 &&
             element.platformPaymentStatus === "unpaid") ||
-          (parseInt(daysDifference) === -1 &&
+          (parseInt(daysDifference) === 0 &&
             element.platformPaymentStatus === "not-done") ||
-          (parseInt(daysDifference) === -1 &&
+          (parseInt(daysDifference) === 0 &&
             element.platformPaymentStatus === "pending")
         ) {
           payemntForBooking.push({
@@ -117,6 +116,15 @@ export default {
           });
           platformPaymentStatus = "failed";
         }
+
+        console.log(
+          element.id,
+          element.cancelByDate,
+          currentDate,
+          daysDifference,
+          parseInt(daysDifference),
+          element.platformPaymentStatus
+        );
       }
       // if payment performed
       if (payemntForBooking.length > 0) {
@@ -124,7 +132,7 @@ export default {
           const paymentDaysDifference =
             payemntForBooking[j].paymentDaysDiffrenece;
           const element = payemntForBooking[j].paymentBooking;
-          // console.log("payemntForBooking", element.id, platformPaymentStatus);
+          console.log("payemntForBooking", element.id, platformPaymentStatus);
           const cardId = await HotelBookingLog.findOne({
             where: { groupId: element.bookingGroupId },
           });
@@ -142,6 +150,10 @@ export default {
 
           // check the days difference and send mail accordingly
           if (paymentDaysDifference === 3) {
+            await HotelBooking.update(
+              { platformPaymentStatus: platformPaymentStatus },
+              { where: { id: element.id } }
+            );
             // send the remainder mail
             try {
               await requestHandler.sendEmail(
@@ -153,13 +165,41 @@ export default {
                   total_price: amount,
                   currency: "AUD",
                   hotel_name: hotelData.hotelName,
-                  payment_date: element.cancelByDate,
+                  payment_date: utility.convertDateFromTimezone(
+                    element.cancelByDate,
+                    null,
+                    "YYYY-MM-DD H:m:s"
+                  ),
                 }
               );
             } catch (err) {}
           } else if (paymentDaysDifference === 2) {
             // perform the authtication
-            if (true) {
+            const _requestTransactionAuthentication = {
+              userId: element.userId,
+              paymentFor: "hotel",
+              paymentType: "direct",
+              description: `Authentication for booking Id-${element.bookingReference}`,
+              amount: "1.00",
+              currency: "AUD",
+              cardId: cardId.cardId,
+              card: {},
+              isAdded: false,
+              reason: "",
+            };
+            console.log(_requestTransactionAuthentication);
+            const transactionData = await requestHandler.sendForPay(
+              _requestTransactionAuthentication
+            );
+            if (
+              transactionData &&
+              transactionData.data &&
+              transactionData.data.id
+            ) {
+              const sendRefund = await requestHandler.sendForRefund(
+                transactionData.data.id,
+                element.userId
+              );
               try {
                 await requestHandler.sendEmail(
                   userData.email,
@@ -190,6 +230,10 @@ export default {
                 );
               } catch (err) {}
             }
+            await HotelBooking.update(
+              { platformPaymentStatus: platformPaymentStatus },
+              { where: { id: element.id } }
+            );
           } else {
             const convertedCurrency = await requestHandler.convertCurrency(
               amount,
@@ -808,7 +852,7 @@ export default {
                   nonRefundable: nonRefundable,
                   underCancellation: underCancellation,
                   cancelByDate: cancelByDate,
-                  expairationAt: expirationDate,
+                  expirationDate: expirationDate,
                   cancellationPolicy: cancellationPolicy,
                   searchId: _response?.data?.search_id,
                   reavalidateResponse: JSON.stringify(revalidateData),
@@ -1462,6 +1506,7 @@ export default {
                 nonRefundable: nonRefundable,
                 underCancellation: underCancellation,
                 cancelByDate: cancelByDate,
+                expirationDate: expirationDate,
                 cancellationPolicy: cancellationPolicy,
                 searchId: booking_request_data.search_id,
                 reavalidateResponse: JSON.stringify(reavalidateResponse.data),

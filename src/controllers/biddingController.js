@@ -300,7 +300,7 @@ export default {
         const updateBiddingData = updatedPriorities.map(
           async (x) =>
             await biddingRepository.updateBiddingWhere(
-              { priority: x.priority },
+              { priority: x.priority, localPriority: x.priority },
               { id: x.id }
             )
         );
