@@ -13,7 +13,6 @@ const {
 import { Op, Sequelize } from "sequelize";
 import requestHandler from "../services/requestHandler";
 import bookingRepository from "./bookingRepository";
-import { required } from "joi";
 
 export default {
   /**
@@ -69,6 +68,7 @@ export default {
           "minBid",
           "maxBid",
           "priority",
+          "localPriority",
           "expairationAt",
           "status",
           "latestPrice",
@@ -473,6 +473,7 @@ export default {
         "minBid",
         "maxBid",
         "priority",
+        "localPriority",
         "expairationAt",
         "latestPrice",
         "createdAt",
