@@ -855,6 +855,7 @@ export default {
               "minBid",
               "maxBid",
               "priority",
+              "localPriority",
               "expairationAt",
               "latestPrice",
             ],
@@ -871,6 +872,7 @@ export default {
               "roomType",
               "platformPaymentStatus",
               "cancelByDate",
+              "biddingId",
             ],
           },
           {
@@ -953,7 +955,10 @@ export default {
               { status: "active" },
               {
                 where: {
-                  priority: { [Op.gt]: biddingDetail.priority },
+                  [Op.and]: [
+                    { localPriority: { [Op.gt]: biddingDetail.localPriority } },
+                    { priority: { [Op.lt]: 999990 } },
+                  ],
                   status: "pending",
                 },
               }
@@ -983,10 +988,13 @@ export default {
           });
           if (biddingDetail) {
             await HotelBidding.update(
-              { status: "cancelled" },
+              { status: "cancelled", priority: 999999 },
               {
                 where: {
-                  priority: { [Op.gt]: biddingDetail.priority },
+                  [Op.and]: [
+                    { localPriority: { [Op.gt]: biddingDetail.localPriority } },
+                    { priority: { [Op.lt]: 999990 } },
+                  ],
                   status: "pending",
                 },
               }
