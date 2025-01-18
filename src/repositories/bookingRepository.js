@@ -2,6 +2,8 @@ import { Op, Sequelize } from "sequelize";
 import models from "../models";
 import schedulerRepository from "./schedulerRepository";
 import requestHandler from "../services/requestHandler";
+import GRN_Apis from "../config/GRN_Apis";
+import grnRepository from "./grnRepository";
 const {
   User,
   HotelBookingGroup,
@@ -281,21 +283,12 @@ export default {
       } else if (queryData.status && queryData.status === "completed") {
         where = {
           ...where,
-          [Op.and]: [
-            { checkIn: { [Op.lt]: date } },
-            { status: "confirmed" },
-            { platformStatus: "confirmed" },
-            { platformPaymentStatus: "paid" },
-          ],
+          [Op.and]: [{ checkIn: { [Op.lt]: date } }, { status: "confirmed" }],
         };
       } else if (queryData.status && queryData.status === "cancelled") {
         where = {
           ...where,
-          [Op.and]: [
-            { createdAt: { [Op.ne]: date } },
-            { status: "cancelled" },
-            { platformStatus: "cancelled" },
-          ],
+          [Op.and]: [{ createdAt: { [Op.ne]: date } }, { status: "cancelled" }],
         };
       } else if (queryData.status && queryData.status === "failed") {
         where = {
@@ -920,6 +913,7 @@ export default {
         checkOut: bodyData.checkOut,
         userId: userData.id,
         [Op.or]: [{ status: "pending" }, { status: "confirmed" }],
+        platformStatus: { [Op.ne]: "rejected" },
       };
 
       const _bookingData = await HotelBooking.findAll({
@@ -943,27 +937,60 @@ export default {
       const bookingObject = req.bookingObject;
       const booking = req.booking;
       if (bodyData.action === "reject") {
-        await booking.update({ platformStatus: "cancelled" });
-        if (booking.biddingId) {
-          const biddingDetail = await HotelBidding.findOne({
-            where: {
-              id: booking.biddingId,
-            },
+        const GRNtoken = await grnRepository.getSessionToken();
+        const apiEndPoint = GRN_Apis.bookingCancel(booking.bookingReference);
+        const _response_cancel = await requestHandler.fetchResponseFromHotel(
+          apiEndPoint,
+          GRNtoken,
+          { cutoff_time: 60000 }
+        );
+        if (
+          _response_cancel.data.status === "confirmed" ||
+          _response_cancel.data.status === "pending"
+        ) {
+          console.log("================================");
+          console.log(
+            "Booking Cancellation Confirm/pending Refund Intialize",
+            _response_cancel.data.status
+          );
+          await booking.update({
+            status: "cancelled",
+            platformStatus: "cancelled",
+            paymentStatus: _response_cancel?.data?.payment_status,
+            cancelledDate:
+              _response_cancel?.data?.cancellation_details?.cancel_date,
+            refundAmout:
+              _response_cancel?.data?.cancellation_details?.refund_amount,
+            cancellationCharge:
+              _response_cancel.data?.cancellation_details?.cancellation_charge,
           });
-          if (biddingDetail) {
-            await HotelBidding.update(
-              { status: "active" },
-              {
-                where: {
-                  [Op.and]: [
-                    { localPriority: { [Op.gt]: biddingDetail.localPriority } },
-                    { priority: { [Op.lt]: 999990 } },
-                  ],
-                  status: "pending",
-                },
-              }
-            );
+          if (booking.biddingId) {
+            const biddingDetail = await HotelBidding.findOne({
+              where: {
+                id: booking.biddingId,
+              },
+            });
+            if (biddingDetail) {
+              await biddingDetail.update({ status: "rejected" });
+              await HotelBidding.update(
+                { status: "active" },
+                {
+                  where: {
+                    [Op.and]: [
+                      {
+                        localPriority: { [Op.gt]: biddingDetail.localPriority },
+                      },
+                      { priority: { [Op.lt]: 999990 } },
+                    ],
+                    status: "pending",
+                  },
+                }
+              );
+            }
           }
+          return true;
+        } else {
+          return false;
         }
       } else {
         await HotelBooking.update(
@@ -972,6 +999,17 @@ export default {
             where: {
               bookingGroupId: req.params.bookingId,
               platformStatus: "confirmed",
+              biddingId: { [Op.ne]: null },
+            },
+          }
+        );
+        await HotelBooking.update(
+          { platformStatus: "rejected" },
+          {
+            where: {
+              bookingGroupId: req.params.bookingId,
+              platformStatus: "confirmed",
+              biddingId: { [Op.eq]: null },
             },
           }
         );
@@ -979,6 +1017,7 @@ export default {
         await bookingObject.update({
           bookingId: bodyData.bookingId,
           currentReference: booking.bookingReference,
+          price: booking.totalPrice,
         });
         if (booking.biddingId) {
           const biddingDetail = await HotelBidding.findOne({
@@ -995,14 +1034,13 @@ export default {
                     { localPriority: { [Op.gt]: biddingDetail.localPriority } },
                     { priority: { [Op.lt]: 999990 } },
                   ],
-                  status: "pending",
                 },
               }
             );
           }
         }
+        return true;
       }
-      return true;
     } catch (error) {
       throw Error(error);
     }

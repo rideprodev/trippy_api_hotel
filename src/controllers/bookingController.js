@@ -157,7 +157,11 @@ export default {
       const response = await bookingRepository.UpdateTheActionAcceptOrReject(
         req
       );
-      utility.getResponse(res, response, "UPDATED!");
+      if (response) {
+        utility.getResponse(res, response, "UPDATED!");
+      } else {
+        utility.getError(res, "booking is not cancel now please try again");
+      }
     } catch (error) {
       next(error);
     }
