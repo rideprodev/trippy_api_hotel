@@ -9,6 +9,7 @@ const {
   HotelCountry,
   HotelCity,
   HotelImage,
+  HotelBooking,
 } = models;
 import { Op, Sequelize } from "sequelize";
 import requestHandler from "../services/requestHandler";
