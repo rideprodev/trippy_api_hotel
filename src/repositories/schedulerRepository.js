@@ -1483,11 +1483,24 @@ export default {
             x.non_refundable == false
           ) {
             // check the days diffrence of the resopnse if it lower
+            x.cancellation_policy.cancel_by_date =
+              utility.getDateAfterBeforeFromDate(
+                x.cancellation_policy.cancel_by_date,
+                config.app.CancellationDaysDifference,
+                "YYYY-MM-DDTH:m:s"
+              );
             const daysDifference = utility.dateDifference(
               x.cancellation_policy.cancel_by_date,
               currentDatatime,
               "days"
             );
+
+            // console.log(
+            //   x.cancellation_policy,
+            //   x.cancellation_policy.cancel_by_date,
+            //   currentDatatime,
+            //   daysDifference
+            // );
             // we need 8 day for any king of bidding match
             if (daysDifference <= -2) {
               return x;
@@ -1855,7 +1868,7 @@ export default {
                       bookingId: null,
                       id: { [Op.ne]: Bidding.id },
                       [Op.and]: [
-                        { priority: { [Op.gt]: Bidding.priority } },
+                        { localPriority: { [Op.gt]: Bidding.localPriority } },
                         { priority: { [Op.lt]: 999990 } },
                       ],
                     },
@@ -1952,6 +1965,7 @@ export default {
                           HotelBooking.update(
                             {
                               status: "cancelled",
+                              platformStatus: "cancelled",
                               cancelledDate:
                                 _response_cancel?.data?.cancel_date,
                               refundAmout: parseFloat(
