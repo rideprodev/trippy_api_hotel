@@ -973,8 +973,8 @@ export default {
                           const bookingGroupObject =
                             requestData.groupObjectData;
                           const userData = bookingGroupObject.userData;
-                          const previousHotelData = {};
-                          // bookingGroupObject?.previousHotelData;
+                          const previousHotelData =
+                            bookingGroupObject?.previousHotelData;
                           console.log(
                             "bookingObjectData",
                             bookingObjectData.id
@@ -1717,6 +1717,15 @@ export default {
               console.log("booking created", booking.id);
               console.log("================================");
               if (booking) {
+                let previousHotelData = {};
+                if (Bidding?.bookingGroupData?.booking?.hotelCode) {
+                  previousHotelData = await Hotel.findOne({
+                    attributes: ["hotelName", "address"],
+                    where: {
+                      hotelCode: Bidding.bookingGroupData.booking.hotelCode,
+                    },
+                  });
+                }
                 await HotelBookingGroup.update(
                   {
                     bookingId: booking.id,
@@ -1783,6 +1792,8 @@ export default {
                     {
                       name: `${userData.firstName} ${userData.lastName}`,
                       email: userData.email,
+                      hotel_name: previousHotelData?.hotelName,
+                      full_address: previousHotelData?.address,
                       check_in: booking_request_data.checkin,
                       check_out: booking_request_data.checkout,
                       room_type: Bidding.roomType,
@@ -1790,10 +1801,12 @@ export default {
                       total_rooms: Bidding.bookingGroupData.totalRooms,
                       cancellation_date:
                         utility.convertDateFromTimezone(currentDatatime),
-                      booking_id: Bidding.currentReference,
+                      booking_id: Bidding.bookingGroupData.currentReference,
                       booking_date: utility.convertDateFromTimezone(
                         Bidding.createdAt
                       ),
+                      total_price: Bidding.bookingGroupData.price,
+                      currency: Bidding.bookingGroupData.currency,
                     }
                   );
                 } catch (err) {}
@@ -1916,7 +1929,7 @@ export default {
                       const bookingObjectData = getAllbookigs[i];
                       const bookingGroupObject = Bidding.bookingGroupData;
                       const userData = Bidding.userData;
-                      const previousHotelData = null;
+                      const previousHotelData = previousHotelData;
                       if (_response_cancel !== undefined) {
                         console.log("================================");
                         console.log(
