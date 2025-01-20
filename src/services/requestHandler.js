@@ -80,15 +80,15 @@ export default {
       };
       const _request = {
         method: "post",
-        url: `${config.app.authUrl}/payment/refund-by-id`,
+        url: `${config.app.authUrl}payment/refund-by-id`,
         data: requestData,
         headers: {
           "Content-Type": "application/json",
         },
       };
-      // console.log(_request);
+      console.log(_request);
       const { data } = await axios(_request);
-      // console.log(data);
+      console.log("refund", data);
       return data;
     } catch (error) {
       logger.requestErrorLogger.error(
@@ -147,7 +147,7 @@ export default {
       };
       // console.log(_request);
       const { data } = await axios(_request);
-      console.log(data);
+      console.log("payment", data.success);
       return data;
     } catch (error) {
       console.log(error?.response?.data);
@@ -170,9 +170,9 @@ export default {
           "Content-Type": "application/json",
         },
       };
-      // console.log(_request);
+      console.log(_request);
       const { data } = await axios(_request);
-      // console.log(data);
+      console.log(data);
       return data;
     } catch (error) {
       console.log(error?.response?.data);
