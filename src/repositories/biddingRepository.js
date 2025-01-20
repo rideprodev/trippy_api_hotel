@@ -498,6 +498,11 @@ export default {
           model: HotelBookingGroup,
           as: "bookingGroupData",
           where: bookingWhere,
+          include: {
+            model: HotelBooking,
+            as: "booking",
+            attributes: ["hotelCode"],
+          },
         },
         {
           attributes: [
