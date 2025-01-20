@@ -495,6 +495,7 @@ export default {
             "createdAt",
             "bookingComments",
             "currency",
+            "price",
           ],
           model: HotelBookingGroup,
           as: "bookingGroupData",
