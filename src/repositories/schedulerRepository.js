@@ -885,14 +885,11 @@ export default {
                         check_out: bookingGroupObject.checkOut,
                         room_type: newRateData.roomType,
                         total_members: bookingGroupObject.totalMember,
-                        cancellation_date: cancelByDate,
+                        cancellation_date:
+                          utility.convertDateFromTimezone(cancelByDate),
                         total_price: newRateData.totalPrice,
                         booking_id: _response?.data?.booking_reference,
-                        booking_date: utility.convertDateFromTimezone(
-                          null,
-                          null,
-                          "YYYY-MM-DD"
-                        ),
+                        booking_date: utility.convertDateFromTimezone(),
                         service_tax: newRateData.commissionAmount,
                         total_rooms: bookingGroupObject.totalRooms,
                         supplier_price: _response?.data?.price?.breakdown
@@ -1021,7 +1018,7 @@ export default {
                                         bookingGroupObject.currentReference,
                                       booking_date:
                                         utility.convertDateFromTimezone(
-                                          bookingGroupObject.createdAt
+                                          bookingObjectData.createdAt
                                         ),
                                       total_price: bookingObjectData.totalPrice,
                                       currency: bookingGroupObject.currency,
@@ -1172,7 +1169,7 @@ export default {
                               utility.convertDateFromTimezone(currentDatatime),
                             booking_id: bookingGroupObject.currentReference,
                             booking_date: utility.convertDateFromTimezone(
-                              bookingGroupObject.createdAt
+                              bookingDataObject.createdAt
                             ),
                             total_price: bookingGroupObject.price,
                             currency: bookingGroupObject.currency,
@@ -1247,6 +1244,7 @@ export default {
                 const requestData = finalForRevalidate[i];
                 const newRateData = requestData.newRates;
                 const bookingGroupObject = requestData.groupObjectData;
+                const bookingDataObject = bookingGroupObject.booking;
                 const userData = bookingGroupObject.userData;
                 const previousHotelData = bookingGroupObject.previousHotelData;
                 if (_response_cancel !== undefined) {
@@ -1283,7 +1281,7 @@ export default {
                           ),
                           booking_id: bookingGroupObject.currentReference,
                           booking_date: utility.convertDateFromTimezone(
-                            bookingGroupObject.createdAt
+                            bookingDataObject.createdAt
                           ),
                           total_price: bookingGroupObject.price,
                           currency: bookingGroupObject.currency,
@@ -1756,7 +1754,8 @@ export default {
                       check_out: booking_request_data.checkout,
                       room_type: Bidding.roomType,
                       total_members: Bidding.bookingGroupData.totalMember,
-                      cancellation_date: cancelByDate,
+                      cancellation_date:
+                        utility.convertDateFromTimezone(cancelByDate),
                       total_price: totalPrice,
                       booking_id: _response?.data?.booking_reference,
                       booking_date: utility.convertDateFromTimezone(
@@ -1803,7 +1802,9 @@ export default {
                         utility.convertDateFromTimezone(currentDatatime),
                       booking_id: Bidding.bookingGroupData.currentReference,
                       booking_date: utility.convertDateFromTimezone(
-                        Bidding.createdAt
+                        Bidding.bookingGroupData?.booking?.hotelCode?.createdAt
+                          ? Bidding.bookingGroupData.booking.hotelCode.createdAt
+                          : Bidding.createdAt
                       ),
                       total_price: Bidding.bookingGroupData.price,
                       currency: Bidding.bookingGroupData.currency,

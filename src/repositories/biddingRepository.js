@@ -503,7 +503,7 @@ export default {
           include: {
             model: HotelBooking,
             as: "booking",
-            attributes: ["hotelCode"],
+            attributes: ["hotelCode", "createdAt"],
           },
         },
         {
