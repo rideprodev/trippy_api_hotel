@@ -53,27 +53,169 @@ export default {
           finalBookings.push(element);
         }
       }
-      // if (expairedBooking.length > 0) {
-      //   for (let e = 0; e < expairedBooking.length; e++) {
-      //     const elementExpaired = expairedBooking[e];
-      //     console.log("expairedBooking", elementExpaired.id);
-      //     const bookingObject = await HotelBookingGroup.findOne({
-      //       where: { id: elementExpaired.bookingGroupId },
-      //     });
-      //     const userData = await User.findOne({
-      //       where: { id: elementExpaired.userId },
-      //     });
-      //     if (bookingObject && userData) {
-      //       const req = {};
-      //       req.user = userData;
-      //       req.bookingObject = bookingObject;
-      //       try {
-      //         const respose = await grnRepository.bookingCancel(req);
-      //       } catch (err) {}
-      //       // console.log(elementExpaired.id, respose);
-      //     }
-      //   }
-      // }
+      if (expairedBooking.length > 0) {
+        for (let e = 0; e < expairedBooking.length; e++) {
+          const elementExpaired = expairedBooking[e];
+          console.log("expairedBooking", elementExpaired.id);
+          const expairedGroupObject = await HotelBookingGroup.findOne({
+            attributes: ["id", "totalMember", "totalRooms"],
+            where: { id: elementExpaired.bookingGroupId },
+          });
+          const userData = await User.findOne({
+            attributes: ["firstName", "lastName", "email"],
+            where: { id: elementExpaired.userId },
+          });
+          const hotelData = await Hotel.findOne({
+            attributes: ["hotelName", "address"],
+            where: { hotelCode: elementExpaired.hotelCode },
+          });
+          try {
+            const sendmail_cancel = requestHandler.sendEmail(
+              userData.email,
+              "hotelBookingCancelled",
+              `Reservation with ID: ${elementExpaired.bookingReference} has been Cancelled`,
+              {
+                name: `${userData.firstName} ${userData.lastName}`,
+                email: userData.email,
+                hotel_name: hotelData?.hotelName,
+                full_address: hotelData?.address,
+                check_in: elementExpaired.checkIn,
+                check_out: elementExpaired.checkOut,
+                room_type: elementExpaired.roomType,
+                total_members: expairedGroupObject.totalMember,
+                total_rooms: expairedGroupObject.totalRooms,
+                cancellation_date: utility.convertDateFromTimezone(),
+                booking_id: elementExpaired.bookingReference,
+                booking_date: utility.convertDateFromTimezone(
+                  elementExpaired.createdAt
+                ),
+                total_price: elementExpaired.totalPrice,
+                currency: elementExpaired.currency,
+              }
+            );
+          } catch (err) {}
+          HotelBooking.update(
+            // status is confiremed && platform is cancelled means the booking expired
+            {
+              platformStatus: "cancelled",
+              platformcancelledDate: utility.convertDateFromTimezone(),
+            },
+            { where: { id: elementExpaired.id } }
+          );
+          const AllBookings = await HotelBooking.findAll({
+            attributes: ["id", "bookingReference"],
+            where: {
+              bookingGroupId: elementExpaired.bookingGroupId,
+              status: "confirmed",
+              platformStatus: "pending",
+              id: { [Op.ne]: elementExpaired.id },
+            },
+          });
+          if (AllBookings.length > 0) {
+            let cancelledBookingFromBidding = [];
+            const GRNtoken = await grnRepository.getSessionToken();
+            const cancelAllBooking = AllBookings.map(async (x) => {
+              const apiEndPointCancel = GRN_Apis.bookingCancel(
+                x.bookingReference
+              );
+              return await requestHandler.fetchResponseFromHotel(
+                apiEndPointCancel,
+                GRNtoken,
+                { cutoff_time: 60000 }
+              );
+            });
+            try {
+              cancelledBookingFromBidding = await Promise.all(cancelAllBooking);
+            } catch (err) {
+              console.log(err);
+            }
+            const updateDataAndMailPromiseforCancelledBooking =
+              cancelledBookingFromBidding?.map(async (x, i) => {
+                let transactionId = 0,
+                  cardId = 0;
+                const _response_cancel = x;
+                const bookingObjectData = AllBookings[i];
+                const bookingGroupObject = expairedGroupObject;
+                console.log("bookingObjectData", bookingObjectData.id);
+                if (_response_cancel !== undefined) {
+                  console.log("================================");
+                  console.log("cancel status", _response_cancel.data.status);
+                  console.log("================================");
+                  if (
+                    _response_cancel.data.status === "confirmed" ||
+                    _response_cancel.data.status === "pending"
+                  ) {
+                    console.log("================================");
+                    console.log(
+                      "Booking Cancellation Confirm/pending Refund Intialize"
+                    );
+                    console.log("================================");
+                    HotelBooking.update(
+                      {
+                        status: "cancelled",
+                        platformStatus: "cancelled",
+                        platformcancelledDate:
+                          utility.convertDateFromTimezone(),
+                        cancelledDate: _response_cancel?.data?.cancel_date,
+                        refundAmout: parseFloat(
+                          parseFloat(
+                            _response_cancel?.data?.booking_price?.amount
+                          ) -
+                            parseFloat(
+                              _response_cancel.data?.cancellation_charges
+                                ?.amount
+                            )
+                        ).toFixed(2),
+                        cancellationCharge: parseFloat(
+                          _response_cancel.data?.cancellation_charges?.amount
+                        ).toFixed(2),
+                      },
+                      { where: { id: bookingObjectData.id } }
+                    );
+                    //  update logs
+                    const bookingLog = await HotelBookingLog.findAll({
+                      where: {
+                        groupId: bookingGroupObject.id,
+                        bookingId: bookingObjectData.id,
+                      },
+                    });
+                    // console.log(bookingLog);
+                    for (let i = 0; i < bookingLog.length; i++) {
+                      const element1 = bookingLog[i];
+                      cardId = element1.cardId;
+                      if (element1.transactionId > 0) {
+                        transactionId = element1.transactionId;
+                      }
+                    }
+                    const logRequest = {
+                      userId: bookingGroupObject.userId,
+                      groupId: bookingGroupObject.id,
+                    };
+                    if (cardId > 0) {
+                      logRequest.cardId = cardId;
+                    }
+                    if (transactionId > 0) {
+                      logRequest.transactionId = transactionId;
+                    }
+                    // console.log(logRequest);
+
+                    HotelBookingLog.create({
+                      ...logRequest,
+                      bookingId: bookingGroupObject.bookingId,
+                      paymentStatus: "cancelled",
+                    });
+                  }
+                }
+                return true;
+              });
+            try {
+              await Promise.all(updateDataAndMailPromiseforCancelledBooking);
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        }
+      }
       // check the latest date on the booking
       for (let index = 0; index < finalBookings.length; index++) {
         const element = finalBookings[index];
@@ -194,25 +336,37 @@ export default {
               transactionData.data &&
               transactionData.data.id
             ) {
-              try {
-                await requestHandler.sendEmail(
-                  userData.email,
-                  "hotelPaymentAuthenticationSuccess",
-                  `TrippyBid Payment Authentication Success: ${element.bookingReference}`,
-                  {
-                    name: fullName,
-                    total_price: 1,
-                    remaining_price: amount - 1,
-                    currency: "AUD",
-                    hotel_name: hotelData.hotelName,
-                    payment_date: utility.convertDateFromTimezone(
-                      element.cancelByDate,
-                      null,
-                      "YYYY-MM-DD"
-                    ),
-                  }
-                );
-              } catch (err) {}
+              const convertedCurrency = await requestHandler.convertCurrency(
+                amount,
+                element.currency
+              );
+              if (
+                convertedCurrency &&
+                convertedCurrency.convertedAmount &&
+                convertedCurrency.convertedAmount.length > 0
+              ) {
+                try {
+                  amount = convertedCurrency.convertedAmount[0] - 1;
+                  console.log("Remaining Amount", amount);
+                  await requestHandler.sendEmail(
+                    userData.email,
+                    "hotelPaymentAuthenticationSuccess",
+                    `TrippyBid Payment Authentication Success: ${element.bookingReference}`,
+                    {
+                      name: fullName,
+                      total_price: 1,
+                      remaining_price: amount,
+                      currency: "AUD",
+                      hotel_name: hotelData.hotelName,
+                      payment_date: utility.convertDateFromTimezone(
+                        element.cancelByDate,
+                        null,
+                        "YYYY-MM-DD"
+                      ),
+                    }
+                  );
+                } catch (err) {}
+              }
             } else {
               try {
                 await requestHandler.sendEmail(
@@ -242,106 +396,106 @@ export default {
               amount,
               element.currency
             );
-            console.log(convertedCurrency);
-            // if (
-            //   convertedCurrency &&
-            //   convertedCurrency.convertedAmount &&
-            //   convertedCurrency.convertedAmount.length > 0
-            // ) {
-            //   amount = convertedCurrency.convertedAmount[0];
-            //   const _requestTransaction = {
-            //     userId: element.userId,
-            //     paymentFor: "hotel",
-            //     paymentType: "direct",
-            //     description: `Booking Id-${element.id}`,
-            //     amount: amount,
-            //     currency: "AUD",
-            //     cardId: cardId.cardId,
-            //     card: {},
-            //     isAdded: false,
-            //     reason: "",
-            //   };
-            //   console.log(_requestTransaction);
-            //   const transactionData = await requestHandler.sendForPay(
-            //     _requestTransaction
-            //   );
-            //   if (
-            //     transactionData &&
-            //     transactionData.data &&
-            //     transactionData.data.id
-            //   ) {
-            //     // update bookingLog;
-            //     await HotelBookingLog.create({
-            //       userId: element.userId,
-            //       groupId: element.bookingGroupId,
-            //       bookingId: element.id,
-            //       cardId: cardId.cardId,
-            //       transactionId: transactionData.data.id,
-            //       paymentStatus: "paid",
-            //     });
-            //     await HotelBooking.update(
-            //       { platformPaymentStatus: "paid" },
-            //       { where: { id: element.id } }
-            //     );
-            //     await HotelBidding.update(
-            //       { status: "cancelled" },
-            //       {
-            //         where: {
-            //           groupId: element.bookingGroupId,
-            //         },
-            //       }
-            //     );
-            //     try {
-            //       await requestHandler.sendEmail(
-            //         userData.email,
-            //         "hotelPaymentSuccuess",
-            //         `TrippyBid Payment Successful: ${element.bookingReference}`,
-            //         {
-            //           name: fullName,
-            //           booking_id: element.bookingReference,
-            //           total_price: amount,
-            //           currency: "AUD",
-            //           hotel_name: hotelData.hotelName,
-            //         }
-            //       );
-            //     } catch (err) {}
-            //   } else {
-            //     // if the payment failed
-            //     await HotelBookingLog.create({
-            //       userId: element.userId,
-            //       groupId: element.bookingGroupId,
-            //       bookingId: element.id,
-            //       cardId: cardId.cardId,
-            //       paymentStatus: "payment-failed",
-            //     });
-            //     await HotelBooking.update(
-            //       { platformPaymentStatus: platformPaymentStatus },
-            //       { where: { id: element.id } }
-            //     );
-            //     try {
-            //       const cancellation_policy = JSON.parse(
-            //         element.cancellationPolicy
-            //       );
-            //       let cancelDate = cancellation_policy?.cancel_by_date
-            //         ? cancellation_policy.cancel_by_date
-            //         : element.cancelByDate;
-            //       await requestHandler.sendEmail(
-            //         userData.email,
-            //         "hotelPaymentFailed",
-            //         `ACTION REQUIRED! Your payment was unsuccessful!`,
-            //         {
-            //           name: fullName,
-            //           booking_id: element.bookingReference,
-            //           hotel_name: hotelData.hotelName,
-            //           cancellation_date:
-            //             utility.convertDateFromTimezone(cancelDate),
-            //           group_id: element.bookingGroupId,
-            //           reason: `Failed reason:- ${transactionData?.message}`,
-            //         }
-            //       );
-            //     } catch (err) {}
-            //   }
-            // }
+            if (
+              convertedCurrency &&
+              convertedCurrency.convertedAmount &&
+              convertedCurrency.convertedAmount.length > 0
+            ) {
+              amount = convertedCurrency.convertedAmount[0] - 1;
+              console.log("Paid Amount", amount);
+              const _requestTransaction = {
+                userId: element.userId,
+                paymentFor: "hotel",
+                paymentType: "direct",
+                description: `Booking Id-${element.id}`,
+                amount: amount,
+                currency: "AUD",
+                cardId: cardId.cardId,
+                card: {},
+                isAdded: false,
+                reason: "",
+              };
+              console.log(_requestTransaction);
+              const transactionData = await requestHandler.sendForPay(
+                _requestTransaction
+              );
+              if (
+                transactionData &&
+                transactionData.data &&
+                transactionData.data.id
+              ) {
+                // update bookingLog;
+                await HotelBookingLog.create({
+                  userId: element.userId,
+                  groupId: element.bookingGroupId,
+                  bookingId: element.id,
+                  cardId: cardId.cardId,
+                  transactionId: transactionData.data.id,
+                  paymentStatus: "paid",
+                });
+                await HotelBooking.update(
+                  { platformPaymentStatus: "paid" },
+                  { where: { id: element.id } }
+                );
+                await HotelBidding.update(
+                  { status: "cancelled" },
+                  {
+                    where: {
+                      groupId: element.bookingGroupId,
+                    },
+                  }
+                );
+                try {
+                  await requestHandler.sendEmail(
+                    userData.email,
+                    "hotelPaymentSuccuess",
+                    `TrippyBid Payment Successful: ${element.bookingReference}`,
+                    {
+                      name: fullName,
+                      booking_id: element.bookingReference,
+                      total_price: amount,
+                      currency: "AUD",
+                      hotel_name: hotelData.hotelName,
+                    }
+                  );
+                } catch (err) {}
+              } else {
+                // if the payment failed
+                await HotelBookingLog.create({
+                  userId: element.userId,
+                  groupId: element.bookingGroupId,
+                  bookingId: element.id,
+                  cardId: cardId.cardId,
+                  paymentStatus: "payment-failed",
+                });
+                await HotelBooking.update(
+                  { platformPaymentStatus: platformPaymentStatus },
+                  { where: { id: element.id } }
+                );
+                try {
+                  const cancellation_policy = JSON.parse(
+                    element.cancellationPolicy
+                  );
+                  let cancelDate = cancellation_policy?.cancel_by_date
+                    ? cancellation_policy.cancel_by_date
+                    : element.cancelByDate;
+                  await requestHandler.sendEmail(
+                    userData.email,
+                    "hotelPaymentFailed",
+                    `ACTION REQUIRED! Your payment was unsuccessful!`,
+                    {
+                      name: fullName,
+                      booking_id: element.bookingReference,
+                      hotel_name: hotelData.hotelName,
+                      cancellation_date:
+                        utility.convertDateFromTimezone(cancelDate),
+                      group_id: element.bookingGroupId,
+                      reason: `Failed reason:- ${transactionData?.message}`,
+                    }
+                  );
+                } catch (err) {}
+              }
+            }
           }
         }
         return true;
@@ -1782,267 +1936,313 @@ export default {
                   console.log(err);
                 }
                 //   // Update the booking for cancel
-                console.log("================================");
-                console.log(
-                  "Booking Cancellation Confirm/pending Refund Intialize"
+                const apiEndPoint = GRN_Apis.bookingCancel(
+                  Bidding.bookingGroupData.currentReference
                 );
-                console.log("================================");
-                try {
-                  const sendmail_cancel = requestHandler.sendEmail(
-                    userData.email,
-                    "hotelBookingCancelled",
-                    `Reservation with ID: ${Bidding.bookingGroupData.currentReference} has been Cancelled`,
-                    {
-                      name: `${userData.firstName} ${userData.lastName}`,
-                      email: userData.email,
-                      hotel_name: previousHotelData?.hotelName,
-                      full_address: previousHotelData?.address,
-                      check_in: booking_request_data.checkin,
-                      check_out: booking_request_data.checkout,
-                      room_type: Bidding.roomType,
-                      total_members: Bidding.bookingGroupData.totalMember,
-                      total_rooms: Bidding.bookingGroupData.totalRooms,
-                      cancellation_date:
-                        utility.convertDateFromTimezone(currentDatatime),
-                      booking_id: Bidding.bookingGroupData.currentReference,
-                      booking_date: utility.convertDateFromTimezone(
-                        Bidding.bookingGroupData?.booking?.hotelCode?.createdAt
-                          ? Bidding.bookingGroupData.booking.hotelCode.createdAt
-                          : Bidding.createdAt
-                      ),
-                      total_price: Bidding.bookingGroupData.price,
-                      currency: Bidding.bookingGroupData.currency,
-                    }
+                const _response_cancel =
+                  await requestHandler.fetchResponseFromHotel(
+                    apiEndPoint,
+                    await grnRepository.getSessionToken(),
+                    { cutoff_time: 60000 }
                   );
-                } catch (err) {}
+                // console.log(_response_cancel);
+                if (_response_cancel !== undefined) {
+                  console.log("================================");
+                  console.log("cancel status", _response_cancel.data.status);
+                  console.log("================================");
+                  if (
+                    _response_cancel.data.status === "confirmed" ||
+                    _response_cancel.data.status === "pending"
+                  ) {
+                    console.log("================================");
+                    console.log(
+                      "Booking Cancellation Confirm/pending Refund Intialize"
+                    );
+                    console.log("================================");
+                    try {
+                      const sendmail_cancel = requestHandler.sendEmail(
+                        userData.email,
+                        "hotelBookingCancelled",
+                        `Reservation with ID: ${Bidding.bookingGroupData.currentReference} has been Cancelled`,
+                        {
+                          name: `${userData.firstName} ${userData.lastName}`,
+                          email: userData.email,
+                          hotel_name: previousHotelData?.hotelName,
+                          full_address: previousHotelData?.address,
+                          check_in: booking_request_data.checkin,
+                          check_out: booking_request_data.checkout,
+                          room_type: Bidding.roomType,
+                          total_members: Bidding.bookingGroupData.totalMember,
+                          total_rooms: Bidding.bookingGroupData.totalRooms,
+                          cancellation_date:
+                            utility.convertDateFromTimezone(currentDatatime),
+                          booking_id: Bidding.bookingGroupData.currentReference,
+                          booking_date: utility.convertDateFromTimezone(
+                            Bidding.bookingGroupData?.booking?.hotelCode
+                              ?.createdAt
+                              ? Bidding.bookingGroupData.booking.hotelCode
+                                  .createdAt
+                              : Bidding.createdAt
+                          ),
+                          total_price: Bidding.bookingGroupData.price,
+                          currency: Bidding.bookingGroupData.currency,
+                        }
+                      );
+                    } catch (err) {}
 
-                //  update the old booking cancelled
-                await HotelBooking.update(
-                  {
-                    platformStatus: "cancelled",
-                    platformcancelledDate:
-                      utility.convertDateFromTimezone(currentDatatime),
-                  },
-                  { where: { id: Bidding.bookingGroupData.bookingId } }
-                );
-                // update cancel log
-                const bookingLog = await HotelBookingLog.findAll({
-                  where: {
-                    groupId: Bidding.groupId,
-                    bookingId: Bidding.bookingGroupData.bookingId,
-                  },
-                });
-                // console.log(
-                //   bookingLog,
-                //   Bidding.groupId,
-                //   Bidding.bookingGroupData.bookingId
-                // );
-                for (let i = 0; i < bookingLog.length; i++) {
-                  const element1 = bookingLog[i];
-                  cardId = element1.cardId;
-                  if (element1.transactionId > 0) {
-                    transactionId = element1.transactionId;
-                  }
-                }
+                    //  update the old booking cancelled
+                    await HotelBooking.update(
+                      {
+                        status: "cancelled",
+                        platformStatus: "cancelled",
+                        platformcancelledDate:
+                          utility.convertDateFromTimezone(currentDatatime),
+                        cancelledDate: _response_cancel?.data?.cancel_date,
+                        refundAmout: parseFloat(
+                          parseFloat(
+                            _response_cancel?.data?.booking_price?.amount
+                          ) -
+                            parseFloat(
+                              _response_cancel.data?.cancellation_charges
+                                ?.amount
+                            )
+                        ).toFixed(2),
+                        cancellationCharge: parseFloat(
+                          _response_cancel.data?.cancellation_charges?.amount
+                        ).toFixed(2),
+                      },
+                      { where: { id: Bidding.bookingGroupData.bookingId } }
+                    );
+                    // update cancel log
+                    const bookingLog = await HotelBookingLog.findAll({
+                      where: {
+                        groupId: Bidding.groupId,
+                        bookingId: Bidding.bookingGroupData.bookingId,
+                      },
+                    });
+                    // console.log(
+                    //   bookingLog,
+                    //   Bidding.groupId,
+                    //   Bidding.bookingGroupData.bookingId
+                    // );
+                    for (let i = 0; i < bookingLog.length; i++) {
+                      const element1 = bookingLog[i];
+                      cardId = element1.cardId;
+                      if (element1.transactionId > 0) {
+                        transactionId = element1.transactionId;
+                      }
+                    }
 
-                const logRequest = {
-                  userId: userData.id,
-                  groupId: Bidding.groupId,
-                };
-                if (cardId > 0) {
-                  logRequest.cardId = cardId;
-                }
-                if (transactionId > 0) {
-                  logRequest.transactionId = transactionId;
-                }
-                // console.log(logRequest
-                HotelBookingLog.bulkCreate([
-                  {
-                    ...logRequest,
-                    bookingId: Bidding.bookingGroupData.bookingId,
-                    paymentStatus: "cancelled",
-                  },
-                  {
-                    ...logRequest,
-                    bookingId: booking.id,
-                    paymentStatus: "booked",
-                  },
-                ]);
-                //  update the booking complete
-                await HotelBidding.update(
-                  {
-                    status: "completed",
-                    latestPrice: totalPrice,
-                    priority: 999998,
-                    bookingId: booking.id,
-                  },
-                  { where: { id: Bidding.id } }
-                );
-                await HotelBidding.update(
-                  { status: "cancelled", priority: 999999 },
-                  {
-                    where: {
+                    const logRequest = {
+                      userId: userData.id,
                       groupId: Bidding.groupId,
-                      bookingId: null,
-                      id: { [Op.ne]: Bidding.id },
-                      [Op.and]: [
-                        { localPriority: { [Op.gt]: Bidding.localPriority } },
-                        { priority: { [Op.lt]: 999990 } },
-                      ],
-                    },
-                  }
-                );
-                // update the latest price in graph
-                const priceData = {
-                  userId: userData.id,
-                  biddingId: Bidding.id,
-                  latestPrice: totalPrice,
-                };
-                biddingRepository.updatelatestPriceThroghScheduler(priceData);
-
-                const getAllbookigs = await HotelBooking.findAll({
-                  where: {
-                    bookingGroupId: Bidding.groupId,
-                    status: "confirmed",
-                    platformStatus: "pending",
-                  },
-                });
-                if (getAllbookigs.length > 0) {
-                  let cancelledBookingFromBidding = [];
-                  const cancelAllBooking = getAllbookigs.map(async (x) => {
-                    const apiEndPointCancel = GRN_Apis.bookingCancel(
-                      x.bookingReference
+                    };
+                    if (cardId > 0) {
+                      logRequest.cardId = cardId;
+                    }
+                    if (transactionId > 0) {
+                      logRequest.transactionId = transactionId;
+                    }
+                    // console.log(logRequest
+                    HotelBookingLog.bulkCreate([
+                      {
+                        ...logRequest,
+                        bookingId: Bidding.bookingGroupData.bookingId,
+                        paymentStatus: "cancelled",
+                      },
+                      {
+                        ...logRequest,
+                        bookingId: booking.id,
+                        paymentStatus: "booked",
+                      },
+                    ]);
+                    //  update the booking complete
+                    await HotelBidding.update(
+                      {
+                        status: "completed",
+                        latestPrice: totalPrice,
+                        priority: 999998,
+                        bookingId: booking.id,
+                      },
+                      { where: { id: Bidding.id } }
                     );
-                    return await requestHandler.fetchResponseFromHotel(
-                      apiEndPointCancel,
-                      GRNtoken,
-                      { cutoff_time: 60000 }
-                    );
-                  });
-                  try {
-                    cancelledBookingFromBidding = await Promise.all(
-                      cancelAllBooking
-                    );
-                  } catch (err) {
-                    console.log(err);
-                  }
-                  const updateDataAndMailPromiseforCancelledBooking =
-                    cancelledBookingFromBidding?.map(async (x, i) => {
-                      let transactionId = 0,
-                        cardId = 0;
-                      const _response_cancel = x;
-                      const bookingObjectData = getAllbookigs[i];
-                      const bookingGroupObject = Bidding.bookingGroupData;
-                      const userData = Bidding.userData;
-                      const previousHotelData = previousHotelData;
-                      if (_response_cancel !== undefined) {
-                        console.log("================================");
-                        console.log(
-                          "cancel status",
-                          _response_cancel.data.status
-                        );
-                        console.log("================================");
-                        if (
-                          _response_cancel.data.status === "confirmed" ||
-                          _response_cancel.data.status === "pending"
-                        ) {
-                          console.log("================================");
-                          console.log(
-                            "Booking Cancellation Confirm/pending Refund Intialize",
-                            _response_cancel.data.status
-                          );
-                          console.log("================================");
-                          try {
-                            const sendmail_cancel = requestHandler.sendEmail(
-                              userData.email,
-                              "hotelBookingCancelled",
-                              `Reservation with ID: ${bookingObjectData.bookingReference} has been Cancelled`,
-                              {
-                                name: `${userData.firstName} ${userData.lastName}`,
-                                email: userData.email,
-                                hotel_name: previousHotelData?.hotelName,
-                                full_address: previousHotelData?.address,
-                                check_in: bookingGroupObject.checkIn,
-                                check_out: bookingGroupObject.checkOut,
-                                room_type: bookingObjectData.roomType,
-                                total_members: bookingGroupObject.totalMember,
-                                total_rooms: bookingGroupObject.totalRooms,
-                                cancellation_date:
-                                  utility.convertDateFromTimezone(
-                                    _response_cancel?.data?.cancel_date
-                                  ),
-                                booking_id: bookingGroupObject.currentReference,
-                                booking_date: utility.convertDateFromTimezone(
-                                  bookingGroupObject.createdAt
-                                ),
-                                total_price: bookingObjectData.totalPrice,
-                                currency: bookingGroupObject.currency,
-                              }
-                            );
-                          } catch (err) {}
-                          HotelBooking.update(
+                    await HotelBidding.update(
+                      { status: "cancelled", priority: 999999 },
+                      {
+                        where: {
+                          groupId: Bidding.groupId,
+                          bookingId: null,
+                          id: { [Op.ne]: Bidding.id },
+                          [Op.and]: [
                             {
-                              status: "cancelled",
-                              platformStatus: "cancelled",
-                              cancelledDate:
-                                _response_cancel?.data?.cancel_date,
-                              refundAmout: parseFloat(
-                                parseFloat(
-                                  _response_cancel?.data?.booking_price?.amount
-                                ) -
-                                  parseFloat(
+                              localPriority: { [Op.gt]: Bidding.localPriority },
+                            },
+                            { priority: { [Op.lt]: 999990 } },
+                          ],
+                        },
+                      }
+                    );
+                    // update the latest price in graph
+                    const priceData = {
+                      userId: userData.id,
+                      biddingId: Bidding.id,
+                      latestPrice: totalPrice,
+                    };
+                    biddingRepository.updatelatestPriceThroghScheduler(
+                      priceData
+                    );
+
+                    const getAllbookigs = await HotelBooking.findAll({
+                      where: {
+                        bookingGroupId: Bidding.groupId,
+                        status: "confirmed",
+                        platformStatus: "pending",
+                      },
+                    });
+                    if (getAllbookigs.length > 0) {
+                      let cancelledBookingFromBidding = [];
+                      const cancelAllBooking = getAllbookigs.map(async (x) => {
+                        const apiEndPointCancel = GRN_Apis.bookingCancel(
+                          x.bookingReference
+                        );
+                        return await requestHandler.fetchResponseFromHotel(
+                          apiEndPointCancel,
+                          GRNtoken,
+                          { cutoff_time: 60000 }
+                        );
+                      });
+                      try {
+                        cancelledBookingFromBidding = await Promise.all(
+                          cancelAllBooking
+                        );
+                      } catch (err) {
+                        console.log(err);
+                      }
+                      const updateDataAndMailPromiseforCancelledBooking =
+                        cancelledBookingFromBidding?.map(async (x, i) => {
+                          let transactionId = 0,
+                            cardId = 0;
+                          const _response_cancel = x;
+                          const bookingObjectData = getAllbookigs[i];
+                          const bookingGroupObject = Bidding.bookingGroupData;
+                          const userData = Bidding.userData;
+                          const previousHotelData = previousHotelData;
+                          if (_response_cancel !== undefined) {
+                            console.log("================================");
+                            console.log(
+                              "cancel status",
+                              _response_cancel.data.status
+                            );
+                            console.log("================================");
+                            if (
+                              _response_cancel.data.status === "confirmed" ||
+                              _response_cancel.data.status === "pending"
+                            ) {
+                              console.log("================================");
+                              console.log(
+                                "Booking Cancellation Confirm/pending Refund Intialize",
+                                _response_cancel.data.status
+                              );
+                              console.log("================================");
+                              try {
+                                const sendmail_cancel =
+                                  requestHandler.sendEmail(
+                                    userData.email,
+                                    "hotelBookingCancelled",
+                                    `Reservation with ID: ${bookingObjectData.bookingReference} has been Cancelled`,
+                                    {
+                                      name: `${userData.firstName} ${userData.lastName}`,
+                                      email: userData.email,
+                                      hotel_name: previousHotelData?.hotelName,
+                                      full_address: previousHotelData?.address,
+                                      check_in: bookingGroupObject.checkIn,
+                                      check_out: bookingGroupObject.checkOut,
+                                      room_type: bookingObjectData.roomType,
+                                      total_members:
+                                        bookingGroupObject.totalMember,
+                                      total_rooms:
+                                        bookingGroupObject.totalRooms,
+                                      cancellation_date:
+                                        utility.convertDateFromTimezone(
+                                          _response_cancel?.data?.cancel_date
+                                        ),
+                                      booking_id:
+                                        bookingGroupObject.currentReference,
+                                      booking_date:
+                                        utility.convertDateFromTimezone(
+                                          bookingGroupObject.createdAt
+                                        ),
+                                      total_price: bookingObjectData.totalPrice,
+                                      currency: bookingGroupObject.currency,
+                                    }
+                                  );
+                              } catch (err) {}
+                              HotelBooking.update(
+                                {
+                                  status: "cancelled",
+                                  platformStatus: "cancelled",
+                                  cancelledDate:
+                                    _response_cancel?.data?.cancel_date,
+                                  refundAmout: parseFloat(
+                                    parseFloat(
+                                      _response_cancel?.data?.booking_price
+                                        ?.amount
+                                    ) -
+                                      parseFloat(
+                                        _response_cancel.data
+                                          ?.cancellation_charges?.amount
+                                      )
+                                  ).toFixed(2),
+                                  cancellationCharge: parseFloat(
                                     _response_cancel.data?.cancellation_charges
                                       ?.amount
-                                  )
-                              ).toFixed(2),
-                              cancellationCharge: parseFloat(
-                                _response_cancel.data?.cancellation_charges
-                                  ?.amount
-                              ).toFixed(2),
-                            },
-                            { where: { id: bookingObjectData.id } }
-                          );
-                          //  update logs
-                          const bookingLog = await HotelBookingLog.findAll({
-                            where: {
-                              groupId: bookingGroupObject.id,
-                              bookingId: bookingObjectData.id,
-                            },
-                          });
-                          // console.log(bookingLog);
-                          for (let i = 0; i < bookingLog.length; i++) {
-                            const element1 = bookingLog[i];
-                            cardId = element1.cardId;
-                            if (element1.transactionId > 0) {
-                              transactionId = element1.transactionId;
+                                  ).toFixed(2),
+                                },
+                                { where: { id: bookingObjectData.id } }
+                              );
+                              //  update logs
+                              const bookingLog = await HotelBookingLog.findAll({
+                                where: {
+                                  groupId: bookingGroupObject.id,
+                                  bookingId: bookingObjectData.id,
+                                },
+                              });
+                              // console.log(bookingLog);
+                              for (let i = 0; i < bookingLog.length; i++) {
+                                const element1 = bookingLog[i];
+                                cardId = element1.cardId;
+                                if (element1.transactionId > 0) {
+                                  transactionId = element1.transactionId;
+                                }
+                              }
+                              const logRequest = {
+                                userId: bookingGroupObject.userId,
+                                groupId: bookingGroupObject.id,
+                              };
+                              if (cardId > 0) {
+                                logRequest.cardId = cardId;
+                              }
+                              if (transactionId > 0) {
+                                logRequest.transactionId = transactionId;
+                              }
+                              // console.log(logRequest);
+                              HotelBookingLog.create({
+                                ...logRequest,
+                                bookingId: bookingObjectData.id,
+                                paymentStatus: "cancelled",
+                              });
                             }
+                            return true;
                           }
-                          const logRequest = {
-                            userId: bookingGroupObject.userId,
-                            groupId: bookingGroupObject.id,
-                          };
-                          if (cardId > 0) {
-                            logRequest.cardId = cardId;
-                          }
-                          if (transactionId > 0) {
-                            logRequest.transactionId = transactionId;
-                          }
-                          // console.log(logRequest);
-                          HotelBookingLog.create({
-                            ...logRequest,
-                            bookingId: bookingObjectData.id,
-                            paymentStatus: "cancelled",
-                          });
-                        }
-                        return true;
+                        });
+                      try {
+                        await Promise.all(
+                          updateDataAndMailPromiseforCancelledBooking
+                        );
+                      } catch (err) {
+                        console.log(err);
                       }
-                    });
-                  try {
-                    await Promise.all(
-                      updateDataAndMailPromiseforCancelledBooking
-                    );
-                  } catch (err) {
-                    console.log(err);
+                    }
                   }
                 }
               }

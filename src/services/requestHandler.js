@@ -170,9 +170,9 @@ export default {
           "Content-Type": "application/json",
         },
       };
-      console.log(_request);
+      // console.log(_request);
       const { data } = await axios(_request);
-      console.log(data);
+      console.log(data?.convertedAmount);
       return data;
     } catch (error) {
       console.log(error?.response?.data);
