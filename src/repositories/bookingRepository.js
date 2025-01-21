@@ -935,8 +935,37 @@ export default {
   async UpdateTheActionAcceptOrReject(req) {
     try {
       const bodyData = req.body;
-      const bookingObject = req.bookingObject;
+      const bookingGroupObject = req.bookingObject;
       const booking = req.booking;
+      let transactionId = 0,
+        cardId = 0;
+
+      //  update logs
+      const bookingLog = await HotelBookingLog.findAll({
+        where: {
+          groupId: booking.bookingGroupId,
+          bookingId: booking.id,
+        },
+      });
+      // console.log(bookingLog);
+      for (let i = 0; i < bookingLog.length; i++) {
+        const element1 = bookingLog[i];
+        cardId = element1.cardId;
+        if (element1.transactionId > 0) {
+          transactionId = element1.transactionId;
+        }
+      }
+      const logRequest = {
+        userId: booking.userId,
+        groupId: booking.bookingGroupId,
+      };
+      if (cardId > 0) {
+        logRequest.cardId = cardId;
+      }
+      if (transactionId > 0) {
+        logRequest.transactionId = transactionId;
+      }
+
       if (bodyData.action === "reject") {
         const GRNtoken = await grnRepository.getSessionToken();
         const apiEndPoint = GRN_Apis.bookingCancel(booking.bookingReference);
@@ -965,6 +994,13 @@ export default {
             cancellationCharge:
               _response_cancel.data?.cancellation_details?.cancellation_charge,
           });
+          //update the logs
+          HotelBookingLog.create({
+            ...logRequest,
+            bookingId: booking.id,
+            paymentStatus: "cancelled",
+          });
+
           if (booking.biddingId) {
             const biddingDetail = await HotelBidding.findOne({
               where: {
@@ -994,32 +1030,52 @@ export default {
           return false;
         }
       } else {
-        await HotelBooking.update(
-          { platformStatus: "cancelled" },
-          {
-            where: {
-              bookingGroupId: req.params.bookingId,
-              platformStatus: "confirmed",
-              biddingId: { [Op.ne]: null },
-            },
-          }
-        );
-        await HotelBooking.update(
-          { platformStatus: "rejected" },
-          {
-            where: {
-              bookingGroupId: req.params.bookingId,
-              platformStatus: "confirmed",
-              biddingId: { [Op.eq]: null },
-            },
-          }
-        );
+        // cancell all accept reject booking
+        const acceptRejectBookings = await HotelBooking.fildAll({
+          where: {
+            bookingGroupId: req.params.bookingId,
+            platformStatus: "confirmed",
+            biddingId: { [Op.ne]: null },
+          },
+        });
+        if (acceptRejectBookings.length > 0) {
+          await acceptRejectBookings.filter(async (x) => {
+            await HotelBooking.update(
+              { platformStatus: "cancelled" },
+              { where: { id: x.id } }
+            );
+            //update the logs
+            HotelBookingLog.create({
+              ...logRequest,
+              bookingId: x.id,
+              paymentStatus: "cancelled",
+            });
+          });
+        }
+        // cancel main booking
+        const mainBooking = await HotelBooking.findOne({
+          where: {
+            bookingGroupId: req.params.bookingId,
+            platformStatus: "confirmed",
+            biddingId: { [Op.eq]: null },
+          },
+        });
+        if (mainBooking) {
+          await mainBooking.update({ platformStatus: "rejected" });
+          // //update the logs
+          HotelBookingLog.create({
+            ...logRequest,
+            bookingId: mainBooking.id,
+            paymentStatus: "cancelled",
+          });
+        }
         await booking.update({ platformStatus: "confirmed" });
-        await bookingObject.update({
+        await bookingGroupObject.update({
           bookingId: bodyData.bookingId,
           currentReference: booking.bookingReference,
           price: booking.totalPrice,
         });
+
         if (booking.biddingId) {
           const biddingDetail = await HotelBidding.findOne({
             where: {
