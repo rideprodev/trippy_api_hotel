@@ -102,7 +102,7 @@ router.post(
 );
 
 router.post(
-  "/change-priority/:id",
+  "/change-priority/:groupId",
   authMiddleware,
   validateMiddleware({
     schema: biddingValidator.changePriority,

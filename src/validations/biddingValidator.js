@@ -35,9 +35,7 @@ const checkBookingForBidding = Joi.object({
 });
 
 const changePriority = Joi.object({
-  groupId: Joi.string().required(),
-  newPosition: Joi.string().required(),
-  currentPosition: Joi.string().required(),
+  postions: Joi.array().min(1).required(),
 });
 
 export default {
