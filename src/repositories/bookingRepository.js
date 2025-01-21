@@ -1032,7 +1032,7 @@ export default {
         }
       } else {
         // cancell all accept reject booking
-        const acceptRejectBookings = await HotelBooking.fildAll({
+        const acceptRejectBookings = await HotelBooking.findAll({
           where: {
             bookingGroupId: req.params.bookingId,
             platformStatus: "confirmed",
