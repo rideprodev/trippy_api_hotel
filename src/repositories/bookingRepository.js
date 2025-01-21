@@ -469,6 +469,7 @@ export default {
           {
             model: HotelBooking,
             as: "bookings",
+            limit: 5,
           },
           {
             model: HotelBidding,
