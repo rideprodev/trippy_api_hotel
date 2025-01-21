@@ -537,15 +537,22 @@ export default {
     try {
       const bodyData = req.body;
       const bookingData = await bookingRepository.getOneActiveBooking({
-        bookingGroupId: bodyData.groupId,
+        bookingGroupId: req.params.groupId,
         status: "confirmed",
         platformStatus: "confirmed",
       });
-      if (bookingData) {
-        if (bodyData.newPosition > 999990) {
-          utility.getError(res, "not permitted for this position!");
-        } else {
+      if (bookingData && bodyData.postions.length > 0) {
+        let checkPriorityPermitted = false;
+        for (let index = 0; index < bodyData.postions.length; index++) {
+          const element = bodyData.postions[index];
+          if (element.priority > 999990) {
+            checkPriorityPermitted = true;
+          }
+        }
+        if (checkPriorityPermitted === false) {
           next();
+        } else {
+          utility.getError(res, "not permitted for this position!");
         }
       } else {
         utility.getError(

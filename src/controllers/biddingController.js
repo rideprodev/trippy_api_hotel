@@ -244,79 +244,20 @@ export default {
    */
   async changePriority(req, res, next) {
     try {
-      let newUpdatedPriority = [],
-        updatedPriorities = [];
       const bodyData = req.body;
-      const biddingData = await biddingRepository.getAllBidding(
-        {
-          status: "active",
-          groupId: bodyData.groupId,
-        },
-        ["priority", "ASC"]
+      const updateBiddingData = bodyData.postions.map(
+        async (x) =>
+          await biddingRepository.updateBiddingWhere(
+            { priority: x.priority, localPriority: x.priority },
+            { id: x.id }
+          )
       );
-      if (biddingData.length > 1) {
-        const returnData = (id, priority) => {
-          return { id, priority };
-        };
-        if (+bodyData.currentPosition > +bodyData.newPosition) {
-          updatedPriorities = biddingData.map((x) => {
-            if (
-              +x.priority < +bodyData.newPosition ||
-              +x.priority > +bodyData.currentPosition
-            ) {
-              return returnData(x.id, x.priority);
-            } else if (+x.priority == +bodyData.currentPosition) {
-              x.priority = +bodyData.newPosition;
-              return returnData(x.id, x.priority);
-            } else if (
-              +x.priority >= +bodyData.newPosition &&
-              +x.priority != +bodyData.currentPosition
-            ) {
-              x.priority = +x.priority + 1;
-
-              return returnData(x.id, x.priority);
-            }
-          });
-        } else {
-          updatedPriorities = biddingData.map((x) => {
-            if (
-              +x.priority > +bodyData.newPosition ||
-              +x.priority < +bodyData.currentPosition
-            ) {
-              return returnData(x.id, x.priority);
-            } else if (+x.priority == +bodyData.currentPosition) {
-              x.priority = +bodyData.newPosition;
-              return returnData(x.id, x.priority);
-            } else if (
-              +x.priority != +bodyData.currentPosition &&
-              +x.priority <= +bodyData.newPosition
-            ) {
-              x.priority = +x.priority - 1;
-              return returnData(x.id, x.priority);
-            }
-          });
-        }
-
-        const updateBiddingData = updatedPriorities.map(
-          async (x) =>
-            await biddingRepository.updateBiddingWhere(
-              { priority: x.priority, localPriority: x.priority },
-              { id: x.id }
-            )
-        );
-
-        try {
-          await Promise.all(updateBiddingData);
-        } catch (err) {
-          console.log(err);
-        }
-
-        newUpdatedPriority = updatedPriorities.sort(
-          (a, b) => a.priority - b.priority
-        );
+      try {
+        await Promise.all(updateBiddingData);
+      } catch (err) {
+        console.log(err);
       }
-
-      utility.getResponse(res, newUpdatedPriority, "RETRIVED");
+      utility.getResponse(res, null, "UPDATED");
     } catch (error) {
       next(error);
     }
