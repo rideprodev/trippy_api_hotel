@@ -5,7 +5,7 @@ import config from "../config";
 import grnRepository from "./grnRepository";
 import biddingRepository from "./biddingRepository";
 import GRN_Apis from "../config/GRN_Apis";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import bookingRepository from "./bookingRepository";
 const {
   User,
@@ -36,7 +36,6 @@ export default {
           status: "confirmed",
           platformStatus: "confirmed",
           platformPaymentStatus: { [Op.ne]: "paid" },
-          id: 355,
         },
       });
       // Find All Current Dates
@@ -58,7 +57,7 @@ export default {
           const elementExpaired = expairedBooking[e];
           console.log("expairedBooking", elementExpaired.id);
           const expairedGroupObject = await HotelBookingGroup.findOne({
-            attributes: ["id", "totalMember", "totalRooms"],
+            attributes: ["id", "totalMember", "totalRooms", "status"],
             where: { id: elementExpaired.bookingGroupId },
           });
           const userData = await User.findOne({
@@ -94,7 +93,7 @@ export default {
               }
             );
           } catch (err) {}
-          HotelBooking.update(
+          await HotelBooking.update(
             // status is confiremed && platform is cancelled means the booking expired
             {
               platformStatus: "cancelled",
@@ -102,6 +101,7 @@ export default {
             },
             { where: { id: elementExpaired.id } }
           );
+          await expairedGroupObject.update({ status: "cancelled" });
           const AllBookings = await HotelBooking.findAll({
             attributes: ["id", "bookingReference"],
             where: {
@@ -259,14 +259,14 @@ export default {
           platformPaymentStatus = "failed";
         }
 
-        console.log(
-          element.id,
-          element.cancelByDate,
-          currentDate,
-          daysDifference,
-          parseInt(daysDifference),
-          element.platformPaymentStatus
-        );
+        // console.log(
+        //   element.id,
+        //   element.cancelByDate,
+        //   currentDate,
+        //   daysDifference,
+        //   parseInt(daysDifference),
+        //   element.platformPaymentStatus
+        // );
       }
       // if payment performed
       if (payemntForBooking.length > 0) {
@@ -495,6 +495,8 @@ export default {
                   );
                 } catch (err) {}
               }
+            } else {
+              console.log("Currency Converter Issue!");
             }
           }
         }
@@ -2091,7 +2093,7 @@ export default {
                     biddingRepository.updatelatestPriceThroghScheduler(
                       priceData
                     );
-
+                    // get all confirm pending bookings and cacelled all
                     const getAllbookigs = await HotelBooking.findAll({
                       where: {
                         bookingGroupId: Bidding.groupId,
@@ -2263,6 +2265,103 @@ export default {
         // search_respose,
         // Bidding,
       };
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Auto Cancelled Expired booking
+   * @param {Object}
+   */
+  async autoExpiredBookingCancelled() {
+    try {
+      const currentDate = utility.convertDateFromTimezone();
+      const expiredBookings = await HotelBooking.findAll({
+        attributes: [
+          "id",
+          "bookingReference",
+          "expirationDate",
+          "bookingGroupId",
+        ],
+        where: [
+          Sequelize.where(
+            Sequelize.fn(
+              "STR_TO_DATE",
+              Sequelize.col("HotelBooking.expiration_date"),
+              "%Y-%m-%d"
+            ),
+            Op.lte,
+            Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d")
+          ),
+          { status: "confirmed" },
+          { platform_status: "cancelled" },
+        ],
+      });
+      if (expiredBookings.length > 0) {
+        let cancelledBookingFromBidding = [];
+        const GRNtoken = await grnRepository.getSessionToken();
+        const cancelAllBooking = expiredBookings.map(async (x) => {
+          console.log("expired Booking", x);
+          const apiEndPointCancel = GRN_Apis.bookingCancel(x.bookingReference);
+          return await requestHandler.fetchResponseFromHotel(
+            apiEndPointCancel,
+            GRNtoken,
+            { cutoff_time: 60000 }
+          );
+        });
+        try {
+          cancelledBookingFromBidding = await Promise.all(cancelAllBooking);
+        } catch (err) {
+          console.log(err);
+        }
+        const updateDataAndMailPromiseforCancelledBooking =
+          cancelledBookingFromBidding?.map(async (x, i) => {
+            const _response_cancel = x;
+            const bookingObjectData = expiredBookings[i];
+            console.log("bookingObjectData", bookingObjectData.id);
+            if (_response_cancel !== undefined) {
+              console.log("================================");
+              console.log("cancel status", _response_cancel.data?.status);
+              console.log("================================");
+              if (
+                _response_cancel.data.status === "confirmed" ||
+                _response_cancel.data.status === "pending"
+              ) {
+                console.log("================================");
+                console.log(
+                  "Booking Cancellation Confirm/pending Refund Intialize"
+                );
+                console.log("================================");
+                HotelBooking.update(
+                  {
+                    status: "cancelled",
+                    cancelledDate: _response_cancel?.data?.cancel_date,
+                    refundAmout: parseFloat(
+                      parseFloat(
+                        _response_cancel?.data?.booking_price?.amount
+                      ) -
+                        parseFloat(
+                          _response_cancel.data?.cancellation_charges?.amount
+                        )
+                    ).toFixed(2),
+                    cancellationCharge: parseFloat(
+                      _response_cancel.data?.cancellation_charges?.amount
+                    ).toFixed(2),
+                  },
+                  { where: { id: bookingObjectData.id } }
+                );
+              }
+            }
+            return true;
+          });
+        try {
+          await Promise.all(updateDataAndMailPromiseforCancelledBooking);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      return true;
     } catch (error) {
       throw Error(error);
     }

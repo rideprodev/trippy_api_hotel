@@ -33,4 +33,21 @@ export default {
       next(error);
     }
   },
+
+  /**
+   * Cancelled All Expired Booking
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   */
+  async autoExpiredBookingCancelled(req, res, next) {
+    try {
+      const response = await schedulerRepository.autoExpiredBookingCancelled(
+        req
+      );
+      utility.getResponse(res, response, "RETRIVED");
+    } catch (error) {
+      next(error);
+    }
+  },
 };

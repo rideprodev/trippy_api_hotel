@@ -172,7 +172,7 @@ export default {
       };
       // console.log(_request);
       const { data } = await axios(_request);
-      console.log(data?.convertedAmount);
+      console.log("currency_converter", data?.convertedAmount);
       return data;
     } catch (error) {
       console.log(error?.response?.data);
