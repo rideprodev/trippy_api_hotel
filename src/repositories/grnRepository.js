@@ -411,7 +411,8 @@ export default {
                   check_out: bodyData.checkOut,
                   room_type: bodyData.roomType,
                   total_members: bodyData.totalMember,
-                  cancellation_date: cancelByDate,
+                  cancellation_date:
+                    utility.convertDateFromTimezone(cancelByDate),
                   total_price: bodyData.totalPrice,
                   booking_id: bookingGroup.currentReference,
                   booking_date: utility.convertDateFromTimezone(

@@ -495,6 +495,7 @@ export default {
             "createdAt",
             "bookingComments",
             "currency",
+            "price",
           ],
           model: HotelBookingGroup,
           as: "bookingGroupData",
@@ -502,7 +503,7 @@ export default {
           include: {
             model: HotelBooking,
             as: "booking",
-            attributes: ["hotelCode"],
+            attributes: ["hotelCode", "createdAt"],
           },
         },
         {

@@ -866,6 +866,7 @@ export default {
               "platformPaymentStatus",
               "cancelByDate",
               "biddingId",
+              "createdAt",
             ],
           },
           {
