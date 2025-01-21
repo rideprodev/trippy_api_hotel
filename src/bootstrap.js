@@ -176,6 +176,10 @@ export default class Bootstrap {
       scheduleJob.AutoPayment();
     });
 
+    schedule.scheduleJob("0 0 12 * * *", (fireDate) => {
+      scheduleJob.AutoExpiredBookingCancelled();
+    });
+
     schedule.scheduleJob("0 0 23 * * *", (fireDate) => {
       scheduleJob.AutoBookingOnBidding();
     });

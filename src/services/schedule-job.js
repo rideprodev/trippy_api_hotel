@@ -26,4 +26,15 @@ export default {
       errorLogger.error(JSON.stringify(error));
     }
   },
+
+  /**
+   * Expired Booking Cancellation scheduler
+   */
+  async AutoExpiredBookingCancelled(req, res, next) {
+    try {
+      await schedulerRepository.autoExpiredBookingCancelled(req);
+    } catch (error) {
+      errorLogger.error(JSON.stringify(error));
+    }
+  },
 };

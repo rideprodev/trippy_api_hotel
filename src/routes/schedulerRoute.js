@@ -12,4 +12,9 @@ router.get("/auto-pay", schedulerController.autoPayemnt);
 
 router.get("/auto-booking", schedulerController.autoBookingOnBidding);
 
+router.get(
+  "/auto-booking-cancelled",
+  schedulerController.autoExpiredBookingCancelled
+);
+
 export default router;
