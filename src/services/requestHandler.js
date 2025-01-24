@@ -163,15 +163,19 @@ export default {
         }/convert?from=${currency}&to=${"AUD"}&amount=${amount}&api_key=${
           config.app.CurrencyConverterToken
         }`,
-        data: requestData,
         headers: {
           "Content-Type": "application/json",
         },
       };
       // console.log(_request);
       const { data } = await axios(_request);
-      console.log("currency_converter", data?.convertedAmount);
-      // return data;
+      console.log("currencyConverter", data);
+      if (data && data.result) {
+        console.log(data.result.AUD);
+        return data.result.AUD;
+      } else {
+        return false;
+      }
     } catch (error) {
       console.log(error?.response?.data);
     }

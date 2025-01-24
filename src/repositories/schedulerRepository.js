@@ -318,11 +318,7 @@ export default {
               amount,
               element.currency
             );
-            if (
-              convertedCurrency &&
-              convertedCurrency.convertedAmount &&
-              convertedCurrency.convertedAmount.length > 0
-            ) {
+            if (convertedCurrency && convertedCurrency > 0) {
               // perform the authtication
               const _requestTransactionAuthentication = {
                 userId: element.userId,
@@ -346,7 +342,7 @@ export default {
                 transactionData.data.id
               ) {
                 try {
-                  amount = convertedCurrency.convertedAmount[0] - 1;
+                  amount = convertedCurrency - 1;
                   console.log("Remaining Amount", amount);
                   await requestHandler.sendEmail(
                     userData.email,
@@ -391,17 +387,13 @@ export default {
               { platformPaymentStatus: platformPaymentStatus },
               { where: { id: element.id } }
             );
-          } else {
+          } else if (paymentDaysDifference === 1) {
             const convertedCurrency = await requestHandler.convertCurrency(
               amount,
               element.currency
             );
-            if (
-              convertedCurrency &&
-              convertedCurrency.convertedAmount &&
-              convertedCurrency.convertedAmount.length > 0
-            ) {
-              amount = convertedCurrency.convertedAmount[0] - 1;
+            if (convertedCurrency && convertedCurrency > 0) {
+              amount = convertedCurrency - 1;
               console.log("Paid Amount", amount);
               const _requestTransaction = {
                 userId: element.userId,
