@@ -314,36 +314,36 @@ export default {
               );
             } catch (err) {}
           } else if (paymentDaysDifference === 2) {
-            // perform the authtication
-            const _requestTransactionAuthentication = {
-              userId: element.userId,
-              paymentFor: "hotel",
-              paymentType: "direct",
-              description: `Authentication for booking Id-${element.bookingReference}`,
-              amount: "1.00",
-              currency: "AUD",
-              cardId: cardId.cardId,
-              card: {},
-              isAdded: false,
-              reason: "",
-            };
-            // console.log(_requestTransactionAuthentication);
-            const transactionData = await requestHandler.sendForPay(
-              _requestTransactionAuthentication
+            const convertedCurrency = await requestHandler.convertCurrency(
+              amount,
+              element.currency
             );
             if (
-              transactionData &&
-              transactionData.data &&
-              transactionData.data.id
+              convertedCurrency &&
+              convertedCurrency.convertedAmount &&
+              convertedCurrency.convertedAmount.length > 0
             ) {
-              const convertedCurrency = await requestHandler.convertCurrency(
-                amount,
-                element.currency
+              // perform the authtication
+              const _requestTransactionAuthentication = {
+                userId: element.userId,
+                paymentFor: "hotel",
+                paymentType: "direct",
+                description: `Authentication for booking Id-${element.bookingReference}`,
+                amount: "1.00",
+                currency: "AUD",
+                cardId: cardId.cardId,
+                card: {},
+                isAdded: false,
+                reason: "",
+              };
+              // console.log(_requestTransactionAuthentication);
+              const transactionData = await requestHandler.sendForPay(
+                _requestTransactionAuthentication
               );
               if (
-                convertedCurrency &&
-                convertedCurrency.convertedAmount &&
-                convertedCurrency.convertedAmount.length > 0
+                transactionData &&
+                transactionData.data &&
+                transactionData.data.id
               ) {
                 try {
                   amount = convertedCurrency.convertedAmount[0] - 1;
@@ -2295,7 +2295,12 @@ export default {
             Sequelize.fn("STR_TO_DATE", currentDate, "%Y-%m-%d")
           ),
           { status: "confirmed" },
-          { platform_status: "cancelled" },
+          {
+            [Op.or]: [
+              { platform_status: "cancelled" },
+              { platform_status: "rejected" },
+            ],
+          },
         ],
       });
       if (expiredBookings.length > 0) {

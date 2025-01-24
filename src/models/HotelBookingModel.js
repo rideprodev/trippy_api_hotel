@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       },
       hotelCode: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.INTEGER(30),
         allowNull: false,
       },
       cityCode: {
@@ -121,14 +121,6 @@ module.exports = (sequelize, DataTypes) => {
       indexes: [
         {
           unique: false,
-          fields: ["hotel_code"],
-        },
-        {
-          unique: false,
-          fields: ["city_code"],
-        },
-        {
-          unique: false,
           fields: ["status"],
         },
       ],
@@ -144,6 +136,10 @@ module.exports = (sequelize, DataTypes) => {
     HotelBooking.belongsTo(models.HotelBidding, {
       foreignKey: "biddingId",
       as: "biddingData",
+    });
+    HotelBooking.belongsTo(models.Hotel, {
+      foreignKey: "hotelCode",
+      as: "hotelData",
     });
   };
   return HotelBooking;

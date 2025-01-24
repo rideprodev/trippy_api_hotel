@@ -3,8 +3,10 @@ module.exports = (sequelize, DataTypes) => {
     "HotelCity",
     {
       cityCode: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.INTEGER(30),
         allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
       },
       cityName: {
         type: DataTypes.STRING(255),
@@ -25,10 +27,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       indexes: [
-        {
-          unique: false,
-          fields: ["city_code"],
-        },
         {
           unique: false,
           fields: ["city_name"],

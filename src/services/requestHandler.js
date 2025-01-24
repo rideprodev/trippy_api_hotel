@@ -156,15 +156,13 @@ export default {
 
   async convertCurrency(amount, currency) {
     try {
-      const requestData = {
-        from: currency,
-        to: "AUD",
-        amount: [amount],
-      };
-
       const _request = {
-        method: "post",
-        url: `${config.app.CureencyConvertUrl}convert-currency`,
+        method: "get",
+        url: `${
+          config.app.CureencyConvertUrl
+        }/convert?from=${currency}&to=${"AUD"}&amount=${amount}&api_key=${
+          config.app.CurrencyConverterToken
+        }`,
         data: requestData,
         headers: {
           "Content-Type": "application/json",
@@ -173,7 +171,7 @@ export default {
       // console.log(_request);
       const { data } = await axios(_request);
       console.log("currency_converter", data?.convertedAmount);
-      return data;
+      // return data;
     } catch (error) {
       console.log(error?.response?.data);
     }
