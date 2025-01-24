@@ -14,7 +14,6 @@ const {
   HotelCountry,
   HotelBookingLog,
   HotelBidding,
-  HotelBiddingPrices,
   HotelImage,
   UserPersonalInformation,
   PayBackRequest,
