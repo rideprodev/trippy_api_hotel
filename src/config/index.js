@@ -15,6 +15,7 @@ export default {
     MailerHost: process.env.MAILER_HOST,
     GRNBaseUrl: process.env.GRN_BASE_URL,
     CureencyConvertUrl: process.env.CURRENCY_CONVERT_URL,
+    CurrencyConverterToken: process.env.CURRENCY_CONVERTER_TOKEN,
     GRNPercentageKey: process.env.GRN_PERCENTAGE_KEY,
     biddingLimitOnBooking: process.env.BIDDING_LIMIT_ON_BOOKING,
     currency: process.env.CURRENCY_ABBR,

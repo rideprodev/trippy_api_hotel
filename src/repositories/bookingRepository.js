@@ -236,6 +236,30 @@ export default {
           model: HotelBooking,
           as: "booking",
           required: false,
+          include: {
+            attributes: ["hotelCode", "hotelName"],
+            model: Hotel,
+            as: "hotelData",
+            include: [
+              {
+                attributes: ["cityCode", "cityName"],
+                model: HotelCity,
+                as: "cityData",
+              },
+              {
+                attributes: ["countryCode", "countryName"],
+                model: HotelCountry,
+                as: "countryData",
+              },
+              {
+                attributes: ["imageUrl"],
+                model: HotelImage,
+                as: "image",
+                where: { mainImage: "Y" },
+                required: false,
+              },
+            ],
+          },
         },
         {
           attributes: [
@@ -255,12 +279,26 @@ export default {
           model: HotelBidding,
           as: "biddingData",
           required: false,
-          include: {
-            attributes: ["status", "platformStatus"],
-            model: HotelBooking,
-            as: "biddingBookingData",
-            required: false,
-          },
+          include: [
+            {
+              attributes: ["status", "platformStatus"],
+              model: HotelBooking,
+              as: "biddingBookingData",
+              required: false,
+            },
+            {
+              attributes: ["hotelCode", "hotelName"],
+              model: Hotel,
+              as: "hotelData",
+              include: {
+                attributes: ["imageUrl"],
+                model: HotelImage,
+                as: "image",
+                where: { mainImage: "Y" },
+                required: false,
+              },
+            },
+          ],
         },
       ];
 
@@ -344,64 +382,6 @@ export default {
         offset: offset,
         limit: limit,
       });
-
-      for (let i = 0; i < _hotels.rows.length; i++) {
-        const element = _hotels.rows[i];
-        if (element?.booking?.hotelCode) {
-          element.dataValues.hotelData = await Hotel.findOne({
-            attributes: ["hotelCode", "hotelName", "countryCode"],
-            where: { hotelCode: element.booking.hotelCode },
-          });
-          element.dataValues.image = await HotelImage.findOne({
-            attributes: ["imageUrl"],
-            where: {
-              mainImage: "Y",
-              hotelCode: element.booking.hotelCode,
-            },
-          });
-        }
-        if (element?.booking?.cityCode) {
-          element.dataValues.cityData = await HotelCity.findOne({
-            attributes: ["cityCode", "cityName"],
-            where: { cityCode: element.booking.cityCode },
-          });
-        }
-        if (element?.dataValues?.hotelData?.countryCode) {
-          element.dataValues.countryData = await HotelCountry.findOne({
-            attributes: ["countryCode", "countryName"],
-            where: { countryCode: element.dataValues.hotelData.countryCode },
-          });
-        }
-
-        if (queryData.status === "current") {
-          if (element?.dataValues?.biddingData.length > 0) {
-            element.dataValues.biddingData =
-              element.dataValues.biddingData.sort(
-                (a, b) => a.priority - b.priority
-              );
-            for (
-              let index = 0;
-              index < element?.dataValues?.biddingData.length;
-              index++
-            ) {
-              const ele = element?.dataValues?.biddingData[index];
-              ele.dataValues.hotelData = await Hotel.findOne({
-                attributes: ["hotelCode", "hotelName", "countryCode"],
-                where: { hotelCode: ele.hotelCode },
-              });
-              ele.dataValues.image = await HotelImage.findOne({
-                attributes: ["imageUrl"],
-                where: {
-                  mainImage: "Y",
-                  hotelCode: ele.hotelCode,
-                },
-              });
-            }
-          }
-        } else {
-          element.dataValues.biddingData = [];
-        }
-      }
       return _hotels;
     } catch (error) {
       throw Error(error);
@@ -465,11 +445,53 @@ export default {
               "cancelledDate",
               "cancellationCharge",
             ],
+            include: {
+              attributes: [
+                "hotelCode",
+                "hotelName",
+                "countryCode",
+                "address",
+                "StarCategory",
+              ],
+              model: Hotel,
+              as: "hotelData",
+              include: [
+                {
+                  attributes: ["cityCode", "cityName"],
+                  model: HotelCity,
+                  as: "cityData",
+                },
+                {
+                  attributes: ["countryCode", "countryName"],
+                  model: HotelCountry,
+                  as: "countryData",
+                },
+                {
+                  attributes: ["imageUrl"],
+                  model: HotelImage,
+                  as: "image",
+                  where: { mainImage: "Y" },
+                  required: false,
+                },
+              ],
+            },
           },
           {
             model: HotelBooking,
             as: "bookings",
             limit: 5,
+            include: {
+              attributes: ["hotelCode", "hotelName"],
+              model: Hotel,
+              as: "hotelData",
+              include: {
+                attributes: ["imageUrl"],
+                model: HotelImage,
+                as: "image",
+                where: { mainImage: "Y" },
+                required: false,
+              },
+            },
           },
           {
             attributes: [
@@ -490,12 +512,32 @@ export default {
             as: "biddingData",
             where: biddingWhere,
             required: false,
-            include: {
-              attributes: ["status", "platformStatus"],
-              model: HotelBooking,
-              as: "biddingBookingData",
-              required: false,
-            },
+            include: [
+              {
+                attributes: ["status", "platformStatus"],
+                model: HotelBooking,
+                as: "biddingBookingData",
+                required: false,
+              },
+              {
+                attributes: ["hotelCode", "hotelName"],
+                model: Hotel,
+                as: "hotelData",
+                include: {
+                  attributes: ["imageUrl"],
+                  model: HotelImage,
+                  as: "image",
+                  where: { mainImage: "Y" },
+                  required: false,
+                },
+              },
+              {
+                attributes: ["status", "platformStatus"],
+                model: HotelBooking,
+                as: "biddingBookingData",
+                required: false,
+              },
+            ],
           },
           {
             attributes: ["id", "status"],
@@ -524,64 +566,6 @@ export default {
           [Sequelize.col("bookingLogs.id"), "DESC"],
         ],
       });
-      for (let i = 0; i < _hotel.bookings.length; i++) {
-        const element = _hotel.bookings[i];
-        if (element?.hotelCode) {
-          element.dataValues.hotelData = await Hotel.findOne({
-            attributes: [
-              "hotelCode",
-              "hotelName",
-              "countryCode",
-              "countryCode",
-              "address",
-              "StarCategory",
-            ],
-            where: { hotelCode: element.hotelCode },
-          });
-          element.dataValues.image = await HotelImage.findOne({
-            attributes: ["imageUrl"],
-            where: {
-              mainImage: "Y",
-              hotelCode: element.hotelCode,
-            },
-          });
-        }
-        if (element?.cityCode) {
-          element.dataValues.cityData = await HotelCity.findOne({
-            attributes: ["cityCode", "cityName"],
-            where: { cityCode: element.cityCode },
-          });
-        }
-        if (element.dataValues?.hotelData?.countryCode) {
-          element.dataValues.countryData = await HotelCountry.findOne({
-            attributes: ["countryCode", "countryName"],
-            where: { countryCode: element.dataValues.hotelData.countryCode },
-          });
-        }
-      }
-      for (let i = 0; i < _hotel.bookingDetils.length; i++) {
-        const element = _hotel.bookingDetils[i];
-        element.paxes = `${element.paxes}`.split(",");
-        element.ages = `${element.ages}`.split(",");
-      }
-      if (_hotel?.biddingData?.length > 0) {
-        for (let i = 0; i < _hotel.biddingData.length; i++) {
-          const element = _hotel.biddingData[i];
-          if (element?.dataValues?.hotelCode) {
-            element.dataValues.hotelData = await Hotel.findOne({
-              attributes: ["hotelCode", "hotelName", "countryCode"],
-              where: { hotelCode: element?.dataValues?.hotelCode },
-            });
-            element.dataValues.image = await HotelImage.findOne({
-              attributes: ["imageUrl"],
-              where: {
-                mainImage: "Y",
-                hotelCode: element?.dataValues?.hotelCode,
-              },
-            });
-          }
-        }
-      }
       return _hotel;
     } catch (error) {
       throw Error(error);

@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     "HotelImage",
     {
       hotelCode: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.INTEGER(30),
         allowNull: false,
       },
       imageUrl: {
@@ -31,16 +31,17 @@ module.exports = (sequelize, DataTypes) => {
       indexes: [
         {
           unique: false,
-          fields: ["hotel_code"],
-        },
-        {
-          unique: false,
           fields: ["main_image"],
         },
       ],
       underscored: true,
     }
   );
-  HotelImage.associate = function (models) {};
+  HotelImage.associate = function (models) {
+    HotelImage.belongsTo(models.Hotel, {
+      foreignKey: "hotelCode",
+      as: "imageData",
+    });
+  };
   return HotelImage;
 };

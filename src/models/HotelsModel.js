@@ -3,8 +3,10 @@ module.exports = (sequelize, DataTypes) => {
     "Hotel",
     {
       hotelCode: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.INTEGER(30),
         allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
       },
       hotelName: {
         type: DataTypes.STRING(255),
@@ -14,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
       },
       cityCode: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.INTEGER(30),
         allowNull: false,
       },
       locationCode: {
@@ -70,19 +72,7 @@ module.exports = (sequelize, DataTypes) => {
       indexes: [
         {
           unique: false,
-          fields: ["hotel_code"],
-        },
-        {
-          unique: false,
           fields: ["hotel_name"],
-        },
-        {
-          unique: false,
-          fields: ["city_code"],
-        },
-        {
-          unique: false,
-          fields: ["location_code"],
         },
         {
           unique: false,
@@ -93,6 +83,19 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
-  Hotel.associate = function (models) {};
+  Hotel.associate = function (models) {
+    Hotel.belongsTo(models.HotelCity, {
+      foreignKey: "cityCode",
+      as: "cityData",
+    });
+    Hotel.belongsTo(models.HotelCountry, {
+      foreignKey: "countryCode",
+      as: "countryData",
+    });
+    Hotel.hasOne(models.HotelImage, {
+      foreignKey: "hotelCode",
+      as: "image",
+    });
+  };
   return Hotel;
 };

@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       countryCode: {
         type: DataTypes.STRING(10),
-        allowNull: false,
+        primaryKey: true,
       },
       countryCode3: {
         type: DataTypes.STRING(10),
@@ -24,16 +24,6 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      indexes: [
-        {
-          unique: false,
-          fields: ["country_code"],
-        },
-        {
-          unique: false,
-          fields: ["country_code3"],
-        },
-      ],
       underscored: true,
     }
   );

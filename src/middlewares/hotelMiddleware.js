@@ -47,7 +47,7 @@ export default {
         const getAllHotelCodes = await hotelRepository.fetchAll(where);
 
         if (getAllHotelCodes.length > 0) {
-          req.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
+          req.hotelCode = getAllHotelCodes.map((x) => `${x.hotelCode}`);
           // console.log(req.hotelCode);
           next();
         } else {

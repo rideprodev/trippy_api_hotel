@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       hotelCode: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.INTEGER(30),
         allowNull: false,
       },
       biddingPrice: {
@@ -100,6 +100,10 @@ module.exports = (sequelize, DataTypes) => {
     HotelBidding.belongsTo(models.HotelBooking, {
       foreignKey: "bookingId",
       as: "biddingBookingData",
+    });
+    HotelBidding.belongsTo(models.Hotel, {
+      foreignKey: "hotelCode",
+      as: "hotelData",
     });
   };
   return HotelBidding;
