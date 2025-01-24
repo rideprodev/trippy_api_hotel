@@ -87,7 +87,7 @@ export default {
         };
         const getAllHotelCodes = await hotelRepository.fetchAll(where, 10);
         if (getAllHotelCodes.length > 0) {
-          req.hotelCode = getAllHotelCodes.map((x) => x.hotelCode);
+          req.hotelCode = getAllHotelCodes.map((x) => `${x.hotelCode}`);
           bodyData.cutOffTime = 10000;
           // console.log(req.hotelCode);
           next();
