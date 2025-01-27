@@ -107,6 +107,9 @@ export default {
       const whereCity = {
         cityName: { [Op.like]: `${splitName}%` },
       };
+      const whereHotel = {
+        hotelName: { [Op.like]: `${name}%` },
+      };
       const city = await HotelCity.findAll({
         attributes: ["cityCode", "cityName", "countryCode"],
         limit: 1000,
@@ -144,11 +147,8 @@ export default {
         attributes: ["locationCode", "locationName", "countryCode"],
         limit: 15,
       });
-
-      const hotel = cityMaps.map((map) => map.hotelCode);
-
       const hotels = await Hotel.findAll({
-        where: { hotelCode: hotel },
+        where: whereHotel,
         attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
         limit: 15,
       });
