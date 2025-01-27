@@ -5,9 +5,11 @@ const {
   HotelCountry,
   HotelLocation,
   HotelCurrency,
+  HotelLocationCityMap,
   sequelize,
 } = models;
 import { Op, Sequelize } from "sequelize";
+import Fuse from "fuse.js";
 
 const getObject = (queryData, model = "airports") => {
   if (model === "cities") {
@@ -97,51 +99,67 @@ export default {
    * Get All Plcaes Where
    * @param {object} req
    */
-  async getAllPlaces(req) {
+  async getAllPlaces(req, res) {
     try {
-      const { name } = req.query;
+      let { name } = req.query;
+      name = `${name.replace(/\./g, "")}`;
+      const splitName = `${name}`.substring(0, 2);
       const whereCity = {
-          $col: Sequelize.where(
-            Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
-            { [Op.like]: `%${name.replace(/\./g, "")}%` }
-          ),
-        },
-        whereHotel = {
-          $col: Sequelize.where(
-            Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
-            {
-              [Op.like]: `%${name.replace(/\./g, "")}%`,
-            }
-          ),
-        },
-        whereLocation = {
-          $col: Sequelize.where(
-            Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
-            {
-              [Op.like]: `%${name.replace(/\./g, "")}%`,
-            }
-          ),
-        },
-        _response = {};
+        cityName: { [Op.like]: `${splitName}%` },
+      };
+      const city = await HotelCity.findAll({
+        attributes: ["cityCode", "cityName", "countryCode"],
+        limit: 1000,
+        where: whereCity,
+      });
 
-      _response.hotels = await Hotel.findAll({
-        where: whereHotel,
+      const cityList = city.map((city) => ({
+        cityCode: city.cityCode,
+        cityName: city.cityName,
+        countryCode: city.countryCode,
+      }));
+
+      const fuse = new Fuse(cityList, {
+        keys: ["cityName"],
+        minMatchCharLength: 2,
+        threshold: 0.3,
+      });
+
+      const cityNames = name
+        ? fuse.search(name).map((result) => result.item)
+        : cityList;
+
+      const cityCodes = cityNames.map((city) => city.cityCode);
+
+      const cityMaps = await HotelLocationCityMap.findAll({
+        where: { cityCode: cityCodes },
+        limit: 15,
+      });
+
+      const locationCodes = cityMaps.map((map) => map.locationCode);
+      //console.log("Location Codes:", locationCodes);
+
+      const location = await HotelLocation.findAll({
+        where: { locationCode: locationCodes },
+        attributes: ["locationCode", "locationName", "countryCode"],
+        limit: 15,
+      });
+
+      const hotel = cityMaps.map((map) => map.hotelCode);
+
+      const hotels = await Hotel.findAll({
+        where: { hotelCode: hotel },
         attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
         limit: 15,
       });
-      _response.location = await HotelLocation.findAll({
-        where: whereLocation,
-        attributes: ["locationCode", "locationName", "countryCode"],
-        limit: 15,
-        order: [[sequelize.fn("length", sequelize.col("locationName")), "ASC"]],
-      });
-      _response.city = await HotelCity.findAll({
-        where: whereCity,
-        attributes: ["cityCode", "cityName", "countryCode"],
-        limit: 15,
-        order: [[sequelize.fn("length", sequelize.col("cityName")), "ASC"]],
-      });
-      return _response;
+
+      const response = {
+        hotels: hotels,
+        location: location,
+        city: cityNames,
+      };
+
+      return response;
     } catch (error) {
       throw Error(error);
     }
