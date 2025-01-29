@@ -663,7 +663,7 @@ export default {
           await requestHandler.sendEmail(
             userData.email,
             "hotelPaymentSuccuess",
-            `Payment Successfully for booking Number - ${bookingObject?.currentReference}`,
+            `Payment Successfully for booking Number - TB-${bookingObject?.currentReference}`,
             {
               name: fullName,
               booking_id: bookingObject?.currentReference,

@@ -3,7 +3,7 @@ import requestHandler from "../services/requestHandler";
 import GRN_Apis from "../config/GRN_Apis";
 import logger from "../services/logger";
 import utility from "../services/utility";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import config from "../config";
 const {
   HotelBookingGroup,
@@ -400,7 +400,7 @@ export default {
               const sendmail = requestHandler.sendEmail(
                 userData.email,
                 "hotelBooking",
-                `Your reservation at- ${bodyData.hotelName} is confirmed - ${bookingGroup.currentReference}`,
+                `Your reservation at- ${bodyData.hotelName} is confirmed - TB-${bookingGroup.currentReference}`,
                 {
                   name: `${userData.firstName} ${userData.lastName}`,
                   email: userData.email,
@@ -414,7 +414,7 @@ export default {
                   cancellation_date:
                     utility.convertDateFromTimezone(cancelByDate),
                   total_price: bodyData.totalPrice,
-                  booking_id: bookingGroup.currentReference,
+                  booking_id: `TB-${bookingGroup.currentReference}`,
                   booking_date: utility.convertDateFromTimezone(
                     null,
                     null,
@@ -695,12 +695,12 @@ export default {
               const sendmail = requestHandler.sendEmail(
                 userData.email,
                 "hotelBookingCancelled",
-                `Your reservation at- ${hotelData.hotelName} has been cancelled- ${bookingObject.currentReference}`,
+                `Your reservation at- ${hotelData.hotelName} has been cancelled- TB-${bookingObject.currentReference}`,
                 {
                   name: `${userData.firstName} ${userData.lastName}`,
                   hotel_name: hotelData.hotelName,
                   full_address: hotelData.address,
-                  booking_id: bookingObject.currentReference,
+                  booking_id: `TB-${bookingObject.currentReference}`,
                   email: userData.email,
                   total_price: bookingObject.price,
                   currency: _response?.data?.booking_price?.currency,
