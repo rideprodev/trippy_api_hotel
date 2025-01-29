@@ -124,25 +124,51 @@ export default {
       };
       const hotels = await Hotel.findAll({
         where: whereHotel2Word,
-        attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
+        attributes: ["hotelCode", "hotelName"],
         limit: 100,
+        include: [
+          {
+            attributes: ["cityCode", "cityName"],
+            model: HotelCity,
+            as: "cityData",
+          },
+          {
+            attributes: ["countryName"],
+            model: HotelCountry,
+            as: "countryData",
+          },
+        ],
       });
       const hotels1 = await Hotel.findAll({
         where: whereHotelFullWord,
         attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
         limit: 15,
+        include: [
+          {
+            attributes: ["cityCode", "cityName"],
+            model: HotelCity,
+            as: "cityData",
+          },
+          {
+            attributes: ["countryName"],
+            model: HotelCountry,
+            as: "countryData",
+          },
+        ],
       });
       const hotelList = hotels.map((hotel) => ({
         hotelCode: hotel.hotelCode,
         hotelName: hotel.hotelName,
-        cityCode: hotel.cityCode,
-        countryCode: hotel.countryCode,
+        cityCode: hotel.cityData.cityCode,
+        cityName: hotel.cityData.cityName,
+        countryName: hotel.countryData.countryName,
       }));
       const hotel1List = hotels1.map((hotel) => ({
         hotelCode: hotel.hotelCode,
         hotelName: hotel.hotelName,
-        cityCode: hotel.cityCode,
-        countryCode: hotel.countryCode,
+        cityCode: hotel.cityData.cityCode,
+        cityName: hotel.cityData.cityName,
+        countryName: hotel.countryData.countryName,
       }));
       const hotel = [...hotelList, ...hotel1List];
 
@@ -178,26 +204,36 @@ export default {
       };
       // fetching city data start
       const city = await HotelCity.findAll({
-        attributes: ["cityCode", "cityName", "countryCode"],
+        attributes: ["cityCode", "cityName"],
         limit: 1000,
         where: whereCity2Words,
+        include: {
+          attributes: ["countryName"],
+          model: HotelCountry,
+          as: "countryData",
+        },
       });
       const city1 = await HotelCity.findAll({
-        attributes: ["cityCode", "cityName", "countryCode"],
+        attributes: ["cityCode", "cityName"],
         limit: 100,
         where: whereCityFullWords,
+        include: {
+          attributes: ["countryName"],
+          model: HotelCountry,
+          as: "countryData",
+        },
       });
 
       const cityList = city.map((city) => ({
         cityCode: city.cityCode,
         cityName: city.cityName,
-        countryCode: city.countryCode,
+        countryName: city.countryData.countryName,
       }));
 
       const city1List = city1.map((city) => ({
         cityCode: city.cityCode,
         cityName: city.cityName,
-        countryCode: city.countryCode,
+        countryName: city.countryData.countryName,
       }));
 
       const cities = [...cityList, ...city1List];
@@ -215,9 +251,10 @@ export default {
         threshold: 0.3,
       });
 
-      const cityNames = name
+      let cityData = name
         ? fuseCity.search(name).map((result) => result.item)
         : cities;
+      const cityNames = cityData.slice(0, 3);
       // ------------- City End ------------
       // ------------- Location Start ------------
       const whereLocation2Words = {
@@ -234,46 +271,103 @@ export default {
       };
       const cityCodes = cityNames.map((city) => city.cityCode);
 
-      const cityMaps = await HotelLocationCityMap.findAll({
+      const locationCityMaps = await HotelLocationCityMap.findAll({
+        attributes: ["locationCode", "cityCode"],
         where: { cityCode: cityCodes },
-        limit: 15,
+        limit: 100,
+        group: ["locationCode"],
+        include: [
+          {
+            attributes: ["cityName"],
+            model: HotelCity,
+            as: "cityData",
+            include: {
+              attributes: ["countryName"],
+              model: HotelCountry,
+              as: "countryData",
+            },
+          },
+          {
+            attributes: ["locationName"],
+            model: HotelLocation,
+            as: "locationData",
+          },
+        ],
       });
 
-      const locationCodes = cityMaps.map((map) => map.locationCode);
-
-      const location = await HotelLocation.findAll({
-        where: { locationCode: locationCodes },
-        attributes: ["locationCode", "locationName", "countryCode"],
-        limit: 15,
-      });
       const location2Word = await HotelLocation.findAll({
         where: whereLocation2Words,
-        attributes: ["locationCode", "locationName", "countryCode"],
-        limit: 100,
+        attributes: ["locationCode", "locationName"],
+        limit: 1000,
+        include: [
+          {
+            attributes: ["cityCode"],
+            model: HotelLocationCityMap,
+            as: "locationMapData",
+            required: true,
+            include: {
+              attributes: ["cityName"],
+              model: HotelCity,
+              as: "cityData",
+              include: {
+                attributes: ["countryName"],
+                model: HotelCountry,
+                as: "countryData",
+              },
+            },
+          },
+        ],
       });
+
       const locationFullWord = await HotelLocation.findAll({
         where: whereLocationFullWords,
         attributes: ["locationCode", "locationName", "countryCode"],
         limit: 15,
+        include: [
+          {
+            attributes: ["cityCode"],
+            model: HotelLocationCityMap,
+            as: "locationMapData",
+            required: true,
+            include: {
+              attributes: ["cityName"],
+              model: HotelCity,
+              as: "cityData",
+              include: {
+                attributes: ["countryName"],
+                model: HotelCountry,
+                as: "countryData",
+              },
+            },
+          },
+        ],
       });
 
-      const locationList = location.map((loc) => ({
+      const locationList = locationCityMaps.map((loc) => ({
         locationCode: loc.locationCode,
-        locationName: loc.locationName,
-        countryCode: loc.countryCode,
-      }));
-      const location1List = location2Word.map((loc) => ({
-        locationCode: loc.locationCode,
-        locationName: loc.locationName,
-        countryCode: loc.countryCode,
-      }));
-      const location2List = locationFullWord.map((loc) => ({
-        locationCode: loc.locationCode,
-        locationName: loc.locationName,
-        countryCode: loc.countryCode,
+        cityCode: loc.cityCode,
+        cityName: loc.cityData.cityName,
+        countryName: loc.cityData.countryData.countryName,
+        locationName: loc.locationData.locationName,
       }));
 
-      const locations = [...locationList, ...location1List, ...location2List];
+      const location1List = location2Word.map((loc) => ({
+        locationCode: loc.locationCode,
+        cityCode: loc.locationMapData.cityCode,
+        cityName: loc.locationMapData.cityData.cityName,
+        countryName: loc.locationMapData.cityData.countryData.countryName,
+        locationName: loc.locationName,
+      }));
+
+      const location2List = locationFullWord.map((loc) => ({
+        locationCode: loc.locationCode,
+        cityCode: loc.locationMapData.cityCode,
+        cityName: loc.locationMapData.cityData.cityName,
+        countryName: loc.locationMapData.cityData.countryData.countryName,
+        locationName: loc.locationName,
+      }));
+
+      const locations = [...location1List, ...location2List];
 
       const uniqueLocations = locations.reduce((acc, curr) => {
         if (!acc.find((item) => item.cityCode === curr.cityCode)) {
@@ -288,9 +382,12 @@ export default {
         threshold: 0.3,
       });
 
-      const locationNames = name
+      const locationData = name
         ? fuseLocation.search(name).map((result) => result.item)
         : locations;
+
+      const fuseLocationSlice = locationData.slice(0, 30);
+      const locationNames = [...locationList, ...fuseLocationSlice];
       // ------------- Location End ------------
 
       const response = {

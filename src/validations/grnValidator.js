@@ -11,7 +11,8 @@ const search = Joi.object({
       })
     )
     .required(),
-  hotelCode: Joi.string().empty().allow(""),
+  hotelCode: Joi.string().optional().empty().allow(null, ""),
+  locationCode: Joi.string().optional().empty().allow(null, ""),
   cityCode: Joi.string().required(),
   checkIn: Joi.string().required(),
   checkOut: Joi.string().required(),

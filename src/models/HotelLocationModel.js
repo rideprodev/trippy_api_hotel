@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
-  HotelLocation.associate = function (models) {};
+  HotelLocation.associate = function (models) {
+    HotelLocation.hasOne(models.HotelLocationCityMap, {
+      foreignKey: "locationCode",
+      as: "locationMapData",
+    });
+  };
   return HotelLocation;
 };
