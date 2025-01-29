@@ -72,7 +72,7 @@ export default {
             const sendmail_cancel = requestHandler.sendEmail(
               userData.email,
               "hotelBookingCancelled",
-              `Reservation with ID: ${elementExpaired.bookingReference} has been Cancelled`,
+              `Reservation with ID: TB-${elementExpaired.bookingReference} has been Cancelled`,
               {
                 name: `${userData.firstName} ${userData.lastName}`,
                 email: userData.email,
@@ -84,7 +84,7 @@ export default {
                 total_members: expairedGroupObject.totalMember,
                 total_rooms: expairedGroupObject.totalRooms,
                 cancellation_date: utility.convertDateFromTimezone(),
-                booking_id: elementExpaired.bookingReference,
+                booking_id: `TB-${elementExpaired.bookingReference}`,
                 booking_date: utility.convertDateFromTimezone(
                   elementExpaired.createdAt
                 ),
@@ -301,7 +301,7 @@ export default {
               await requestHandler.sendEmail(
                 userData.email,
                 "hotelPaymentReminder",
-                `TrippyBid Payment Reminder: ${element.bookingReference}`,
+                `TrippyBid Payment Reminder: TB-${element.bookingReference}`,
                 {
                   name: fullName,
                   total_price: amount,
@@ -347,7 +347,7 @@ export default {
                   await requestHandler.sendEmail(
                     userData.email,
                     "hotelPaymentAuthenticationSuccess",
-                    `TrippyBid Payment Authentication Success: ${element.bookingReference}`,
+                    `TrippyBid Payment Authentication Success: TB-${element.bookingReference}`,
                     {
                       name: fullName,
                       total_price: 1,
@@ -368,7 +368,7 @@ export default {
                 await requestHandler.sendEmail(
                   userData.email,
                   "hotelPaymentAuthenticationFailed",
-                  `TrippyBid Payment Authentication Failed: ${element.bookingReference}`,
+                  `TrippyBid Payment Authentication Failed: TB-${element.bookingReference}`,
                   {
                     name: fullName,
                     // total_price: amount,
@@ -441,7 +441,7 @@ export default {
                   await requestHandler.sendEmail(
                     userData.email,
                     "hotelPaymentSuccuess",
-                    `TrippyBid Payment Successful: ${element.bookingReference}`,
+                    `TrippyBid Payment Successful: TB-${element.bookingReference}`,
                     {
                       name: fullName,
                       booking_id: element.bookingReference,
@@ -477,7 +477,7 @@ export default {
                     `ACTION REQUIRED! Your payment was unsuccessful!`,
                     {
                       name: fullName,
-                      booking_id: element.bookingReference,
+                      booking_id: `TB-${element.bookingReference}`,
                       hotel_name: hotelData.hotelName,
                       cancellation_date:
                         utility.convertDateFromTimezone(cancelDate),
@@ -1024,7 +1024,7 @@ export default {
                     const sendmail_confirm = requestHandler.sendEmail(
                       userData.email,
                       "bidSuccess",
-                      `Success! TrippyBid Secured Your Reservation at Your Bid Price! Booking Id- ${_response?.data?.booking_reference}`,
+                      `Success! TrippyBid Secured Your Reservation at Your Bid Price! Booking Id- TB-${_response?.data?.booking_reference}`,
                       {
                         name: `${userData.firstName} ${userData.lastName}`,
                         email: userData.email,
@@ -1040,7 +1040,7 @@ export default {
                         cancellation_date:
                           utility.convertDateFromTimezone(cancelByDate),
                         total_price: newRateData.totalPrice,
-                        booking_id: _response?.data?.booking_reference,
+                        booking_id: `TB-${_response?.data?.booking_reference}`,
                         booking_date: utility.convertDateFromTimezone(),
                         service_tax: newRateData.commissionAmount,
                         total_rooms: bookingGroupObject.totalRooms,
@@ -1149,7 +1149,7 @@ export default {
                                   requestHandler.sendEmail(
                                     userData.email,
                                     "hotelBookingCancelled",
-                                    `Reservation with ID: ${bookingObjectData.bookingReference} has been Cancelled`,
+                                    `Reservation with ID: TB-${bookingObjectData.bookingReference} has been Cancelled`,
                                     {
                                       name: `${userData.firstName} ${userData.lastName}`,
                                       email: userData.email,
@@ -1166,8 +1166,7 @@ export default {
                                         utility.convertDateFromTimezone(
                                           currentDatatime
                                         ),
-                                      booking_id:
-                                        bookingGroupObject.currentReference,
+                                      booking_id: `TB-${bookingGroupObject.currentReference}`,
                                       booking_date:
                                         utility.convertDateFromTimezone(
                                           bookingObjectData.createdAt
@@ -1306,7 +1305,7 @@ export default {
                         const sendmail_cancel = requestHandler.sendEmail(
                           userData.email,
                           "hotelBookingCancelled",
-                          `Reservation with ID: ${bookingGroupObject.currentReference} has been Cancelled`,
+                          `Reservation with ID: TB-${bookingGroupObject.currentReference} has been Cancelled`,
                           {
                             name: `${userData.firstName} ${userData.lastName}`,
                             email: userData.email,
@@ -1319,7 +1318,7 @@ export default {
                             total_rooms: bookingGroupObject.totalRooms,
                             cancellation_date:
                               utility.convertDateFromTimezone(currentDatatime),
-                            booking_id: bookingGroupObject.currentReference,
+                            booking_id: `TB-${bookingGroupObject.currentReference}`,
                             booking_date: utility.convertDateFromTimezone(
                               bookingDataObject.createdAt
                             ),
@@ -1417,7 +1416,7 @@ export default {
                       const sendmail_cancel = requestHandler.sendEmail(
                         userData.email,
                         "hotelBookingCancelled",
-                        `Reservation with ID: ${bookingGroupObject.currentReference} has been Cancelled`,
+                        `Reservation with ID: TB-${bookingGroupObject.currentReference} has been Cancelled`,
                         {
                           name: `${userData.firstName} ${userData.lastName}`,
                           email: userData.email,
@@ -1431,7 +1430,7 @@ export default {
                           cancellation_date: utility.convertDateFromTimezone(
                             _response_cancel?.data?.cancel_date
                           ),
-                          booking_id: bookingGroupObject.currentReference,
+                          booking_id: `TB-${bookingGroupObject.currentReference}`,
                           booking_date: utility.convertDateFromTimezone(
                             bookingDataObject.createdAt
                           ),
@@ -1895,7 +1894,7 @@ export default {
                   const sendmail_confirm = requestHandler.sendEmail(
                     userData.email,
                     "hotelBooking",
-                    `Your Reservation has been Confirmed - Booking ID: ${_response?.data?.booking_reference}`,
+                    `Your Reservation has been Confirmed - Booking ID: TB-${_response?.data?.booking_reference}`,
                     {
                       name: `${userData.firstName} ${userData.lastName}`,
                       email: userData.email,
@@ -1909,7 +1908,7 @@ export default {
                       cancellation_date:
                         utility.convertDateFromTimezone(cancelByDate),
                       total_price: totalPrice,
-                      booking_id: _response?.data?.booking_reference,
+                      booking_id: `TB-${_response?.data?.booking_reference}`,
                       booking_date: utility.convertDateFromTimezone(
                         null,
                         null,
@@ -1957,7 +1956,7 @@ export default {
                       const sendmail_cancel = requestHandler.sendEmail(
                         userData.email,
                         "hotelBookingCancelled",
-                        `Reservation with ID: ${Bidding.bookingGroupData.currentReference} has been Cancelled`,
+                        `Reservation with ID: TB-${Bidding.bookingGroupData.currentReference} has been Cancelled`,
                         {
                           name: `${userData.firstName} ${userData.lastName}`,
                           email: userData.email,
@@ -1970,7 +1969,7 @@ export default {
                           total_rooms: Bidding.bookingGroupData.totalRooms,
                           cancellation_date:
                             utility.convertDateFromTimezone(currentDatatime),
-                          booking_id: Bidding.bookingGroupData.currentReference,
+                          booking_id: `TB-${Bidding.bookingGroupData.currentReference}`,
                           booking_date: utility.convertDateFromTimezone(
                             Bidding.bookingGroupData?.booking?.hotelCode
                               ?.createdAt
@@ -2143,7 +2142,7 @@ export default {
                                   requestHandler.sendEmail(
                                     userData.email,
                                     "hotelBookingCancelled",
-                                    `Reservation with ID: ${bookingObjectData.bookingReference} has been Cancelled`,
+                                    `Reservation with ID: TB-${bookingObjectData.bookingReference} has been Cancelled`,
                                     {
                                       name: `${userData.firstName} ${userData.lastName}`,
                                       email: userData.email,
@@ -2160,8 +2159,7 @@ export default {
                                         utility.convertDateFromTimezone(
                                           _response_cancel?.data?.cancel_date
                                         ),
-                                      booking_id:
-                                        bookingGroupObject.currentReference,
+                                      booking_id: `TB-${bookingGroupObject.currentReference}`,
                                       booking_date:
                                         utility.convertDateFromTimezone(
                                           bookingGroupObject.createdAt
