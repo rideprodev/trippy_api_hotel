@@ -26,19 +26,14 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      indexes: [
-        {
-          unique: false,
-          fields: ["city_name"],
-        },
-        {
-          unique: false,
-          fields: ["country_code"],
-        },
-      ],
       underscored: true,
     }
   );
-  HotelCity.associate = function (models) {};
+  HotelCity.associate = function (models) {
+    HotelCity.belongsTo(models.HotelCountry, {
+      foreignKey: "countryCode",
+      as: "countryData",
+    });
+  };
   return HotelCity;
 };
