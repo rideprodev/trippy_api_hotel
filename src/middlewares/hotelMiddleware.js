@@ -3,14 +3,13 @@ import utility from "../services/utility";
 const {
   hotelRepository,
   userRepository,
-  transactionRepository,
   bookingRepository,
   biddingRepository,
 } = repositories;
 import models from "../models";
 import { Op } from "sequelize";
 import config from "../config";
-const { UserMember, UserPersonalInformation, Setting, Cards } = models;
+const { HotelLocationCityMap, Setting, Cards } = models;
 
 export default {
   /**
@@ -25,6 +24,18 @@ export default {
       if (bodyData.hotelCode && bodyData.hotelCode !== "") {
         req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
         next();
+      } else if (bodyData.locationCode && bodyData.locationCode !== "") {
+        const hotelData = await HotelLocationCityMap.findAll({
+          attributes: ["hotelCode"],
+          where: { locationCode: bodyData.locationCode },
+        });
+        if (hotelData.length > 0) {
+          const hotelCodes = hotelData.map((x) => `${x.hotelCode}`);
+          req.body.hotelCode = hotelCodes;
+          next();
+        } else {
+          utility.getError(res, "No Hotel Find In this location");
+        }
       } else {
         const where = {
           cityCode: bodyData.cityCode,
@@ -70,6 +81,18 @@ export default {
       const bodyData = req.body;
       if (bodyData.hotelCode && bodyData.hotelCode !== "") {
         utility.getResponse(res, [], "RETRIVED");
+      } else if (bodyData.locationCode && bodyData.locationCode !== "") {
+        const hotelData = await HotelLocationCityMap.findAll({
+          attributes: ["hotelCode"],
+          where: { locationCode: bodyData.locationCode },
+        });
+        if (hotelData.length > 0) {
+          const hotelCodes = hotelData.map((x) => `${x.hotelCode}`);
+          req.body.hotelCode = hotelCodes;
+          next();
+        } else {
+          utility.getError(res, "No Hotel Find In this location");
+        }
       } else {
         const where = {
           cityCode: bodyData.cityCode,
