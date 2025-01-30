@@ -239,7 +239,13 @@ export default {
       const cities = [...cityList, ...city1List];
 
       const uniqueCities = cities.reduce((acc, curr) => {
-        if (!acc.find((item) => item.cityCode === curr.cityCode)) {
+        if (
+          !acc.find(
+            (item) =>
+              item.cityCode === curr.cityCode &&
+              item.countryName === curr.countryName
+          )
+        ) {
           acc.push(curr);
         }
         return acc;
@@ -299,6 +305,7 @@ export default {
         where: whereLocation2Words,
         attributes: ["locationCode", "locationName"],
         limit: 1000,
+        group: ["locationCode"],
         include: [
           {
             attributes: ["cityCode"],
@@ -323,6 +330,7 @@ export default {
         where: whereLocationFullWords,
         attributes: ["locationCode", "locationName", "countryCode"],
         limit: 15,
+        group: ["locationCode"],
         include: [
           {
             attributes: ["cityCode"],
@@ -370,7 +378,13 @@ export default {
       const locations = [...location1List, ...location2List];
 
       const uniqueLocations = locations.reduce((acc, curr) => {
-        if (!acc.find((item) => item.cityCode === curr.cityCode)) {
+        if (
+          !acc.find(
+            (item) =>
+              item.cityCode === curr.cityCode &&
+              item.locationCode === curr.locationCode
+          )
+        ) {
           acc.push(curr);
         }
         return acc;
@@ -391,6 +405,8 @@ export default {
       // ------------- Location End ------------
 
       const response = {
+        location1List,
+        location2List,
         hotels: hotelNames,
         location: locationNames,
         city: cityNames,
