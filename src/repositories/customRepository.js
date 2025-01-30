@@ -405,8 +405,6 @@ export default {
       // ------------- Location End ------------
 
       const response = {
-        location1List,
-        location2List,
         hotels: hotelNames,
         location: locationNames,
         city: cityNames,
