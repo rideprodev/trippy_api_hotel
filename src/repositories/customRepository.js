@@ -127,7 +127,7 @@ export default {
       const hotels = await Hotel.findAll({
         where: whereHotel2Word,
         attributes: ["hotelCode", "hotelName"],
-        limit: 2000,
+        limit: 1000,
         include: [
           {
             attributes: ["cityCode", "cityName"],
@@ -225,7 +225,7 @@ export default {
       // fetching city data start
       const city = await HotelCity.findAll({
         attributes: ["cityCode", "cityName"],
-        limit: 2000,
+        limit: 500,
         where: whereCity2Words,
         include: {
           attributes: ["countryName"],
@@ -359,97 +359,134 @@ export default {
   async getAllPlacesLocation(req, res) {
     try {
       let { name } = req.query;
-      name = `${name.replace(/\./g, "")}`;
-      const splitName = `${name}`.substring(0, 2);
+      name = `${name.replace(/\.,/g, "")}`;
+      let locations = [];
 
       // ------------- Location Start ------------
-      const whereLocation2Words = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
-          { [Op.like]: `${splitName}%` }
-        ),
-      };
-      const whereLocationFullWords = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
-          { [Op.like]: `%${name}%` }
-        ),
-      };
+      const searchSplite = `${name}`.split(" ");
 
-      const location2Word = await HotelLocation.findAll({
-        where: whereLocation2Words,
-        attributes: ["locationCode", "locationName"],
-        limit: 2000,
-        group: ["locationCode"],
-        include: [
+      for (let index = 0; index < searchSplite.length; index++) {
+        let element = searchSplite[index];
+        let splitName = "";
+        if (dictionary.spellCheck(element) === false) {
+          const suggestions = dictionary.getSuggestions(element);
+          if (suggestions.length > 0) {
+            element = suggestions[0];
+          } else {
+            splitName = `${element}`.substring(0, 2);
+          }
+        }
+
+        const searchWhere =
+          splitName !== ""
+            ? [
+                {
+                  $col: Sequelize.where(
+                    Sequelize.fn(
+                      "replace",
+                      Sequelize.col("location_name"),
+                      ".",
+                      ""
+                    ),
+                    { [Op.like]: `%${element}%` }
+                  ),
+                },
+                {
+                  $col: Sequelize.where(
+                    Sequelize.fn(
+                      "replace",
+                      Sequelize.col("location_name"),
+                      ".",
+                      ""
+                    ),
+                    { [Op.like]: `${splitName}%` }
+                  ),
+                },
+                {
+                  $col: Sequelize.where(
+                    Sequelize.fn(
+                      "replace",
+                      Sequelize.col("location_name"),
+                      ".",
+                      ""
+                    ),
+                    { [Op.like]: `${element}%` }
+                  ),
+                },
+                {
+                  $col: Sequelize.where(
+                    Sequelize.fn(
+                      "replace",
+                      Sequelize.col("location_name"),
+                      ".",
+                      ""
+                    ),
+                    { [Op.like]: `%${element}` }
+                  ),
+                },
+              ]
+            : [
+                {
+                  $col: Sequelize.where(
+                    Sequelize.fn(
+                      "replace",
+                      Sequelize.col("location_name"),
+                      ".",
+                      ""
+                    ),
+                    { [Op.like]: `%${element}%` }
+                  ),
+                },
+              ];
+        const whereLocationElementWords = [
           {
-            attributes: ["cityCode"],
-            model: HotelLocationCityMap,
-            as: "locationMapData",
-            required: true,
-            include: {
-              attributes: ["cityName"],
-              model: HotelCity,
-              as: "cityData",
+            [Op.or]: searchWhere,
+          },
+        ];
+
+        const locationElement = await HotelLocation.findAll({
+          where: whereLocationElementWords,
+          attributes: ["locationCode", "locationName"],
+          limit: 1000,
+          group: ["locationCode"],
+          include: [
+            {
+              attributes: ["cityCode"],
+              model: HotelLocationCityMap,
+              as: "locationMapData",
+              required: true,
               include: {
-                attributes: ["countryName"],
-                model: HotelCountry,
-                as: "countryData",
+                attributes: ["cityName"],
+                model: HotelCity,
+                as: "cityData",
+                include: {
+                  attributes: ["countryName"],
+                  model: HotelCountry,
+                  as: "countryData",
+                },
               },
             },
-          },
-        ],
-      });
+          ],
+        });
 
-      const locationFullWord = await HotelLocation.findAll({
-        where: whereLocationFullWords,
-        attributes: ["locationCode", "locationName", "countryCode"],
-        limit: 15,
-        group: ["locationCode"],
-        include: [
-          {
-            attributes: ["cityCode"],
-            model: HotelLocationCityMap,
-            as: "locationMapData",
-            required: true,
-            include: {
-              attributes: ["cityName"],
-              model: HotelCity,
-              as: "cityData",
-              include: {
-                attributes: ["countryName"],
-                model: HotelCountry,
-                as: "countryData",
-              },
-            },
-          },
-        ],
-      });
+        const locationElementList = locationElement.map((loc) => ({
+          locationCode: loc.locationCode,
+          cityCode: loc.locationMapData.cityCode,
+          cityName: loc.locationMapData.cityData.cityName,
+          countryName: loc.locationMapData.cityData.countryData.countryName,
+          locationName: loc.locationName,
+        }));
+        locations = [...locations, ...locationElementList];
+      }
 
-      const location1List = location2Word.map((loc) => ({
-        locationCode: loc.locationCode,
-        cityCode: loc.locationMapData.cityCode,
-        cityName: loc.locationMapData.cityData.cityName,
-        countryName: loc.locationMapData.cityData.countryData.countryName,
-        locationName: loc.locationName,
-      }));
-
-      const location2List = locationFullWord.map((loc) => ({
-        locationCode: loc.locationCode,
-        cityCode: loc.locationMapData.cityCode,
-        cityName: loc.locationMapData.cityData.cityName,
-        countryName: loc.locationMapData.cityData.countryData.countryName,
-        locationName: loc.locationName,
-      }));
-
-      const locations = [...location1List, ...location2List];
+      // ------------- Location End ------------
 
       const uniqueLocations = locations.reduce((acc, curr) => {
         if (
           !acc.find(
             (item) =>
               item.cityCode === curr.cityCode &&
-              item.locationCode === curr.locationCode
+              item.countryName === curr.countryName
           )
         ) {
           acc.push(curr);
@@ -458,20 +495,28 @@ export default {
       }, []);
 
       const fuseLocation = new Fuse(uniqueLocations, {
-        keys: ["locationName"],
+        keys: ["locationName", "cityName"],
         minMatchCharLength: 2,
         threshold: 0.3,
       });
 
-      const locationData = name
-        ? fuseLocation.search(name).map((result) => result.item)
-        : locations;
+      let location = [];
+      await searchSplite.map((x) => {
+        const fuseData = fuseLocation.search(x).map((result) => result.item);
+        if (fuseData.length > 0) {
+          location = [...location, ...fuseData];
+        }
+        return;
+      });
 
-      const fuseLocationSlice = locationData.slice(0, 30);
-      // ------------- Location End ------------
+      location =
+        location.length > 0
+          ? location.slice(0, 20)
+          : uniqueLocations.slice(0, 20);
 
       const response = {
-        location: fuseLocationSlice,
+        length: location.length,
+        location: location,
       };
       return response;
     } catch (error) {
