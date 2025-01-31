@@ -8,7 +8,9 @@ const { authMiddleware, resourceAccessMiddleware, validateMiddleware } =
 
 const router = Router();
 
-router.get("/", customController.getAllPlaces);
+router.get("/hotel", customController.getAllPlacesHotel);
+router.get("/city", customController.getAllPlacesCity);
+router.get("/location", customController.getAllPlacesLocation);
 router.get("/countries", customController.getAllCountryList);
 
 router.get(

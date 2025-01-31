@@ -10,6 +10,8 @@ const {
 } = models;
 import { Op, Sequelize } from "sequelize";
 import Fuse from "fuse.js";
+import spellchecker from "simple-spellchecker";
+const dictionary = spellchecker.getDictionarySync("en-US");
 
 const getObject = (queryData, model = "airports") => {
   if (model === "cities") {
@@ -99,7 +101,7 @@ export default {
    * Get All Plcaes Where
    * @param {object} req
    */
-  async getAllPlaces(req, res) {
+  async getAllPlacesHotel(req, res) {
     try {
       let { name } = req.query;
       name = `${name.replace(/\./g, "")}`;
@@ -125,7 +127,7 @@ export default {
       const hotels = await Hotel.findAll({
         where: whereHotel2Word,
         attributes: ["hotelCode", "hotelName"],
-        limit: 100,
+        limit: 2000,
         include: [
           {
             attributes: ["cityCode", "cityName"],
@@ -188,7 +190,25 @@ export default {
       const hotelNames = name
         ? fuseHotel.search(name).map((result) => result.item)
         : hotel;
-      // ------------- Hotel End ------------
+
+      const response = {
+        hotels: hotelNames,
+      };
+      return response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get All Plcaes Where
+   * @param {object} req
+   */
+  async getAllPlacesCity(req, res) {
+    try {
+      let { name } = req.query;
+      name = `${name.replace(/\./g, "")}`;
+      const splitName = `${name}`.substring(0, 2);
       // ------------- City Start ------------
       const whereCity2Words = {
         $col: Sequelize.where(
@@ -205,7 +225,7 @@ export default {
       // fetching city data start
       const city = await HotelCity.findAll({
         attributes: ["cityCode", "cityName"],
-        limit: 1000,
+        limit: 2000,
         where: whereCity2Words,
         include: {
           attributes: ["countryName"],
@@ -263,20 +283,7 @@ export default {
       const cityNames = cityData.slice(0, 3);
       // ------------- City End ------------
       // ------------- Location Start ------------
-      const whereLocation2Words = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
-          { [Op.like]: `${splitName}%` }
-        ),
-      };
-      const whereLocationFullWords = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
-          { [Op.like]: `%${name}%` }
-        ),
-      };
       const cityCodes = cityNames.map((city) => city.cityCode);
-
       const locationCityMaps = await HotelLocationCityMap.findAll({
         attributes: ["locationCode", "cityCode"],
         where: { cityCode: cityCodes },
@@ -301,10 +308,78 @@ export default {
         ],
       });
 
+      const locationList = locationCityMaps.map((loc) => ({
+        locationCode: loc.locationCode,
+        cityCode: loc.cityCode,
+        cityName: loc.cityData.cityName,
+        countryName: loc.cityData.countryData.countryName,
+        locationName: loc.locationData.locationName,
+      }));
+
+      const uniqueLocations = locationList.reduce((acc, curr) => {
+        if (
+          !acc.find(
+            (item) =>
+              item.cityCode === curr.cityCode &&
+              item.locationCode === curr.locationCode
+          )
+        ) {
+          acc.push(curr);
+        }
+        return acc;
+      }, []);
+
+      const fuseLocation = new Fuse(uniqueLocations, {
+        keys: ["locationName"],
+        minMatchCharLength: 2,
+        threshold: 0.3,
+      });
+
+      const locationData = name
+        ? fuseLocation.search(name).map((result) => result.item)
+        : locationList;
+
+      const fuseLocationSlice = locationData.slice(0, 30);
+      // ------------- Location End ------------
+
+      const response = {
+        location: fuseLocationSlice,
+        city: cityNames,
+      };
+      return response;
+    } catch (error) {
+      throw Error(error);
+    }
+  },
+
+  /**
+   * Get All Plcaes Where
+   * @param {object} req
+   */
+  async getAllPlacesLocation(req, res) {
+    try {
+      let { name } = req.query;
+      name = `${name.replace(/\./g, "")}`;
+      const splitName = `${name}`.substring(0, 2);
+
+      // ------------- Location Start ------------
+      const whereLocation2Words = {
+        $col: Sequelize.where(
+          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+          { [Op.like]: `${splitName}%` }
+        ),
+      };
+      const whereLocationFullWords = {
+        $col: Sequelize.where(
+          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+          { [Op.like]: `%${name}%` }
+        ),
+      };
+
       const location2Word = await HotelLocation.findAll({
         where: whereLocation2Words,
         attributes: ["locationCode", "locationName"],
-        limit: 1000,
+        limit: 2000,
         group: ["locationCode"],
         include: [
           {
@@ -351,14 +426,6 @@ export default {
         ],
       });
 
-      const locationList = locationCityMaps.map((loc) => ({
-        locationCode: loc.locationCode,
-        cityCode: loc.cityCode,
-        cityName: loc.cityData.cityName,
-        countryName: loc.cityData.countryData.countryName,
-        locationName: loc.locationData.locationName,
-      }));
-
       const location1List = location2Word.map((loc) => ({
         locationCode: loc.locationCode,
         cityCode: loc.locationMapData.cityCode,
@@ -401,13 +468,10 @@ export default {
         : locations;
 
       const fuseLocationSlice = locationData.slice(0, 30);
-      const locationNames = [...locationList, ...fuseLocationSlice];
       // ------------- Location End ------------
 
       const response = {
-        hotels: hotelNames,
-        location: locationNames,
-        city: cityNames,
+        location: fuseLocationSlice,
       };
       return response;
     } catch (error) {
