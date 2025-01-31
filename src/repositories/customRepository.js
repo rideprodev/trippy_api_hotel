@@ -105,94 +105,176 @@ export default {
     try {
       let { name } = req.query;
       name = `${name.replace(/\./g, "")}`;
-      const splitName = `${name}`.substring(0, 2);
+      let hotels = [];
+      const searchWhere = [];
 
       // ------------- Hotel Start ------------
-      const whereHotel2Word = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
-          {
-            [Op.like]: `${splitName}%`,
+      const uselessWordsArray = [
+        "a",
+        "at",
+        "be",
+        "can",
+        "cant",
+        "could",
+        "couldnt",
+        "do",
+        "does",
+        "how",
+        "i",
+        "in",
+        "is",
+        "many",
+        "much",
+        "of",
+        "on",
+        "or",
+        "should",
+        "shouldnt",
+        "so",
+        "such",
+        "the",
+        "them",
+        "they",
+        "to",
+        "us",
+        "we",
+        "what",
+        "who",
+        "why",
+        "with",
+        "wont",
+        "would",
+        "wouldnt",
+        "you",
+      ];
+      const expStr = uselessWordsArray.join("|");
+      const newname = name
+        .replace(new RegExp("\\b(" + expStr + ")\\b", "gi"), "")
+        .replace(/\s{2,}/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const searchSplite = `${newname}`.split(" ");
+      for (let index = 0; index < searchSplite.length; index++) {
+        let element = searchSplite[index];
+        let splitName = "";
+        if (dictionary.spellCheck(element) === false) {
+          const suggestions = dictionary.getSuggestions(element, 1);
+          if (suggestions.length > 0) {
+            element = suggestions[0];
+          } else {
+            splitName = `${element}`.substring(0, 2);
           }
-        ),
-      };
-      const whereHotelFullWord = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
-          {
-            [Op.like]: `%${name}%`,
-          }
-        ),
-      };
-      const hotels = await Hotel.findAll({
-        where: whereHotel2Word,
-        attributes: ["hotelCode", "hotelName"],
-        limit: 1000,
-        include: [
-          {
-            attributes: ["cityCode", "cityName"],
-            model: HotelCity,
-            as: "cityData",
-          },
-          {
-            attributes: ["countryName"],
-            model: HotelCountry,
-            as: "countryData",
-          },
-        ],
-      });
-      const hotels1 = await Hotel.findAll({
-        where: whereHotelFullWord,
-        attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
-        limit: 15,
-        include: [
-          {
-            attributes: ["cityCode", "cityName"],
-            model: HotelCity,
-            as: "cityData",
-          },
-          {
-            attributes: ["countryName"],
-            model: HotelCountry,
-            as: "countryData",
-          },
-        ],
-      });
-      const hotelList = hotels.map((hotel) => ({
-        hotelCode: hotel.hotelCode,
-        hotelName: hotel.hotelName,
-        cityCode: hotel.cityData.cityCode,
-        cityName: hotel.cityData.cityName,
-        countryName: hotel.countryData.countryName,
-      }));
-      const hotel1List = hotels1.map((hotel) => ({
-        hotelCode: hotel.hotelCode,
-        hotelName: hotel.hotelName,
-        cityCode: hotel.cityData.cityCode,
-        cityName: hotel.cityData.cityName,
-        countryName: hotel.countryData.countryName,
-      }));
-      const hotel = [...hotelList, ...hotel1List];
+        }
 
-      const uniqueHotels = hotel.reduce((acc, curr) => {
+        if (splitName !== "") {
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+              { [Op.like]: `%${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+              { [Op.like]: `${splitName}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+              { [Op.like]: `${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+              { [Op.like]: `%${element}` }
+            ),
+          });
+        } else {
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+              { [Op.like]: `%${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+              { [Op.like]: `${splitName}%` }
+            ),
+          });
+        }
+      }
+
+      searchWhere.push({
+        $col: Sequelize.where(
+          Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+          { [Op.like]: `${name}%` }
+        ),
+      });
+
+      const whereHotelElementWords = [
+        {
+          [Op.or]: searchWhere,
+        },
+      ];
+
+      const hotelsElement = await Hotel.findAll({
+        where: whereHotelElementWords,
+        attributes: ["hotelCode", "hotelName"],
+        limit: 2000,
+        include: [
+          {
+            attributes: ["cityCode", "cityName"],
+            model: HotelCity,
+            as: "cityData",
+          },
+          {
+            attributes: ["countryName"],
+            model: HotelCountry,
+            as: "countryData",
+          },
+        ],
+      });
+
+      const hotelList = hotelsElement.map((hotel) => ({
+        hotelCode: hotel.hotelCode,
+        hotelName: hotel.hotelName,
+        cityCode: hotel.cityData.cityCode,
+        cityName: hotel.cityData.cityName,
+        countryName: hotel.countryData.countryName,
+      }));
+
+      const fuseHotel = new Fuse(hotelList, {
+        keys: ["hotelName", "cityName"],
+        minMatchCharLength: 2,
+        threshold: 0.3,
+      });
+
+      await searchSplite.map((x) => {
+        const fuseData = fuseHotel.search(x).map((result) => result.item);
+        if (fuseData.length > 0) {
+          hotels = [...hotels, ...fuseData];
+        }
+        return;
+      });
+
+      const uniqueHotels = hotels.reduce((acc, curr) => {
         if (!acc.find((item) => item.hotelCode === curr.hotelCode)) {
           acc.push(curr);
         }
         return acc;
       }, []);
 
-      const fuseHotel = new Fuse(uniqueHotels, {
-        keys: ["hotelName"],
-        minMatchCharLength: 2,
-        threshold: 0.3,
-      });
-
-      const hotelNames = name
-        ? fuseHotel.search(name).map((result) => result.item)
-        : hotel;
+      const hotel =
+        uniqueHotels.length > 0
+          ? uniqueHotels.slice(0, 20)
+          : hotels.slice(0, 20);
 
       const response = {
-        hotels: hotelNames,
+        lenght: hotel.length,
+        hotels: hotel,
       };
       return response;
     } catch (error) {
@@ -361,15 +443,61 @@ export default {
       let { name } = req.query;
       name = `${name.replace(/\.,/g, "")}`;
       let locations = [];
+      const searchWhere = [];
 
       // ------------- Location Start ------------
-      const searchSplite = `${name}`.split(" ");
+      const uselessWordsArray = [
+        "a",
+        "at",
+        "be",
+        "can",
+        "cant",
+        "could",
+        "couldnt",
+        "do",
+        "does",
+        "how",
+        "i",
+        "in",
+        "is",
+        "many",
+        "much",
+        "of",
+        "on",
+        "or",
+        "should",
+        "shouldnt",
+        "so",
+        "such",
+        "the",
+        "them",
+        "they",
+        "to",
+        "us",
+        "we",
+        "what",
+        "who",
+        "why",
+        "with",
+        "wont",
+        "would",
+        "wouldnt",
+        "you",
+        "hotel",
+      ];
+      const expStr = uselessWordsArray.join("|");
+      const newname = name
+        .replace(new RegExp("\\b(" + expStr + ")\\b", "gi"), "")
+        .replace(/\s{2,}/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const searchSplite = `${newname}`.split(" ");
 
       for (let index = 0; index < searchSplite.length; index++) {
         let element = searchSplite[index];
         let splitName = "";
         if (dictionary.spellCheck(element) === false) {
-          const suggestions = dictionary.getSuggestions(element);
+          const suggestions = dictionary.getSuggestions(element, 1);
           if (suggestions.length > 0) {
             element = suggestions[0];
           } else {
@@ -377,109 +505,101 @@ export default {
           }
         }
 
-        const searchWhere =
-          splitName !== ""
-            ? [
-                {
-                  $col: Sequelize.where(
-                    Sequelize.fn(
-                      "replace",
-                      Sequelize.col("location_name"),
-                      ".",
-                      ""
-                    ),
-                    { [Op.like]: `%${element}%` }
-                  ),
-                },
-                {
-                  $col: Sequelize.where(
-                    Sequelize.fn(
-                      "replace",
-                      Sequelize.col("location_name"),
-                      ".",
-                      ""
-                    ),
-                    { [Op.like]: `${splitName}%` }
-                  ),
-                },
-                {
-                  $col: Sequelize.where(
-                    Sequelize.fn(
-                      "replace",
-                      Sequelize.col("location_name"),
-                      ".",
-                      ""
-                    ),
-                    { [Op.like]: `${element}%` }
-                  ),
-                },
-                {
-                  $col: Sequelize.where(
-                    Sequelize.fn(
-                      "replace",
-                      Sequelize.col("location_name"),
-                      ".",
-                      ""
-                    ),
-                    { [Op.like]: `%${element}` }
-                  ),
-                },
-              ]
-            : [
-                {
-                  $col: Sequelize.where(
-                    Sequelize.fn(
-                      "replace",
-                      Sequelize.col("location_name"),
-                      ".",
-                      ""
-                    ),
-                    { [Op.like]: `%${element}%` }
-                  ),
-                },
-              ];
-        const whereLocationElementWords = [
-          {
-            [Op.or]: searchWhere,
-          },
-        ];
-
-        const locationElement = await HotelLocation.findAll({
-          where: whereLocationElementWords,
-          attributes: ["locationCode", "locationName"],
-          limit: 1000,
-          group: ["locationCode"],
-          include: [
-            {
-              attributes: ["cityCode"],
-              model: HotelLocationCityMap,
-              as: "locationMapData",
-              required: true,
-              include: {
-                attributes: ["cityName"],
-                model: HotelCity,
-                as: "cityData",
-                include: {
-                  attributes: ["countryName"],
-                  model: HotelCountry,
-                  as: "countryData",
-                },
-              },
-            },
-          ],
-        });
-
-        const locationElementList = locationElement.map((loc) => ({
-          locationCode: loc.locationCode,
-          cityCode: loc.locationMapData.cityCode,
-          cityName: loc.locationMapData.cityData.cityName,
-          countryName: loc.locationMapData.cityData.countryData.countryName,
-          locationName: loc.locationName,
-        }));
-        locations = [...locations, ...locationElementList];
+        if (splitName !== "") {
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+              { [Op.like]: `%${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+              { [Op.like]: `${splitName}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+              { [Op.like]: `${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+              { [Op.like]: `%${element}` }
+            ),
+          });
+        } else {
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+              { [Op.like]: `%${element}%` }
+            ),
+          });
+        }
       }
 
       // ------------- Location End ------------
+      searchWhere.push({
+        $col: Sequelize.where(
+          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+          { [Op.like]: `${name}%` }
+        ),
+      });
+
+      const whereLocationElementWords = [
+        {
+          [Op.or]: searchWhere,
+        },
+      ];
+
+      const locationElement = await HotelLocation.findAll({
+        where: whereLocationElementWords,
+        attributes: ["locationCode", "locationName"],
+        limit: 3000,
+        group: ["locationCode"],
+        include: [
+          {
+            attributes: ["cityCode"],
+            model: HotelLocationCityMap,
+            as: "locationMapData",
+            required: true,
+            include: {
+              attributes: ["cityName"],
+              model: HotelCity,
+              as: "cityData",
+              include: {
+                attributes: ["countryName"],
+                model: HotelCountry,
+                as: "countryData",
+              },
+            },
+          },
+        ],
+      });
+
+      const locationElementList = locationElement.map((loc) => ({
+        locationCode: loc.locationCode,
+        cityCode: loc.locationMapData.cityCode,
+        cityName: loc.locationMapData.cityData.cityName,
+        countryName: loc.locationMapData.cityData.countryData.countryName,
+        locationName: loc.locationName,
+      }));
+
+      const fuseLocation = new Fuse(locationElementList, {
+        keys: ["locationName", "cityName"],
+        minMatchCharLength: 2,
+        threshold: 0.3,
+      });
+
+      await searchSplite.map((x) => {
+        const fuseData = fuseLocation.search(x).map((result) => result.item);
+        if (fuseData.length > 0) {
+          locations = [...locations, ...fuseData];
+        }
+        return;
+      });
 
       const uniqueLocations = locations.reduce((acc, curr) => {
         if (
@@ -494,25 +614,10 @@ export default {
         return acc;
       }, []);
 
-      const fuseLocation = new Fuse(uniqueLocations, {
-        keys: ["locationName", "cityName"],
-        minMatchCharLength: 2,
-        threshold: 0.3,
-      });
-
-      let location = [];
-      await searchSplite.map((x) => {
-        const fuseData = fuseLocation.search(x).map((result) => result.item);
-        if (fuseData.length > 0) {
-          location = [...location, ...fuseData];
-        }
-        return;
-      });
-
-      location =
-        location.length > 0
-          ? location.slice(0, 20)
-          : uniqueLocations.slice(0, 20);
+      const location =
+        uniqueLocations.length > 0
+          ? uniqueLocations.slice(0, 20)
+          : locations.slice(0, 20);
 
       const response = {
         length: location.length,
