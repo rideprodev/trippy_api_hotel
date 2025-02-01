@@ -156,17 +156,17 @@ export default {
       const searchSplite = `${newname}`.split(" ");
       for (let index = 0; index < searchSplite.length; index++) {
         let element = searchSplite[index];
-        let splitName = "";
+        const splitName = `${element}`.substring(0, 2);
+        let isSuggesstion = false;
         if (dictionary.spellCheck(element) === false) {
           const suggestions = dictionary.getSuggestions(element, 1);
           if (suggestions.length > 0) {
             element = suggestions[0];
-          } else {
-            splitName = `${element}`.substring(0, 2);
+            isSuggesstion = true;
           }
         }
 
-        if (splitName !== "") {
+        if (isSuggesstion !== true) {
           searchWhere.push({
             $col: Sequelize.where(
               Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
@@ -290,35 +290,127 @@ export default {
     try {
       let { name } = req.query;
       name = `${name.replace(/\./g, "")}`;
-      const splitName = `${name}`.substring(0, 2);
+      let cities = [];
+      const searchWhere = [];
+
       // ------------- City Start ------------
-      const whereCity2Words = {
+
+      const uselessWordsArray = [
+        "a",
+        "at",
+        "be",
+        "can",
+        "cant",
+        "could",
+        "couldnt",
+        "do",
+        "does",
+        "how",
+        "i",
+        "in",
+        "is",
+        "many",
+        "much",
+        "of",
+        "on",
+        "or",
+        "should",
+        "shouldnt",
+        "so",
+        "such",
+        "the",
+        "them",
+        "they",
+        "to",
+        "us",
+        "we",
+        "what",
+        "who",
+        "why",
+        "with",
+        "wont",
+        "would",
+        "wouldnt",
+        "you",
+        "hotel",
+      ];
+      const expStr = uselessWordsArray.join("|");
+      const newname = name
+        .replace(new RegExp("\\b(" + expStr + ")\\b", "gi"), "")
+        .replace(/\s{2,}/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const searchSplite = `${newname}`.split(" ");
+      for (let index = 0; index < searchSplite.length; index++) {
+        let element = searchSplite[index];
+        let splitName = `${element}`.substring(0, 2);
+        let isSuggesstion = false;
+        if (dictionary.spellCheck(element) === false) {
+          const suggestions = dictionary.getSuggestions(element, 1);
+          if (suggestions.length > 0) {
+            element = suggestions[0];
+            isSuggesstion = true;
+          }
+        }
+
+        if (isSuggesstion !== true) {
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+              { [Op.like]: `%${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+              { [Op.like]: `${splitName}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+              { [Op.like]: `${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+              { [Op.like]: `%${element}` }
+            ),
+          });
+        } else {
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+              { [Op.like]: `%${element}%` }
+            ),
+          });
+          searchWhere.push({
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+              { [Op.like]: `${splitName}%` }
+            ),
+          });
+        }
+      }
+
+      searchWhere.push({
         $col: Sequelize.where(
           Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
-          { [Op.like]: `${splitName}%` }
+          { [Op.like]: `${name}%` }
         ),
-      };
-      const whereCityFullWords = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
-          { [Op.like]: `%${name}%` }
-        ),
-      };
+      });
+
+      const whereHotelElementWords = [
+        {
+          [Op.or]: searchWhere,
+        },
+      ];
       // fetching city data start
-      const city = await HotelCity.findAll({
+      const cityElement = await HotelCity.findAll({
         attributes: ["cityCode", "cityName"],
-        limit: 500,
-        where: whereCity2Words,
-        include: {
-          attributes: ["countryName"],
-          model: HotelCountry,
-          as: "countryData",
-        },
-      });
-      const city1 = await HotelCity.findAll({
-        attributes: ["cityCode", "cityName"],
-        limit: 100,
-        where: whereCityFullWords,
+        limit: 3000,
+        where: whereHotelElementWords,
         include: {
           attributes: ["countryName"],
           model: HotelCountry,
@@ -326,19 +418,25 @@ export default {
         },
       });
 
-      const cityList = city.map((city) => ({
+      const cityList = cityElement.map((city) => ({
         cityCode: city.cityCode,
         cityName: city.cityName,
         countryName: city.countryData.countryName,
       }));
 
-      const city1List = city1.map((city) => ({
-        cityCode: city.cityCode,
-        cityName: city.cityName,
-        countryName: city.countryData.countryName,
-      }));
+      const fuseCity = new Fuse(cityList, {
+        keys: ["cityName"],
+        minMatchCharLength: 2,
+        threshold: 0.3,
+      });
 
-      const cities = [...cityList, ...city1List];
+      await searchSplite.map((x) => {
+        const fuseData = fuseCity.search(x).map((result) => result.item);
+        if (fuseData.length > 0) {
+          cities = [...cities, ...fuseData];
+        }
+        return;
+      });
 
       const uniqueCities = cities.reduce((acc, curr) => {
         if (
@@ -352,17 +450,8 @@ export default {
         }
         return acc;
       }, []);
-
-      const fuseCity = new Fuse(uniqueCities, {
-        keys: ["cityName"],
-        minMatchCharLength: 2,
-        threshold: 0.3,
-      });
-
-      let cityData = name
-        ? fuseCity.search(name).map((result) => result.item)
-        : cities;
-      const cityNames = cityData.slice(0, 3);
+      const cityNames =
+        uniqueCities.length > 0 ? uniqueCities.slice(0, 3) : cities.slice(0, 3);
       // ------------- City End ------------
       // ------------- Location Start ------------
       const cityCodes = cityNames.map((city) => city.cityCode);
@@ -412,21 +501,26 @@ export default {
       }, []);
 
       const fuseLocation = new Fuse(uniqueLocations, {
-        keys: ["locationName"],
+        keys: ["locationName", "cityName"],
         minMatchCharLength: 2,
         threshold: 0.3,
       });
 
-      const locationData = name
-        ? fuseLocation.search(name).map((result) => result.item)
-        : locationList;
+      let locationData = [];
+      await searchSplite.map((x) => {
+        const fuseData = fuseLocation.search(x).map((result) => result.item);
+        if (fuseData.length > 0) {
+          locationData = [...locationData, ...fuseData];
+        }
+        return;
+      });
 
-      const fuseLocationSlice = locationData.slice(0, 30);
+      const locationName = locationData.slice(0, 10);
       // ------------- Location End ------------
 
       const response = {
-        location: fuseLocationSlice,
         city: cityNames,
+        location: locationName,
       };
       return response;
     } catch (error) {
