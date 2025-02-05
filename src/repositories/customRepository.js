@@ -220,25 +220,51 @@ export default {
         },
       ];
 
-      const hotelsElement = await Hotel.findAll({
-        where: whereHotelElementWords,
-        attributes: ["hotelCode", "hotelName"],
-        limit: 2000,
-        include: [
-          {
-            attributes: ["cityCode", "cityName"],
-            model: HotelCity,
-            as: "cityData",
+      const ElementFetch = [
+        ...(await Hotel.findAll({
+          where: {
+            $col: Sequelize.where(
+              Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+              { [Op.like]: `%${name}%` }
+            ),
           },
-          {
-            attributes: ["countryName"],
-            model: HotelCountry,
-            as: "countryData",
-          },
-        ],
-      });
+          attributes: ["hotelCode", "hotelName"],
+          limit: 1,
+          include: [
+            {
+              attributes: ["cityCode", "cityName"],
+              model: HotelCity,
+              as: "cityData",
+            },
+            {
+              attributes: ["countryName"],
+              model: HotelCountry,
+              as: "countryData",
+            },
+          ],
+        })),
+        ...(await Hotel.findAll({
+          where: whereHotelElementWords,
+          attributes: ["hotelCode", "hotelName"],
+          limit: 1500,
+          include: [
+            {
+              attributes: ["cityCode", "cityName"],
+              model: HotelCity,
+              as: "cityData",
+            },
+            {
+              attributes: ["countryName"],
+              model: HotelCountry,
+              as: "countryData",
+            },
+          ],
+        })),
+      ];
 
-      const hotelList = hotelsElement.map((hotel) => ({
+      const ElementData = await Promise.all(ElementFetch);
+
+      const hotelList = ElementData.map((hotel) => ({
         hotelCode: hotel.hotelCode,
         hotelName: hotel.hotelName,
         cityCode: hotel.cityData.cityCode,
