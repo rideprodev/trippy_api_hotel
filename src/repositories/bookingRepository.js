@@ -434,7 +434,6 @@ export default {
               "hotelCode",
               "roomType",
               "platformPaymentStatus",
-              "reavalidateResponse",
               "price",
               "currency",
               "commission",
@@ -479,7 +478,6 @@ export default {
           {
             model: HotelBooking,
             as: "bookings",
-            limit: 5,
             include: {
               attributes: ["hotelCode", "hotelName"],
               model: Hotel,
