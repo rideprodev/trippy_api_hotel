@@ -434,6 +434,7 @@ export default {
               "hotelCode",
               "roomType",
               "platformPaymentStatus",
+              "reavalidateResponse",
               "price",
               "currency",
               "commission",

@@ -554,11 +554,11 @@ export default {
       request.body = JSON.parse(x.searchPayload);
       // filter unique hotel codes
       const hotelCode = x.biddingData
-        .map((y) => y.hotelCode)
+        .map((y) => `${y.hotelCode}`)
         .filter((item, i, ar) => ar.indexOf(item) === i);
       // filter unique hotel codes with its roomType
       const rooms = hotelCode.map((y) => {
-        const roomTypes = x.biddingData.filter((z) => z.hotelCode === y);
+        const roomTypes = x.biddingData.filter((z) => `${z.hotelCode}` === y);
         const roomType = roomTypes.map((m) => {
           return { roomType: m.roomType, expairationAt: m.expairationAt };
         });
@@ -597,7 +597,7 @@ export default {
     } catch (err) {
       console.log(err);
     }
-    console.log(result);
+    console.log(result, "Error=>", result[0] && result[0].data?.errors);
     return await this.checkBookingForBiddingSchedule(
       bookingGroupData,
       result,
@@ -645,7 +645,7 @@ export default {
           for (let j = 0; j < elementi.rooms.length; j++) {
             const elementj = elementi.rooms[j]; // hote data rooms array
             const filterHotel = newResponse.filter(
-              (h) => h.hotel_code === elementj.hotelCode
+              (h) => h.hotel_code === `${elementj.hotelCode}`
             );
             for (let k = 0; k < elementj.roomType.length; k++) {
               const elementk = elementj.roomType[k];
@@ -692,7 +692,7 @@ export default {
                 }
                 elementi.newRates.push({
                   searchId: result[i]?.data?.search_id,
-                  hotelCode: elementj.hotelCode,
+                  hotelCode: `${elementj.hotelCode}`,
                   commission,
                   commissionAmount,
                   totalPrice,
@@ -712,7 +712,7 @@ export default {
             const elementj = elementi.newRates[j];
             const filterBiddingData = elementi.biddingData.filter(
               (x) =>
-                elementj.hotelCode === x.hotelCode &&
+                `${elementj.hotelCode}` === `${x.hotelCode}` &&
                 elementj.roomType === x.roomType
             );
             if (filterBiddingData.length > 0) {
@@ -766,7 +766,8 @@ export default {
             } else {
               const filterRevalidate = finalForRevalidate.filter((x) => {
                 if (
-                  x.newRates.hotelCode === elementfr.newRates.hotelCode &&
+                  `${x.newRates.hotelCode}` ===
+                    `${elementfr.newRates.hotelCode}` &&
                   x.newRates.roomType === elementfr.newRates.roomType
                 ) {
                   return x;
@@ -1621,7 +1622,7 @@ export default {
         _response = {},
         filteredRate = {};
       request.body = JSON.parse(Bidding.bookingGroupData.searchPayload);
-      request.body.hotelCode = [Bidding.hotelCode];
+      request.body.hotelCode = [`${Bidding.hotelCode}`];
       const search_respose = await grnRepository.search(request);
       if (search_respose?.data?.hotels?.length > 0) {
         const rateData = search_respose?.data?.hotels[0]?.rates;
@@ -1753,7 +1754,7 @@ export default {
             // Request Data
             const booking_request_data = {
               search_id: reavalidateResponse.data.search_id,
-              hotel_code: Bidding.hotelCode,
+              hotel_code: `${Bidding.hotelCode}`,
               city_code: reavalidateResponse.data.hotel.city_code,
               group_code: reavalidateResponse.data.hotel.rate.group_code,
               checkout: Bidding.checkOut,
@@ -1775,7 +1776,12 @@ export default {
             console.log(
               "=================== booking done ===================="
             );
-            console.log("_response", _response?.data?.status);
+            console.log(
+              "_response",
+              _response?.data?.status,
+              "Error=>",
+              _response?.data?.errors
+            );
             // save the new  booking=======
             if (
               _response !== undefined &&
