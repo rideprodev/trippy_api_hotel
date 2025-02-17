@@ -109,7 +109,7 @@ export default {
     const searchPromiseFilter = groupObjectData.map(async (x) => {
       // filter unique codes
       const hotelCode = x.biddingData
-        .map((y) => y.hotelCode)
+        .map((y) => `${y.hotelCode}`)
         .filter((item, i, ar) => ar.indexOf(item) === i);
       // filter unique hotel codes with its roomType
       const rooms = hotelCode.map((y) => {
