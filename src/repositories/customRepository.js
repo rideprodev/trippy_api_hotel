@@ -420,13 +420,6 @@ export default {
         }
       }
 
-      searchWhere.push({
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
-          { [Op.like]: `${name}%` }
-        ),
-      });
-
       const whereHotelElementWords = [
         {
           [Op.or]: searchWhere,
@@ -435,7 +428,8 @@ export default {
       // fetching city data start
       const cityElement = await HotelCity.findAll({
         attributes: ["cityCode", "cityName"],
-        limit: 3000,
+        limit: 1000,
+        order: [["ordering", "DESC"]],
         where: whereHotelElementWords,
         include: {
           attributes: ["countryName"],
@@ -444,7 +438,28 @@ export default {
         },
       });
 
+      const cityElement1 = await HotelCity.findAll({
+        attributes: ["cityCode", "cityName"],
+        limit: 5,
+        order: [["ordering", "DESC"]],
+        where: Sequelize.literal(
+          "MATCH(`city_name`) AGAINST ('+" + name + "*' IN BOOLEAN MODE)",
+          ["search query"]
+        ),
+        include: {
+          attributes: ["countryName"],
+          model: HotelCountry,
+          as: "countryData",
+        },
+      });
+
       const cityList = cityElement.map((city) => ({
+        cityCode: city.cityCode,
+        cityName: city.cityName,
+        countryName: city.countryData.countryName,
+      }));
+
+      const cityList1 = cityElement1.map((city) => ({
         cityCode: city.cityCode,
         cityName: city.cityName,
         countryName: city.countryData.countryName,
@@ -463,6 +478,8 @@ export default {
         }
         return;
       });
+
+      cities = [...cityList1, ...cities];
 
       const uniqueCities = cities.reduce((acc, curr) => {
         if (

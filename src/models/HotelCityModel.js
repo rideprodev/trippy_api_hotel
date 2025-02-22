@@ -20,12 +20,22 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
+      ordering: {
+        type: DataTypes.INTEGER(10),
+        defaultValue: 0,
+      },
       updatedAt: {
         type: DataTypes.DATE,
         defaultValue: null,
       },
     },
     {
+      indexes: [
+        {
+          type: "FULLTEXT",
+          fields: ["city_name"],
+        },
+      ],
       underscored: true,
     }
   );
