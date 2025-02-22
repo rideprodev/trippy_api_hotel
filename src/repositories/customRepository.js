@@ -427,7 +427,7 @@ export default {
       ];
       // fetching city data start
       const cityElement = await HotelCity.findAll({
-        attributes: ["cityCode", "cityName"],
+        attributes: ["cityCode", "cityName", "ordering"],
         limit: 1000,
         order: [["ordering", "DESC"]],
         where: whereHotelElementWords,
@@ -439,7 +439,7 @@ export default {
       });
 
       const cityElement1 = await HotelCity.findAll({
-        attributes: ["cityCode", "cityName"],
+        attributes: ["cityCode", "cityName", "ordering"],
         limit: 5,
         order: [["ordering", "DESC"]],
         where: Sequelize.literal(
@@ -457,12 +457,14 @@ export default {
         cityCode: city.cityCode,
         cityName: city.cityName,
         countryName: city.countryData.countryName,
+        ordering: city.ordering,
       }));
 
       const cityList1 = cityElement1.map((city) => ({
         cityCode: city.cityCode,
         cityName: city.cityName,
         countryName: city.countryData.countryName,
+        ordering: city.ordering,
       }));
 
       const fuseCity = new Fuse(cityList, {
@@ -481,18 +483,20 @@ export default {
 
       cities = [...cityList1, ...cities];
 
-      const uniqueCities = cities.reduce((acc, curr) => {
-        if (
-          !acc.find(
-            (item) =>
-              item.cityCode === curr.cityCode &&
-              item.countryName === curr.countryName
-          )
-        ) {
-          acc.push(curr);
-        }
-        return acc;
-      }, []);
+      const uniqueCities = cities
+        .reduce((acc, curr) => {
+          if (
+            !acc.find(
+              (item) =>
+                item.cityCode === curr.cityCode &&
+                item.countryName === curr.countryName
+            )
+          ) {
+            acc.push(curr);
+          }
+          return acc;
+        }, [])
+        .sort((a, b) => b.ordering - a.ordering);
       const cityNames =
         uniqueCities.length > 0 ? uniqueCities.slice(0, 3) : cities.slice(0, 3);
       // ------------- City End ------------
