@@ -59,6 +59,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(10),
         defaultValue: null,
       },
+      ordering: {
+        type: DataTypes.INTEGER(10),
+        defaultValue: 0,
+      },
       createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -71,7 +75,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       indexes: [
         {
-          unique: false,
+          type: "FULLTEXT",
           fields: ["hotel_name"],
         },
         {

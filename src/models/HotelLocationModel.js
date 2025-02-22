@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(50),
         allowNull: false,
       },
+      ordering: {
+        type: DataTypes.INTEGER(10),
+        defaultValue: 0,
+      },
       createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -30,6 +34,12 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
+      indexes: [
+        {
+          type: "FULLTEXT",
+          fields: ["location_name"],
+        },
+      ],
       underscored: true,
     }
   );
