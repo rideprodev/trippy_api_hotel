@@ -176,7 +176,7 @@ export default {
       });
       return _response;
     } catch (error) {
-      throw Error(error);
+      throw Error(error); //
     }
   },
 
