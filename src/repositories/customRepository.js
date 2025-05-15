@@ -117,6 +117,7 @@ export default {
 
       const hotels = await Hotel.findAll({
         where: whereHotel,
+        group: ["hotelCode"],
         attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
         include: [
           {
@@ -167,6 +168,7 @@ export default {
 
       const city = await HotelCity.findAll({
         where: whereCity,
+        group: ["cityCode"],
         include: {
           attributes: ["countryName"],
           model: HotelCountry,
@@ -212,6 +214,7 @@ export default {
       const location = await HotelLocation.findAll({
         where: whereLocation,
         attributes: ["locationCode", "locationName", "countryCode"],
+        group: ["locationCode"],
         include: [
           {
             attributes: ["cityCode"],
