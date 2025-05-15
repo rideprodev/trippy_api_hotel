@@ -11,6 +11,7 @@ const {
 import { Op, Sequelize } from "sequelize";
 import Fuse from "fuse.js";
 import spellchecker from "simple-spellchecker";
+import { x } from "joi";
 const dictionary = spellchecker.getDictionarySync("en-US");
 
 const getObject = (queryData, model = "airports") => {
@@ -114,10 +115,34 @@ export default {
       };
       const _response = {};
 
-      _response.hotels = await Hotel.findAll({
+      const hotels = await Hotel.findAll({
         where: whereHotel,
         attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
-        limit: 15,
+        include: [
+          {
+            attributes: ["cityName"],
+            model: HotelCity,
+            as: "cityData",
+          },
+          {
+            attributes: ["countryName"],
+            model: HotelCountry,
+            as: "countryData",
+          },
+        ],
+        limit: 30,
+      });
+
+      _response.hotels = hotels.map((x) => {
+        return {
+          hotelCode: x.hotelCode,
+          hotelName: x.hotelName,
+          cityCode: 123318,
+          cityName: x?.cityData?.cityName ? x.cityData.cityName : null,
+          countryName: x?.countryData?.countryName
+            ? x.countryData.countryName
+            : null,
+        };
       });
       return _response;
     } catch (error) {
@@ -139,11 +164,27 @@ export default {
           ),
         },
         _response = {};
-      _response.city = await HotelCity.findAll({
+
+      const city = await HotelCity.findAll({
         where: whereCity,
+        include: {
+          attributes: ["countryName"],
+          model: HotelCountry,
+          as: "countryData",
+        },
         attributes: ["cityCode", "cityName", "countryCode"],
-        limit: 15,
+        limit: 20,
         order: [[sequelize.fn("length", sequelize.col("cityName")), "ASC"]],
+      });
+
+      _response.city = city.map((x) => {
+        return {
+          cityCode: 123318,
+          cityName: x?.cityName ? x.cityName : null,
+          countryName: x?.countryData?.countryName
+            ? x.countryData.countryName
+            : null,
+        };
       });
       return _response;
     } catch (error) {
@@ -168,12 +209,47 @@ export default {
         ),
       };
       const _response = {};
-      _response.location = await HotelLocation.findAll({
+      const location = await HotelLocation.findAll({
         where: whereLocation,
         attributes: ["locationCode", "locationName", "countryCode"],
+        include: [
+          {
+            attributes: ["cityCode"],
+            model: HotelLocationCityMap,
+            as: "locationMapData",
+            include: {
+              attributes: ["cityName"],
+              model: HotelCity,
+              as: "cityData",
+              include: {
+                attributes: ["countryName"],
+                model: HotelCountry,
+                as: "countryData",
+              },
+            },
+          },
+        ],
         limit: 15,
         order: [[sequelize.fn("length", sequelize.col("locationName")), "ASC"]],
       });
+      _response.location = location
+        .filter((x) => x.locationMapData)
+        .map((x) => {
+          return {
+            locationCode: x.locationCode,
+            locationName: x.locationName,
+            cityCode: x?.locationMapData?.cityCode
+              ? x.locationMapData.cityCode
+              : null,
+            cityName: x?.locationMapData?.cityData?.cityName
+              ? x.locationMapData.cityData.cityName
+              : null,
+            countryName: x?.locationMapData?.cityData?.countryData?.countryName
+              ? x.locationMapData.cityData.countryData.countryName
+              : null,
+          };
+        });
+
       return _response;
     } catch (error) {
       throw Error(error); //
