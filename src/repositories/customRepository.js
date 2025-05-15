@@ -137,7 +137,7 @@ export default {
         return {
           hotelCode: x.hotelCode,
           hotelName: x.hotelName,
-          cityCode: 123318,
+          cityCode: x.cityCode,
           cityName: x?.cityData?.cityName ? x.cityData.cityName : null,
           countryName: x?.countryData?.countryName
             ? x.countryData.countryName
@@ -179,7 +179,7 @@ export default {
 
       _response.city = city.map((x) => {
         return {
-          cityCode: 123318,
+          cityCode: x.cityCode,
           cityName: x?.cityName ? x.cityName : null,
           countryName: x?.countryData?.countryName
             ? x.countryData.countryName
