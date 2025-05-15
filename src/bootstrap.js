@@ -126,15 +126,15 @@ export default class Bootstrap {
       .then(async () => {
         console.log("Connected to database");
         loggers.infoLogger.info("Database connected successfully");
-        await sequelize
-          .sync()
-          .then(() => {
-            loggers.infoLogger.info("Database sync successfully");
-          })
-          .catch((error) => {
-            console.log(error);
-            loggers.infoLogger.error("Database syncing error %s", error);
-          });
+        // await sequelize
+        //   .sync()
+        //   .then(() => {
+        //     loggers.infoLogger.info("Database sync successfully");
+        //   })
+        //   .catch((error) => {
+        //     console.log(error);
+        //     loggers.infoLogger.error("Database syncing error %s", error);
+        //   });
       })
       .catch((error) => {
         console.log(error);
