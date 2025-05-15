@@ -211,8 +211,8 @@ export default {
         response.push({
           search_id: data.search_id,
           ...cityData[0],
-          propery_type: hotelData.accommodationTypeSubName,
-          chain_name: hotelData.ChainName,
+          propery_type: hotelData?.accommodationTypeSubName,
+          chain_name: hotelData?.ChainName,
           address: x.address,
           category: x.category,
           country: x.country,
