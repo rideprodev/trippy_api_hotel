@@ -56,7 +56,7 @@ export default {
           ],
         };
         const getAllHotelCodes = await hotelRepository.fetchAll(where);
-
+        console.log("totalHotel=>", getAllHotelCodes.length);
         if (getAllHotelCodes.length > 0) {
           req.hotelCode = getAllHotelCodes.map((x) => `${x.hotelCode}`);
           // console.log(req.hotelCode);
@@ -108,10 +108,10 @@ export default {
             { accommodationTypeSubName: "Aparthotel" },
           ],
         };
-        const getAllHotelCodes = await hotelRepository.fetchAll(where, 10);
+        const getAllHotelCodes = await hotelRepository.fetchAll(where, 8);
         if (getAllHotelCodes.length > 0) {
           req.hotelCode = getAllHotelCodes.map((x) => `${x.hotelCode}`);
-          bodyData.cutOffTime = 10000;
+          bodyData.cutOffTime = 3000;
           // console.log(req.hotelCode);
           next();
         } else {

@@ -63,6 +63,40 @@ export default {
         const finalResponseForSent = _response[0];
         finalResponseForSent.hotels = _combineHotelResponse;
 
+        // const chaunkArrayResponse = [],
+        //   responseCounts = 2,
+        //   _response = [];
+        // const arrayLenghtResponse = response.length;
+        // const responseNumberCount = arrayLenghtResponse / responseCounts;
+        // const responseFloatCount = responseNumberCount % 1 === 0;
+        // const responseLoopCount =
+        //   responseFloatCount === false
+        //     ? parseInt(responseNumberCount + 1)
+        //     : parseInt(responseNumberCount);
+        // let responseStart = 0;
+        // for (let index = 0; index < responseLoopCount; index++) {
+        //   let resposeEnd = responseStart + responseCounts;
+        //   chaunkArrayResponse.push(response.slice(responseStart, resposeEnd));
+        //   responseStart = resposeEnd;
+        // }
+        // let _combineHotelResponse = [];
+        // for (let index = 0; index < chaunkArrayResponse.length; index++) {
+        //   const elementChaunkArray = chaunkArrayResponse[index];
+        //   let dataCustomise = elementChaunkArray.map(async (element) => {
+        //     return await hotelHelper.setCountryCityName(req, element.data);
+        //   });
+        //   let _response = await Promise.all(dataCustomise);
+        //   for (let i = 0; i < _response.length; i++) {
+        //     const ele = _response[i];
+        //     _combineHotelResponse = [..._combineHotelResponse, ...ele.hotels];
+        //   }
+        // }
+
+        // const finalResponseForSent = _response;
+        // finalResponseForSent.checkin = bodyData.checkIn;
+        // finalResponseForSent.checkout = bodyData.checkOut;
+        // finalResponseForSent.hotels = _combineHotelResponse;
+
         utility.getResponse(
           res,
           {
