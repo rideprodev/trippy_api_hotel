@@ -4,7 +4,8 @@ import middlewares from "../middlewares";
 import validations from "../validations";
 
 const { grnController } = controllers;
-const { authMiddleware, validateMiddleware, hotelMiddleware } = middlewares;
+const { authMiddleware, validateMiddleware, hotelMiddleware, cacheMiddleware } =
+  middlewares;
 const { grnValidator } = validations;
 
 const router = Router();
@@ -12,6 +13,7 @@ const router = Router();
 // full search
 router.post(
   "/search/v2",
+  cacheMiddleware.cacheMiddleware,
   validateMiddleware({
     schema: grnValidator.search,
   }),
@@ -22,6 +24,7 @@ router.post(
 // short search
 router.post(
   "/search/v1",
+  cacheMiddleware.cacheMiddleware,
   validateMiddleware({
     schema: grnValidator.search,
   }),

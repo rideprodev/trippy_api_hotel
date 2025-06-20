@@ -38,4 +38,9 @@ export default {
   },
   jwtSecret: process.env.JWT_SECRET,
   jwtExpireIn: process.env.JWT_EXPIRE_IN,
+  redis: {
+    host: process.env.REDIS_HOST || "127.0.0.1",
+    port: process.env.REDIS_PORT || 6379,
+    cacheTTLMinutes: parseInt(process.env.CACHE_TTL_MINUTES, 10) || 10,
+  },
 };
