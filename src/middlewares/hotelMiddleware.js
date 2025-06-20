@@ -55,7 +55,7 @@ export default {
             { accommodationTypeSubName: "Aparthotel" },
           ],
         };
-        const getAllHotelCodes = await hotelRepository.fetchAll(where);
+        const getAllHotelCodes = await hotelRepository.fetchTopAll(where);
         console.log("totalHotel=>", getAllHotelCodes.length);
         if (getAllHotelCodes.length > 0) {
           req.hotelCode = getAllHotelCodes.map((x) => `${x.hotelCode}`);

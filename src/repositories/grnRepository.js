@@ -85,7 +85,7 @@ export default {
   async search(req) {
     try {
       const bodyData = req.body;
-      const cutOffTime = bodyData?.cutOffTime ? bodyData.cutOffTime : 60000;
+      const cutOffTime = bodyData?.cutOffTime ? bodyData.cutOffTime : 30000;
       const _request_data = {
         rooms: bodyData.rooms,
         hotel_codes: bodyData.hotelCode.splice(0, 100),
@@ -98,6 +98,7 @@ export default {
         purpose_of_travel: 1,
         options: { rate_comments: true },
       };
+      console.log(_request_data);
       const _response = await requestHandler.fetchResponseFromHotel(
         GRN_Apis.search,
         await this.getSessionToken(),

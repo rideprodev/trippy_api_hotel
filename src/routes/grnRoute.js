@@ -9,7 +9,7 @@ const { grnValidator } = validations;
 
 const router = Router();
 // ------------ Backend Apis Start -----------------------
-
+// full search
 router.post(
   "/search/v2",
   validateMiddleware({
@@ -19,6 +19,7 @@ router.post(
   grnController.search
 );
 
+// short search
 router.post(
   "/search/v1",
   validateMiddleware({
