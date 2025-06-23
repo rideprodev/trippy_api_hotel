@@ -20,23 +20,29 @@ export default {
    */
   async fetchHotelsCodes(req, res, next) {
     try {
+      req.startTiming('fetchHotelsCodes');
       const bodyData = req.body;
       if (bodyData.hotelCode && bodyData.hotelCode !== "") {
         req.body.hotelCode = `${bodyData.hotelCode}`.split(",");
+        req.endTiming('fetchHotelsCodes');
         next();
       } else if (bodyData.locationCode && bodyData.locationCode !== "") {
+        req.startTiming('locationCodeQuery');
         const hotelData = await HotelLocationCityMap.findAll({
           attributes: ["hotelCode"],
           where: { locationCode: bodyData.locationCode },
         });
+        req.endTiming('locationCodeQuery');
         if (hotelData.length > 0) {
           const hotelCodes = hotelData.map((x) => `${x.hotelCode}`);
           req.body.hotelCode = hotelCodes;
+          req.endTiming('fetchHotelsCodes');
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
         }
       } else {
+        req.startTiming('cityCodeQuery');
         const where = {
           cityCode: bodyData.cityCode,
           [Op.or]: [
@@ -56,10 +62,11 @@ export default {
           ],
         };
         const getAllHotelCodes = await hotelRepository.fetchTopAll(where);
+        req.endTiming('cityCodeQuery');
         console.log("totalHotel=>", getAllHotelCodes.length);
         if (getAllHotelCodes.length > 0) {
           req.hotelCode = getAllHotelCodes.map((x) => `${x.hotelCode}`);
-          // console.log(req.hotelCode);
+          req.endTiming('fetchHotelsCodes');
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
@@ -78,22 +85,27 @@ export default {
    */
   async checkApiProcessable(req, res, next) {
     try {
+      req.startTiming('checkApiProcessable');
       const bodyData = req.body;
       if (bodyData.hotelCode && bodyData.hotelCode !== "") {
         utility.getResponse(res, [], "RETRIVED");
       } else if (bodyData.locationCode && bodyData.locationCode !== "") {
+        req.startTiming('locationCodeQueryV1');
         const hotelData = await HotelLocationCityMap.findAll({
           attributes: ["hotelCode"],
           where: { locationCode: bodyData.locationCode },
         });
+        req.endTiming('locationCodeQueryV1');
         if (hotelData.length > 0) {
           const hotelCodes = hotelData.map((x) => `${x.hotelCode}`);
           req.body.hotelCode = hotelCodes;
+          req.endTiming('checkApiProcessable');
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");
         }
       } else {
+        req.startTiming('cityCodeQueryV1');
         const where = {
           cityCode: bodyData.cityCode,
           [Op.or]: [
@@ -109,10 +121,11 @@ export default {
           ],
         };
         const getAllHotelCodes = await hotelRepository.fetchAll(where, 8);
+        req.endTiming('cityCodeQueryV1');
         if (getAllHotelCodes.length > 0) {
           req.hotelCode = getAllHotelCodes.map((x) => `${x.hotelCode}`);
           bodyData.cutOffTime = 3000;
-          // console.log(req.hotelCode);
+          req.endTiming('checkApiProcessable');
           next();
         } else {
           utility.getError(res, "No Hotel Find In this location");

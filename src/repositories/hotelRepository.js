@@ -51,13 +51,24 @@ export default {
    */
   async fetchTopAll(where, limit = 300, offset = 0) {
     try {
-      return await HotelTop10k.findAll({
+      let response = await HotelTop10k.findAll({
         attributes: ["hotelCode"],
         where,
         offset,
         limit,
         order: [["StarCategory", "DESC"]],
       });
+      if (response.length > 10) {
+        return response;
+      } else {
+        return await Hotel.findAll({
+          attributes: ["hotelCode"],
+          where,
+          offset,
+          limit,
+          order: [["StarCategory", "DESC"]],
+        });
+      }
     } catch (error) {
       throw Error(error);
     }
@@ -69,13 +80,16 @@ export default {
    */
   async fetchOneWithoutCount(where, limit = null, offset = 0) {
     try {
-      return await Hotel.findOne({
+      console.log(`🏨 Fetching hotel data for: ${JSON.stringify(where)}`);
+      const result = await Hotel.findOne({
         attributes: ["accommodationTypeSubName", "ChainName"],
         where,
         offset,
         limit,
         order: [["StarCategory", "DESC"]],
       });
+      console.log(`✅ Hotel data fetched: ${result ? 'Found' : 'Not found'}`);
+      return result;
     } catch (error) {
       throw Error(error);
     }

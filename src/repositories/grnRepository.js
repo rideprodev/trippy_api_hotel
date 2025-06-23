@@ -63,12 +63,15 @@ export default {
    * Get Hotel Token
    * @param {Object} req
    */
-  async getSessionToken() {
+  async getSessionToken(req) {
     try {
+      req.startTiming('sessionTokenQuery');
       // fetch token from settings
       const token = await Setting.findOne({
         where: { key: "4f0f3b74542a1bfd35ad8f7531eb2376c9631ccb" },
       });
+      req.endTiming('sessionTokenQuery');
+      
       if (token?.value.length > 5) {
         return token.value;
       } else {
@@ -84,11 +87,17 @@ export default {
    */
   async search(req) {
     try {
+      req.startTiming('grnSearch');
       const bodyData = req.body;
-      const cutOffTime = bodyData?.cutOffTime ? bodyData.cutOffTime : 30000;
+      const cutOffTime = bodyData?.cutOffTime ? bodyData.cutOffTime : 50000;
+      
+      // Optimize: Limit hotel codes to reduce API load
+      const maxHotelCodes = 50; // Reduced from 100
+      const hotelCodes = bodyData.hotelCode.splice(0, maxHotelCodes);
+      
       const _request_data = {
         rooms: bodyData.rooms,
-        hotel_codes: bodyData.hotelCode.splice(0, 100),
+        hotel_codes: hotelCodes,
         rates: "comprehensive",
         currency: bodyData.currency,
         client_nationality: bodyData.clientNationality,
@@ -98,15 +107,24 @@ export default {
         purpose_of_travel: 1,
         options: { rate_comments: true },
       };
-      console.log(_request_data);
+      
+      console.log(`🔍 Searching ${hotelCodes.length} hotels...`);
+      
+      req.startTiming('getSessionToken');
+      const sessionToken = await this.getSessionToken(req);
+      req.endTiming('getSessionToken');
+      
+      req.startTiming('thirdPartyAPI');
       const _response = await requestHandler.fetchResponseFromHotel(
         GRN_Apis.search,
-        await this.getSessionToken(),
+        sessionToken,
         _request_data,
         false
       );
-      // console.log(_response);
+      req.endTiming('thirdPartyAPI');
+      
       if (_response !== undefined && _response?.status) {
+        req.startTiming('grnLogger');
         this.genrateGrnLogger(
           req,
           _response?.status,
@@ -114,7 +132,9 @@ export default {
           GRN_Apis.search,
           false
         );
+        req.endTiming('grnLogger');
       }
+      req.endTiming('grnSearch');
       return _response;
     } catch (error) {
       throw Error(error);
@@ -131,7 +151,7 @@ export default {
       const apiEndPoint = GRN_Apis.refetch(searchId, hotelCode);
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
-        await this.getSessionToken()
+        await this.getSessionToken(req)
       );
       // console.log(_response);
       if (_response !== undefined) {
@@ -164,7 +184,7 @@ export default {
       const apiEndPoint = GRN_Apis.revalidate(searchId);
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
-        await this.getSessionToken(),
+        await this.getSessionToken(req),
         _request_data
       );
       // console.log(_response);
@@ -230,7 +250,7 @@ export default {
       // console.log(_request_data);
       const _response = await requestHandler.fetchResponseFromHotel(
         GRN_Apis.booking,
-        await this.getSessionToken(),
+        await this.getSessionToken(req),
         _request_data
       );
 
@@ -479,7 +499,7 @@ export default {
       );
       const _response = await requestHandler.fetchResponseFromHotel(
         apiEndPoint,
-        await this.getSessionToken()
+        await this.getSessionToken(req)
       );
       // console.log(_response);
       if (_response !== undefined) {
@@ -647,7 +667,7 @@ export default {
         );
         const _response = await requestHandler.fetchResponseFromHotel(
           apiEndPoint,
-          await this.getSessionToken(),
+          await this.getSessionToken(req),
           { cutoff_time: 60000 }
         );
         // console.log(_response);
@@ -750,7 +770,7 @@ export default {
               const _response_cancel =
                 await requestHandler.fetchResponseFromHotel(
                   apiEndPoint,
-                  await this.getSessionToken(),
+                  await this.getSessionToken(req),
                   { cutoff_time: 60000 }
                 );
               if (

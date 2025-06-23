@@ -273,10 +273,12 @@ export default {
 
   async fetchCityData(cityCode) {
     try {
+      console.log(`🏙️ Fetching city data for cityCode: ${cityCode}`);
       const result = await sequelize.query(
         `SELECT hotel_cities.city_name AS cityName, hotel_countries.country_name AS countryName FROM hotel_cities LEFT JOIN hotel_countries ON hotel_cities.country_code = hotel_countries.country_code WHERE hotel_cities.city_code=${cityCode} GROUP BY hotel_cities.city_code`,
         { type: sequelize.QueryTypes.SELECT }
       );
+      console.log(`✅ City data fetched: ${result.length} records`);
       return result;
     } catch (error) {
       throw Error(error);

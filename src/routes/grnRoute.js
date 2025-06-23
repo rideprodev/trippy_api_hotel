@@ -4,15 +4,18 @@ import middlewares from "../middlewares";
 import validations from "../validations";
 
 const { grnController } = controllers;
-const { authMiddleware, validateMiddleware, hotelMiddleware, cacheMiddleware } =
+const { authMiddleware, validateMiddleware, hotelMiddleware, cacheMiddleware, performanceMiddleware, timeoutMiddleware } =
   middlewares;
 const { grnValidator } = validations;
 
 const router = Router();
+
 // ------------ Backend Apis Start -----------------------
 // full search
 router.post(
   "/search/v2",
+  timeoutMiddleware.timeoutMiddleware(120000), // 2-minute timeout only for search/v2
+  performanceMiddleware.performanceMiddleware,
   cacheMiddleware.cacheMiddleware,
   validateMiddleware({
     schema: grnValidator.search,
@@ -24,6 +27,7 @@ router.post(
 // short search
 router.post(
   "/search/v1",
+  performanceMiddleware.performanceMiddleware,
   cacheMiddleware.cacheMiddleware,
   validateMiddleware({
     schema: grnValidator.search,

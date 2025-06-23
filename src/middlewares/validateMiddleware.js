@@ -2,6 +2,7 @@ import utility from "../services/utility";
 
 const validateRequest = (options) => async (req, res, next) => {
   try {
+    req.startTiming('validation');
     let objIn = req.body;
     if (options.type === "query") {
       objIn = req.query;
@@ -11,6 +12,7 @@ const validateRequest = (options) => async (req, res, next) => {
       ...req.body,
     });
 
+    req.endTiming('validation');
     next();
   } catch (error) {
     let errors = "";

@@ -14,9 +14,12 @@ export default {
    */
   async search(req, res, next) {
     try {
+      req.startTiming('search');
       const bodyData = req.body;
       const hotelCodes = req.hotelCode;
       let result = [];
+      
+      req.startTiming('hotelCodeProcessing');
       if (bodyData.hotelCode && bodyData.hotelCode !== "") {
         result.push(await grnRepository.search(req));
       } else {
@@ -35,7 +38,12 @@ export default {
           chaunkArray.push(hotelCodes.slice(start, end));
           start = end;
         }
-        let searchPromise = chaunkArray.map(async (element) => {
+        req.endTiming('hotelCodeProcessing');
+        
+        req.startTiming('parallelSearch');
+        console.log(`🔄 Processing ${chaunkArray.length} chunks in parallel...`);
+        let searchPromise = chaunkArray.map(async (element, index) => {
+          console.log(`📦 Processing chunk ${index + 1}/${chaunkArray.length} with ${element.length} hotels`);
           req.body.hotelCode = element;
           return await grnRepository.search(req);
         });
@@ -44,16 +52,23 @@ export default {
         } catch (err) {
           console.log(err);
         }
+        req.endTiming('parallelSearch');
       }
+      
+      req.startTiming('responseProcessing');
       const response = result.filter((x) => x.status === 200);
+      // console.log(response,"datas")
       if (response.length === 0) {
         utility.getError(res, "No data Found!");
       } else {
+        req.startTiming('dataCustomization');
         let dataCustomise = response.map(async (element) => {
           return await hotelHelper.setCountryCityName(req, element.data);
         });
         const _response = await Promise.all(dataCustomise);
+        req.endTiming('dataCustomization');
 
+        req.startTiming('hotelCombination');
         let _combineHotelResponse = [];
         for (let i = 0; i < _response.length; i++) {
           const ele = _response[i];
@@ -62,41 +77,10 @@ export default {
 
         const finalResponseForSent = _response[0];
         finalResponseForSent.hotels = _combineHotelResponse;
-
-        // const chaunkArrayResponse = [],
-        //   responseCounts = 2,
-        //   _response = [];
-        // const arrayLenghtResponse = response.length;
-        // const responseNumberCount = arrayLenghtResponse / responseCounts;
-        // const responseFloatCount = responseNumberCount % 1 === 0;
-        // const responseLoopCount =
-        //   responseFloatCount === false
-        //     ? parseInt(responseNumberCount + 1)
-        //     : parseInt(responseNumberCount);
-        // let responseStart = 0;
-        // for (let index = 0; index < responseLoopCount; index++) {
-        //   let resposeEnd = responseStart + responseCounts;
-        //   chaunkArrayResponse.push(response.slice(responseStart, resposeEnd));
-        //   responseStart = resposeEnd;
-        // }
-        // let _combineHotelResponse = [];
-        // for (let index = 0; index < chaunkArrayResponse.length; index++) {
-        //   const elementChaunkArray = chaunkArrayResponse[index];
-        //   let dataCustomise = elementChaunkArray.map(async (element) => {
-        //     return await hotelHelper.setCountryCityName(req, element.data);
-        //   });
-        //   let _response = await Promise.all(dataCustomise);
-        //   for (let i = 0; i < _response.length; i++) {
-        //     const ele = _response[i];
-        //     _combineHotelResponse = [..._combineHotelResponse, ...ele.hotels];
-        //   }
-        // }
-
-        // const finalResponseForSent = _response;
-        // finalResponseForSent.checkin = bodyData.checkIn;
-        // finalResponseForSent.checkout = bodyData.checkOut;
-        // finalResponseForSent.hotels = _combineHotelResponse;
-
+        req.endTiming('hotelCombination');
+        if(finalResponseForSent?.errors && finalResponseForSent?.errors?.length > 0){
+          utility.getError(res, finalResponseForSent?.errors[0]?.messages[0]);
+        }else{
         utility.getResponse(
           res,
           {
@@ -106,12 +90,17 @@ export default {
           "RETRIVED",
           200
         );
+      }
+        req.startTiming('biddingCheck');
         if (!bodyData.cutOffTime) {
           hotelHelper.checkBiddingforBookingOnDate(req, {
             hotels: req.orignalResponse,
           });
         }
+        req.endTiming('biddingCheck');
       }
+      req.endTiming('responseProcessing');
+      req.endTiming('search');
     } catch (error) {
       next(error);
     }

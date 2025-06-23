@@ -9,6 +9,7 @@ const { bookingRepository, customRepository, hotelRepository } = repositories;
 export default {
   async checkBiddingforBookingOnDate(req, data) {
     try {
+      req.startTiming('checkBiddingforBookingOnDate');
       let AllBookingGroupData = [];
       delete req.user;
       const bodyData = req.body;
@@ -21,14 +22,18 @@ export default {
         totalChildren: bodyData.totalChildren,
         currency: bodyData.currency,
       };
-      // console.log(searchFilter);
+      
+      req.startTiming('bookingGroupFetch');
       // fetch all booking and its bidding from the database on where
       const AllGroupDataFromSchedular =
         await bookingRepository.getAllBookingForScdulerBidding(
           [],
           searchFilter
         );
+      req.endTiming('bookingGroupFetch');
+      
       if (AllGroupDataFromSchedular.length > 0) {
+        req.startTiming('ageMatching');
         const agesCheckedData = [];
         for (let index = 0; index < AllGroupDataFromSchedular.length; index++) {
           const elementAges = AllGroupDataFromSchedular[index];
@@ -60,41 +65,50 @@ export default {
           }
           AllBookingGroupData = agesCheckedData;
         }
-      }
-      console.log(AllGroupDataFromSchedular.length, AllBookingGroupData.length);
-      try {
-        if (AllBookingGroupData.length > 0) {
-          let resultResponse = [];
-          const chaunkArray = [],
-            counts = 10;
-          const arrayLenght = AllBookingGroupData.length;
-          const numberCount = arrayLenght / counts;
-          const floatCount = numberCount % 1 === 0;
-          const loopCount =
-            floatCount === false
-              ? parseInt(numberCount + 1)
-              : parseInt(numberCount);
-          let start = 0;
-          for (let index = 0; index < loopCount; index++) {
-            let end = start + counts;
-            chaunkArray.push(AllBookingGroupData.slice(start, end));
-            start = end;
+        req.endTiming('ageMatching');
+        
+        console.log(AllGroupDataFromSchedular.length, AllBookingGroupData.length);
+        try {
+          if (AllBookingGroupData.length > 0) {
+            req.startTiming('biddingProcessing');
+            let resultResponse = [];
+            const chaunkArray = [],
+              counts = 10;
+            const arrayLenght = AllBookingGroupData.length;
+            const numberCount = arrayLenght / counts;
+            const floatCount = numberCount % 1 === 0;
+            const loopCount =
+              floatCount === false
+                ? parseInt(numberCount + 1)
+                : parseInt(numberCount);
+            let start = 0;
+            for (let index = 0; index < loopCount; index++) {
+              let end = start + counts;
+              chaunkArray.push(AllBookingGroupData.slice(start, end));
+              start = end;
+            }
+            const chunkBookingMap = chaunkArray.map(
+              async (x) => await this.fetchLatestPriceFromSearchData(x, data)
+            );
+            try {
+              resultResponse = await Promise.all(chunkBookingMap);
+            } catch (err) {
+              console.log(err);
+            }
+            req.endTiming('biddingProcessing');
+            // console.log("resultResponse", resultResponse);
+            req.endTiming('checkBiddingforBookingOnDate');
+            return resultResponse;
+          } else {
+            req.endTiming('checkBiddingforBookingOnDate');
+            return "No Booking-Bidding Found";
           }
-          const chunkBookingMap = chaunkArray.map(
-            async (x) => await this.fetchLatestPriceFromSearchData(x, data)
-          );
-          try {
-            resultResponse = await Promise.all(chunkBookingMap);
-          } catch (err) {
-            console.log(err);
-          }
-          // console.log("resultResponse", resultResponse);
-          return resultResponse;
-        } else {
-          return "No Booking-Bidding Found";
+        } catch (err) {
+          console.log(err);
         }
-      } catch (err) {
-        console.log(err);
+      } else {
+        req.endTiming('checkBiddingforBookingOnDate');
+        return "No Booking-Bidding Found";
       }
     } catch (err) {
       console.log(err);
@@ -162,6 +176,9 @@ export default {
 
   async setCountryCityName(req, data) {
     try {
+      req.startTiming('setCountryCityName');
+      
+      req.startTiming('rateFiltering');
       for (let index = 0; index < data?.hotels?.length; index++) {
         const element = data?.hotels?.[index];
         const rates = [];
@@ -189,18 +206,22 @@ export default {
         }
         element.rates = rates;
       }
+      req.endTiming('rateFiltering');
 
       data.hotels = data?.hotels?.filter((x) => x.rates.length > 0);
 
       const bodyData = req.body;
       const response = [],
         orignalResponse = [];
-      const cityData = await customRepository.fetchCityData(bodyData.cityCode);
+      const cityData = await customRepository.fetchCityData(bodyData.cityCode);      
+      req.startTiming('hotelDataProcessing');
       for (let i = 0; i < data?.hotels?.length; i++) {
         const x = data.hotels[i];
+        
         const hotelData = await hotelRepository.fetchOneWithoutCount({
           hotelCode: x.hotel_code,
         });
+        
         orignalResponse.push({
           ...cityData[0],
           ...x,
@@ -220,31 +241,36 @@ export default {
           hotel_code: x.hotel_code,
           images: x.images,
           name: x.name,
-          rates: x.rates.map((y) => {
-            const resultData = {
-              non_refundable: y.non_refundable,
-              boarding_details: y.boarding_details || [],
-              other_inclusions: y.other_inclusions || [],
-              cancellation_policy: y?.cancellation_policy
-                ? y.cancellation_policy
-                : {},
-              currency: y.currency,
-              price: y.price,
-              rooms:
-                y.rooms.length > 0
-                  ? y.rooms.map((room) => {
-                      return { room_type: room.room_type };
-                    })
-                  : [],
-            };
-
-            return resultData;
+          rates: x.rates.filter((y, i) => {
+            if(i === 0){
+              const resultData = {
+                non_refundable: y.non_refundable,
+                boarding_details: y.boarding_details || [],
+                other_inclusions: y.other_inclusions || [],
+                cancellation_policy: y?.cancellation_policy
+                  ? y.cancellation_policy
+                  : {},
+                currency: y.currency,
+                price: y.price,
+                rooms:
+                  y.rooms.length > 0
+                    ? y.rooms.map((room) => {
+                        return { room_type: room.room_type };
+                      })
+                    : [],
+              };
+              return resultData;
+            }
           }),
+          
         });
       }
+      req.endTiming('hotelDataProcessing');
+      
       await delete data.search_id;
       data.hotels = response;
       req.orignalResponse = orignalResponse;
+      req.endTiming('setCountryCityName');
       return data;
     } catch (error) {
       console.log(error);

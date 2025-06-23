@@ -17,11 +17,29 @@ export default {
             "api-key": Token,
           },
         };
-        // console.log(_request, "_request");
+        
+        console.log(`🌐 Making HTTP request to: ${requestApiBase.url}`);
+        console.log(`📦 Request data size: ${JSON.stringify(_requestData).length} bytes`);
+        
+        const startTime = Date.now();
         const { status, data } = await axios(_request);
+        const endTime = Date.now();
+        const responseTime = endTime - startTime;
+        
+        console.log(`✅ HTTP Response: ${status} - ${responseTime}ms`);
+        console.log(`📦 Response data size: ${JSON.stringify(data).length} bytes`);
+        
+        // Performance warnings
+        if (responseTime > 30000) {
+          console.log(`⚠️ SLOW API: Response time > 30s (${responseTime}ms)`);
+        } else if (responseTime > 15000) {
+          console.log(`⚠️ SLOW API: Response time > 15s (${responseTime}ms)`);
+        }
+        
         return {
           status: status,
           data: data,
+          responseTime: responseTime
         };
       } else {
         return {
@@ -30,12 +48,15 @@ export default {
         };
       }
     } catch (error) {
+      console.log(`❌ HTTP Error: ${error.response?.status || 'Network Error'}`);
+      console.log(`⏱️ Error after: ${Date.now() - startTime}ms`);
+      
       return {
-        status: error.response.status,
+        status: error.response?.status || 500,
         message:
-          error.response.data.errors && error.response.data.errors.length > 0
-            ? `${error.response.data.errors[0].code} : ${error.response.data.errors[0].messages[0]}`
-            : error.response.data,
+          error.response?.data?.errors && error.response?.data?.errors.length > 0
+            ? `${error.response?.data?.errors[0].code} : ${error.response?.data?.errors[0].messages[0]}`
+            : error.response?.data || error.message,
       };
     }
   },
