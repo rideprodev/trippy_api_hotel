@@ -79,6 +79,14 @@ module.exports = (sequelize, DataTypes) => {
           fields: ["hotel_name"],
         },
         {
+          type: "FULLTEXT",
+          fields: ["address"],
+        },
+        {
+          type: "FULLTEXT",
+          fields: ["hotel_name", "address"],
+        },
+        {
           unique: false,
           fields: ["accommodation_type_sub_name"],
         },

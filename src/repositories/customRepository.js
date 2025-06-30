@@ -99,8 +99,33 @@ export default {
   },
 
   /**
-   * Get All Places Where (Hotels) - Enhanced with Fuzzy Search
-   * @param {object} req
+   * Get All Places Where (Hotels) - Enhanced with Fuzzy Search for Hotel Name and Address
+   * 
+   * This function performs intelligent hotel search with the following capabilities:
+   * - Searches both hotel name and address fields
+   * - Uses fuzzy matching with Fuse.js for typo tolerance
+   * - Supports multi-word searches with AND logic
+   * - Weighted scoring (hotel name 70%, address 30%)
+   * - Removes dots and handles special characters
+   * - Returns up to 30 relevant results sorted by relevance
+   * 
+   * @param {object} req - Express request object
+   * @param {string} req.query.name - Search term (hotel name or address phrase)
+   * @param {object} res - Express response object (unused but kept for compatibility)
+   * @returns {Promise<object>} Object containing hotels array with hotel details
+   * @throws {Error} If database query fails or search term is invalid
+   * 
+   * @example
+   * // Search for hotel by name
+   * await getAllPlacesHotel({ query: { name: "Marriott" } })
+   * 
+   * @example
+   * // Search for hotel by address
+   * await getAllPlacesHotel({ query: { name: "5th Avenue New York" } })
+   * 
+   * @example
+   * // Multi-word search
+   * await getAllPlacesHotel({ query: { name: "Grand Hotel Dubai" } })
    */
   async getAllPlacesHotel(req, res) {
     try {
@@ -120,15 +145,24 @@ export default {
       // For multi-word searches, use AND logic to find hotels containing all words
       let whereCondition;
       if (searchWords.length > 1) {
-        // Build AND conditions for each word
+        // Build AND conditions for each word to match either hotel name or address
         const andConditions = searchWords.map(word => ({
-          hotelName: {
-            [Op.like]: `%${word}%`
-          }
+          [Op.or]: [
+            {
+              hotelName: {
+                [Op.like]: `%${word}%`
+              }
+            },
+            {
+              address: {
+                [Op.like]: `%${word}%`
+              }
+            }
+          ]
         }));
         whereCondition = { [Op.and]: andConditions };
       } else {
-        // Single word or phrase search
+        // Single word or phrase search across hotel name and address
         whereCondition = {
           [Op.or]: [
             {
@@ -137,8 +171,19 @@ export default {
               }
             },
             {
+              address: {
+                [Op.like]: `%${searchTerm}%`
+              }
+            },
+            {
               $col: Sequelize.where(
                 Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+                { [Op.like]: `%${searchTerm}%` }
+              )
+            },
+            {
+              $col: Sequelize.where(
+                Sequelize.fn("replace", Sequelize.col("address"), ".", ""),
                 { [Op.like]: `%${searchTerm}%` }
               )
             }
@@ -149,7 +194,7 @@ export default {
       const potentialHotels = await Hotel.findAll({
         where: whereCondition,
         group: ["hotelCode"],
-        attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
+        attributes: ["hotelCode", "hotelName", "address", "cityCode", "countryCode"],
         include: [
           {
             attributes: ["cityName"],
@@ -165,9 +210,18 @@ export default {
         limit: 200, // Get more potential matches for fuzzy search
       });
 
-      // Configure Fuse.js for fuzzy search
+      // Configure Fuse.js for fuzzy search with weighted keys
       const fuseOptions = {
-        keys: ['hotelName'],
+        keys: [
+          {
+            name: 'hotelName',
+            weight: 0.7 // Higher weight for hotel name matches
+          },
+          {
+            name: 'address',
+            weight: 0.3 // Lower weight for address matches
+          }
+        ],
         threshold: 0.4, // Lower = more strict, higher = more fuzzy
         distance: 100,
         maxPatternLength: 32,
@@ -218,6 +272,7 @@ export default {
         return {
           hotelCode: x.hotelCode,
           hotelName: x.hotelName,
+          address: x.address || null,
           cityCode: x.cityCode,
           cityName: x?.cityData?.cityName ? x.cityData.cityName : null,
           countryName: x?.countryData?.countryName
