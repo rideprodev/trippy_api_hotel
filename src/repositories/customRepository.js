@@ -99,24 +99,55 @@ export default {
   },
 
   /**
-   * Get All Plcaes Where
+   * Get All Places Where (Hotels) - Enhanced with Fuzzy Search
    * @param {object} req
    */
   async getAllPlacesHotel(req, res) {
     try {
       const { name } = req.query;
-      const whereHotel = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
-          {
-            [Op.like]: `%${name.replace(/\./g, "")}%`,
-          }
-        ),
-      };
+      
+      // Input validation
+      if (!name || typeof name !== 'string' || name.trim().length < 2) {
+        return { hotels: [] };
+      }
+      
       const _response = {};
 
-      const hotels = await Hotel.findAll({
-        where: whereHotel,
+      // First get potential matches using database LIKE search
+      const searchTerm = name.replace(/\./g, "").trim();
+      const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 1);
+      
+      // For multi-word searches, use AND logic to find hotels containing all words
+      let whereCondition;
+      if (searchWords.length > 1) {
+        // Build AND conditions for each word
+        const andConditions = searchWords.map(word => ({
+          hotelName: {
+            [Op.like]: `%${word}%`
+          }
+        }));
+        whereCondition = { [Op.and]: andConditions };
+      } else {
+        // Single word or phrase search
+        whereCondition = {
+          [Op.or]: [
+            {
+              hotelName: {
+                [Op.like]: `%${searchTerm}%`
+              }
+            },
+            {
+              $col: Sequelize.where(
+                Sequelize.fn("replace", Sequelize.col("hotel_name"), ".", ""),
+                { [Op.like]: `%${searchTerm}%` }
+              )
+            }
+          ]
+        };
+      }
+      
+      const potentialHotels = await Hotel.findAll({
+        where: whereCondition,
         group: ["hotelCode"],
         attributes: ["hotelCode", "hotelName", "cityCode", "countryCode"],
         include: [
@@ -131,10 +162,59 @@ export default {
             as: "countryData",
           },
         ],
-        limit: 30,
+        limit: 200, // Get more potential matches for fuzzy search
       });
 
-      _response.hotels = hotels.map((x) => {
+      // Configure Fuse.js for fuzzy search
+      const fuseOptions = {
+        keys: ['hotelName'],
+        threshold: 0.4, // Lower = more strict, higher = more fuzzy
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 2,
+        includeScore: true,
+        includeMatches: true,
+        ignoreLocation: true, // Allow matches anywhere in the string
+        findAllMatches: true // Find all matching words
+      };
+
+      // If we have potential matches, apply fuzzy search for better ranking
+      let searchResults;
+      if (potentialHotels.length > 0) {
+        const fuse = new Fuse(potentialHotels, fuseOptions);
+        const fuseResults = fuse.search(searchTerm);
+        
+        // If fuzzy search returns results with good scores, use them
+        if (fuseResults.length > 0) {
+          // For multi-word searches, be more permissive with scoring
+          const scoreThreshold = searchWords.length > 1 ? 0.7 : 0.6;
+          searchResults = fuseResults.filter(result => result.score <= scoreThreshold);
+          
+          // If no good fuzzy matches, fall back to database results
+          if (searchResults.length === 0) {
+            searchResults = potentialHotels.map((item, index) => ({
+              item: item,
+              score: 0.1 // Low score for exact matches
+            }));
+          }
+        } else {
+          // Convert database results to Fuse.js format for consistent handling
+          searchResults = potentialHotels.map((item, index) => ({
+            item: item,
+            score: 0.1 // Low score for exact matches
+          }));
+        }
+      } else {
+        searchResults = [];
+      }
+
+      // Sort by relevance score and limit results
+      const sortedResults = searchResults
+        .sort((a, b) => a.score - b.score)
+        .slice(0, 30)
+        .map(result => result.item);
+
+      _response.hotels = sortedResults.map((x) => {
         return {
           hotelCode: x.hotelCode,
           hotelName: x.hotelName,
@@ -145,6 +225,7 @@ export default {
             : null,
         };
       });
+      
       return _response;
     } catch (error) {
       throw Error(error);
@@ -152,22 +233,38 @@ export default {
   },
 
   /**
-   * Get All Plcaes Where
+   * Get All Places Where (Cities) - Enhanced with Fuzzy Search
    * @param {object} req
    */
   async getAllPlacesCity(req, res) {
     try {
       const { name } = req.query;
-      const whereCity = {
-          $col: Sequelize.where(
-            Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
-            { [Op.like]: `%${name.replace(/\./g, "")}%` }
-          ),
-        },
-        _response = {};
+      
+      // Input validation
+      if (!name || typeof name !== 'string' || name.trim().length < 2) {
+        return { city: [] };
+      }
+      
+      const _response = {};
 
-      const city = await HotelCity.findAll({
-        where: whereCity,
+      // First get potential matches using database LIKE search
+      const searchTerm = name.replace(/\./g, "").trim();
+      const potentialCities = await HotelCity.findAll({
+        where: {
+          [Op.or]: [
+            {
+              cityName: {
+                [Op.like]: `%${searchTerm}%`
+              }
+            },
+            {
+              $col: Sequelize.where(
+                Sequelize.fn("replace", Sequelize.col("city_name"), ".", ""),
+                { [Op.like]: `%${searchTerm}%` }
+              )
+            }
+          ]
+        },
         group: ["cityCode"],
         include: {
           attributes: ["countryName"],
@@ -175,11 +272,87 @@ export default {
           as: "countryData",
         },
         attributes: ["cityCode", "cityName", "countryCode"],
-        limit: 20,
+        limit: 200, // Get more potential matches for fuzzy search
         order: [[sequelize.fn("length", sequelize.col("cityName")), "ASC"]],
       });
 
-      _response.city = city.map((x) => {
+      // Configure Fuse.js for fuzzy search on cities
+      const fuseOptions = {
+        keys: ['cityName'],
+        threshold: 0.3, // Slightly more strict for city names
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 2,
+        includeScore: true,
+        includeMatches: true
+      };
+
+      // If we have potential matches, apply fuzzy search for better ranking
+      let searchResults;
+      if (potentialCities.length > 0) {
+        const fuse = new Fuse(potentialCities, fuseOptions);
+        const fuseResults = fuse.search(searchTerm);
+        
+        // If fuzzy search returns results with good scores, use them
+        if (fuseResults.length > 0) {
+          // Filter out poor matches (score > 0.5 means poor match for cities)
+          searchResults = fuseResults.filter(result => result.score <= 0.5);
+          
+          // If no good fuzzy matches, fall back to database results
+          if (searchResults.length === 0) {
+            searchResults = potentialCities.map((item, index) => ({
+              item: item,
+              score: 0.1 // Low score for exact matches
+            }));
+          }
+        } else {
+          // Convert database results to Fuse.js format for consistent handling
+          searchResults = potentialCities.map((item, index) => ({
+            item: item,
+            score: 0.1 // Low score for exact matches
+          }));
+        }
+      } else {
+        // If no database matches, try a broader search for fuzzy matching
+        console.log(`No direct matches for '${searchTerm}', trying broader search...`);
+        const broaderCities = await HotelCity.findAll({
+          group: ["cityCode"],
+          include: {
+            attributes: ["countryName"],
+            model: HotelCountry,
+            as: "countryData",
+          },
+          attributes: ["cityCode", "cityName", "countryCode"],
+          limit: 2000, // Get more cities for fuzzy matching
+          order: [["cityCode", "ASC"]],
+        });
+        
+        if (broaderCities.length > 0) {
+          const fuse = new Fuse(broaderCities, {
+            ...fuseOptions,
+            threshold: 0.4, // More permissive for broader search
+          });
+          const fuseResults = fuse.search(searchTerm);
+          searchResults = fuseResults;
+        } else {
+          searchResults = [];
+        }
+      }
+
+      // Sort by relevance score and city name length
+      const sortedResults = searchResults
+        .sort((a, b) => {
+          // Primary sort: relevance score (lower is better)
+          if (Math.abs(a.score - b.score) > 0.01) {
+            return a.score - b.score;
+          }
+          // Secondary sort: shorter city names first (same relevance)
+          return (a.item.cityName?.length || 0) - (b.item.cityName?.length || 0);
+        })
+        .slice(0, 20)
+        .map(result => result.item);
+
+      _response.city = sortedResults.map((x) => {
         return {
           cityCode: x.cityCode,
           cityName: x?.cityName ? x.cityName : null,
@@ -188,6 +361,7 @@ export default {
             : null,
         };
       });
+      
       return _response;
     } catch (error) {
       throw Error(error);
@@ -195,24 +369,38 @@ export default {
   },
 
   /**
-   * Get All Plcaes Where
+   * Get All Places Where (Locations) - Enhanced with Fuzzy Search
    * @param {object} req
    */
   async getAllPlacesLocation(req, res) {
     try {
       const { name } = req.query;
-
-      const whereLocation = {
-        $col: Sequelize.where(
-          Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
-          {
-            [Op.like]: `%${name.replace(/\./g, "")}%`,
-          }
-        ),
-      };
+      
+      // Input validation
+      if (!name || typeof name !== 'string' || name.trim().length < 2) {
+        return { location: [] };
+      }
+      
       const _response = {};
-      const location = await HotelLocation.findAll({
-        where: whereLocation,
+
+      // First get potential matches using database LIKE search
+      const searchTerm = name.replace(/\./g, "").trim();
+      const potentialLocations = await HotelLocation.findAll({
+        where: {
+          [Op.or]: [
+            {
+              locationName: {
+                [Op.like]: `%${searchTerm}%`
+              }
+            },
+            {
+              $col: Sequelize.where(
+                Sequelize.fn("replace", Sequelize.col("location_name"), ".", ""),
+                { [Op.like]: `%${searchTerm}%` }
+              )
+            }
+          ]
+        },
         attributes: ["locationCode", "locationName", "countryCode"],
         group: ["locationCode"],
         include: [
@@ -232,30 +420,85 @@ export default {
             },
           },
         ],
-        limit: 15,
+        limit: 200, // Get more potential matches for fuzzy search
         order: [[sequelize.fn("length", sequelize.col("locationName")), "ASC"]],
       });
-      _response.location = location
-        .filter((x) => x.locationMapData)
-        .map((x) => {
-          return {
-            locationCode: x.locationCode,
-            locationName: x.locationName,
-            cityCode: x?.locationMapData?.cityCode
-              ? x.locationMapData.cityCode
-              : null,
-            cityName: x?.locationMapData?.cityData?.cityName
-              ? x.locationMapData.cityData.cityName
-              : null,
-            countryName: x?.locationMapData?.cityData?.countryData?.countryName
-              ? x.locationMapData.cityData.countryData.countryName
-              : null,
-          };
-        });
+
+      // Filter locations that have mapping data
+      const validLocations = potentialLocations.filter((x) => x.locationMapData);
+
+      // Configure Fuse.js for fuzzy search on locations
+      const fuseOptions = {
+        keys: ['locationName'],
+        threshold: 0.3, // Slightly more strict for location names
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 2,
+        includeScore: true,
+        includeMatches: true
+      };
+
+      // If we have potential matches, apply fuzzy search for better ranking
+      let searchResults;
+      if (validLocations.length > 0) {
+        const fuse = new Fuse(validLocations, fuseOptions);
+        const fuseResults = fuse.search(searchTerm);
+        
+        // If fuzzy search returns results with good scores, use them
+        if (fuseResults.length > 0) {
+          // Filter out poor matches (score > 0.5 means poor match for locations)
+          searchResults = fuseResults.filter(result => result.score <= 0.5);
+          
+          // If no good fuzzy matches, fall back to database results
+          if (searchResults.length === 0) {
+            searchResults = validLocations.map((item, index) => ({
+              item: item,
+              score: 0.1 // Low score for exact matches
+            }));
+          }
+        } else {
+          // Convert database results to Fuse.js format for consistent handling
+          searchResults = validLocations.map((item, index) => ({
+            item: item,
+            score: 0.1 // Low score for exact matches
+          }));
+        }
+      } else {
+        searchResults = [];
+      }
+
+      // Sort by relevance score and location name length
+      const sortedResults = searchResults
+        .sort((a, b) => {
+          // Primary sort: relevance score (lower is better)
+          if (Math.abs(a.score - b.score) > 0.01) {
+            return a.score - b.score;
+          }
+          // Secondary sort: shorter location names first (same relevance)
+          return (a.item.locationName?.length || 0) - (b.item.locationName?.length || 0);
+        })
+        .slice(0, 15)
+        .map(result => result.item);
+
+      _response.location = sortedResults.map((x) => {
+        return {
+          locationCode: x.locationCode,
+          locationName: x.locationName,
+          cityCode: x?.locationMapData?.cityCode
+            ? x.locationMapData.cityCode
+            : null,
+          cityName: x?.locationMapData?.cityData?.cityName
+            ? x.locationMapData.cityData.cityName
+            : null,
+          countryName: x?.locationMapData?.cityData?.countryData?.countryName
+            ? x.locationMapData.cityData.countryData.countryName
+            : null,
+        };
+      });
 
       return _response;
     } catch (error) {
-      throw Error(error); //
+      throw Error(error);
     }
   },
 
