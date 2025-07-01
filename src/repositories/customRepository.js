@@ -142,29 +142,78 @@ export default {
       const searchTerm = name.replace(/\./g, "").trim();
       const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 1);
       
-      // For multi-word searches, use AND logic to find hotels containing all words
+      // Build search conditions with word boundary prioritization
       let whereCondition;
       if (searchWords.length > 1) {
-        // Build AND conditions for each word to match either hotel name or address
+        // Build AND conditions for each word with simple but effective matching
         const andConditions = searchWords.map(word => ({
           [Op.or]: [
+            // Exact word matches with space boundaries (highest priority)
             {
               hotelName: {
-                [Op.like]: `%${word}%`
+                [Op.like]: `% ${word} %`
+              }
+            },
+            {
+              hotelName: {
+                [Op.like]: `${word} %`
+              }
+            },
+            {
+              hotelName: {
+                [Op.like]: `% ${word}`
               }
             },
             {
               address: {
-                [Op.like]: `%${word}%`
+                [Op.like]: `% ${word} %`
               }
-            }
+            },
+            {
+              address: {
+                [Op.like]: `${word} %`
+              }
+            },
+            {
+              address: {
+                [Op.like]: `% ${word}`
+              }
+            },
+            // Fallback to case-insensitive substring matches
+            Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('hotel_name')),
+              { [Op.like]: `%${word.toLowerCase()}%` }
+            ),
+            Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('address')),
+              { [Op.like]: `%${word.toLowerCase()}%` }
+            )
           ]
         }));
         whereCondition = { [Op.and]: andConditions };
       } else {
-        // Single word or phrase search across hotel name and address
+        // Single word search with word boundary prioritization
         whereCondition = {
           [Op.or]: [
+            // Exact word matches (highest priority)
+            Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('hotel_name')),
+              { [Op.regexp]: `\\b${searchTerm.toLowerCase()}\\b` }
+            ),
+            Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('address')),
+              { [Op.regexp]: `\\b${searchTerm.toLowerCase()}\\b` }
+            ),
+            // Word-start matches (medium priority)
+            Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('hotel_name')),
+              { [Op.regexp]: `\\b${searchTerm.toLowerCase()}` }
+            ),
+            Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('address')),
+              { [Op.regexp]: `\\b${searchTerm.toLowerCase()}` }
+            ),
+            // Substring matches (lowest priority - fallback)
             {
               hotelName: {
                 [Op.like]: `%${searchTerm}%`
@@ -210,7 +259,7 @@ export default {
         limit: 200, // Get more potential matches for fuzzy search
       });
 
-      // Configure Fuse.js for fuzzy search with weighted keys
+      // Configure Fuse.js for fuzzy search with word boundary prioritization
       const fuseOptions = {
         keys: [
           {
@@ -222,14 +271,26 @@ export default {
             weight: 0.3 // Lower weight for address matches
           }
         ],
-        threshold: 0.4, // Lower = more strict, higher = more fuzzy
-        distance: 100,
+        threshold: 0.3, // More strict to prioritize exact matches
+        distance: 50,   // Shorter distance for better word boundary matching
         maxPatternLength: 32,
         minMatchCharLength: 2,
         includeScore: true,
         includeMatches: true,
-        ignoreLocation: true, // Allow matches anywhere in the string
-        findAllMatches: true // Find all matching words
+        ignoreLocation: false, // Consider location for word boundary matching
+        findAllMatches: true,  // Find all matching words
+        useExtendedSearch: true, // Enable extended search for word boundary patterns
+        getFn: (obj, path) => {
+          // Custom getter that preprocesses text for better word matching
+          const value = obj[path];
+          if (!value) return '';
+          
+          // Normalize text for better matching
+          return value.toLowerCase()
+            .replace(/[^\w\s]/g, ' ') // Replace non-alphanumeric with spaces
+            .replace(/\s+/g, ' ')     // Normalize whitespace
+            .trim();
+        }
       };
 
       // If we have potential matches, apply fuzzy search for better ranking
@@ -262,8 +323,53 @@ export default {
         searchResults = [];
       }
 
+      // Custom scoring function to boost word boundary matches
+      const scoreResults = (results) => {
+        return results.map(result => {
+          let scoreBoost = 0;
+          const item = result.item;
+          const searchLower = searchTerm.toLowerCase();
+          const nameLower = (item.hotelName || '').toLowerCase();
+          const addressLower = (item.address || '').toLowerCase();
+          
+          // Boost for exact word matches
+          const nameWords = nameLower.split(/\s+/);
+          const addressWords = addressLower.split(/\s+/);
+          const searchWords = searchLower.split(/\s+/);
+          
+          searchWords.forEach(searchWord => {
+            // Exact word match in name (highest boost)
+            if (nameWords.includes(searchWord)) {
+              scoreBoost += 0.3;
+            }
+            // Exact word match in address
+            if (addressWords.includes(searchWord)) {
+              scoreBoost += 0.15;
+            }
+            // Word starts with search term
+            if (nameWords.some(word => word.startsWith(searchWord))) {
+              scoreBoost += 0.1;
+            }
+            if (addressWords.some(word => word.startsWith(searchWord))) {
+              scoreBoost += 0.05;
+            }
+          });
+          
+          // Apply boost by reducing the score (lower scores are better in Fuse.js)
+          const adjustedScore = Math.max(0, (result.score || 0.5) - scoreBoost);
+          
+          return {
+            ...result,
+            score: adjustedScore,
+            originalScore: result.score,
+            boost: scoreBoost
+          };
+        });
+      };
+
       // Sort by relevance score and limit results
-      const sortedResults = searchResults
+      const scoredResults = scoreResults(searchResults);
+      const sortedResults = scoredResults
         .sort((a, b) => a.score - b.score)
         .slice(0, 30)
         .map(result => result.item);
